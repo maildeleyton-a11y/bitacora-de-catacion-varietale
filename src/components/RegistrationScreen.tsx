@@ -301,7 +301,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
             </span>
           )}
           <span className="text-xs uppercase font-bold tracking-wider text-[#01374C] bg-[#EBFBFA] px-3 py-1 rounded-full border border-[#00D9B4]/30">
-            Paso 1 de 2: Registro
+            Paso 1/2
           </span>
         </div>
       </div>

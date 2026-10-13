@@ -235,7 +235,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
             </span>
           )}
           <span className="text-xs uppercase font-extrabold tracking-wider text-[#01374C] bg-[#EBFBFA] px-3 py-1 rounded-full border border-[#00D9B4]/30">
-            Paso 2 de 2: Sensorial
+            Paso 2/2
           </span>
         </div>
       </div>
