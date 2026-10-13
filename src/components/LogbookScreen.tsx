@@ -13,6 +13,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   BookOpen,
   ArrowLeft,
+  ArrowRight,
   Plus,
   GitCompare,
   Compass,
