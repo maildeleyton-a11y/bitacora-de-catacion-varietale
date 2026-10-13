@@ -17,14 +17,5 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
-    build: {
-      rollupOptions: {
-        output: {
-          entryFileNames: 'assets/[name].js',
-          chunkFileNames: 'assets/[name].js',
-          assetFileNames: 'assets/[name].[ext]',
-        },
-      },
-    },
   };
 });
