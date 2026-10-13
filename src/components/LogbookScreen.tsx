@@ -31,9 +31,9 @@ import {
   Edit3,
 } from "lucide-react";
 import { TastingRecord, SensorySpiderProfile } from "../types";
-import { RadarChart } from "./RadarChart";
+import { RadarChart, RADAR_AXES } from "./RadarChart";
 import { BrewMethodIcon } from "./BrewMethodIcons";
-import { BREW_METHODS } from "../data/coffeeData";
+import { BREW_METHODS, computeSensorySpiderProfile } from "../data/coffeeData";
 import { BrandFooter } from "./BrandFooter";
 
 interface LogbookScreenProps {
@@ -88,25 +88,39 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
     return candidates;
   }, [tastings]);
 
-  // Compute cumulative exploration profile
+  // Compute cumulative exploration profile from all tastings
   const explorationProfile: SensorySpiderProfile = useMemo(() => {
     if (tastings.length === 0) {
       return {
-        floral: 20,
-        frutal: 20,
-        acido: 20,
-        verde: 20,
-        otros: 20,
-        tostado: 20,
-        especias: 20,
-        nueces: 20,
-        dulce: 20,
-        cuerpo: 30,
-        acidez: 30,
-        balance: 30,
+        floral: 0,
+        frutal: 0,
+        acido: 0,
+        verde: 0,
+        otros: 0,
+        tostado: 0,
+        especias: 0,
+        nueces: 0,
+        dulce: 0,
+        cuerpo: 0,
+        acidez: 0,
+        balance: 0,
       };
     }
 
+    // Garantiza que cada cata tenga su perfil de 9 familias correctamente calculado
+    const profiles = tastings.map((t) => {
+      if (
+        t.spiderProfile &&
+        typeof t.spiderProfile.dulce === "number" &&
+        typeof t.spiderProfile.frutal === "number" &&
+        typeof t.spiderProfile.nueces === "number"
+      ) {
+        return t.spiderProfile;
+      }
+      return computeSensorySpiderProfile(t.selectedFlavors || [], t.bodyLevel || 2);
+    });
+
+    const n = profiles.length;
     let sumFloral = 0;
     let sumFrutal = 0;
     let sumAcido = 0;
@@ -120,22 +134,21 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
     let sumAcidez = 0;
     let sumBalance = 0;
 
-    tastings.forEach((t) => {
-      sumFloral += t.spiderProfile.floral ?? 20;
-      sumFrutal += t.spiderProfile.frutal ?? 20;
-      sumAcido += t.spiderProfile.acido ?? t.spiderProfile.acidez ?? 20;
-      sumVerde += t.spiderProfile.verde ?? 20;
-      sumOtros += t.spiderProfile.otros ?? 20;
-      sumTostado += t.spiderProfile.tostado ?? 20;
-      sumEspecias += t.spiderProfile.especias ?? 20;
-      sumNueces += t.spiderProfile.nueces ?? 20;
-      sumDulce += t.spiderProfile.dulce ?? 20;
-      sumCuerpo += t.spiderProfile.cuerpo ?? 50;
-      sumAcidez += t.spiderProfile.acidez ?? 50;
-      sumBalance += t.spiderProfile.balance ?? 50;
+    profiles.forEach((p) => {
+      sumFloral += p.floral || 0;
+      sumFrutal += p.frutal || 0;
+      sumAcido += p.acido || 0;
+      sumVerde += p.verde || 0;
+      sumOtros += p.otros || 0;
+      sumTostado += p.tostado || 0;
+      sumEspecias += p.especias || 0;
+      sumNueces += p.nueces || 0;
+      sumDulce += p.dulce || 0;
+      sumCuerpo += p.cuerpo || 50;
+      sumAcidez += p.acidez || 50;
+      sumBalance += p.balance || 50;
     });
 
-    const n = tastings.length;
     return {
       floral: Math.round(sumFloral / n),
       frutal: Math.round(sumFrutal / n),
@@ -154,38 +167,61 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
   // Dynamic Rebuy CTA recommendation
   const recommendation = useMemo(() => {
-    const { floral, frutal, tostado, dulce } = explorationProfile;
-    const lowest = Math.min(floral, frutal, tostado, dulce);
-
-    if (lowest === floral) {
-      return {
+    const { floral, frutal, tostado, dulce, nueces, especias, acido } = explorationProfile;
+    const catalogOptions = [
+      {
+        val: floral,
         title: "Te falta explorar cafés con perfil Floral",
         coffee: "La Argelia",
         url: "https://varietale.com/products/la-argelia",
         ctaText: "Ver La Argelia en varietale.com",
-      };
-    } else if (lowest === frutal) {
-      return {
+      },
+      {
+        val: frutal,
         title: "Te falta explorar cafés con perfil Frutal y Tropical",
         coffee: "Bourbon Papayo",
         url: "https://varietale.com/products/borbon-papayo",
         ctaText: "Ver Bourbon Papayo en varietale.com",
-      };
-    } else if (lowest === tostado) {
-      return {
+      },
+      {
+        val: tostado,
         title: "Te falta explorar cafés con perfil Tostado y Especiado",
         coffee: "Las Hortensias (Orgánico)",
         url: "https://varietale.com/products/las-hortensias",
         ctaText: "Ver Las Hortensias en varietale.com",
-      };
-    } else {
-      return {
+      },
+      {
+        val: dulce,
         title: "Te falta explorar cafés con perfil Dulce y Achocolatado",
         coffee: "San Antonio",
         url: "https://varietale.com/products/san-antonio",
         ctaText: "Ver San Antonio en varietale.com",
-      };
-    }
+      },
+      {
+        val: nueces ?? 0,
+        title: "Te falta explorar cafés con notas de Cacao y Frutos Secos",
+        coffee: "Café Especial Varietale",
+        url: "https://varietale.com/collections/cafes",
+        ctaText: "Explorar cafés en varietale.com",
+      },
+      {
+        val: especias ?? 0,
+        title: "Te falta explorar cafés con notas Especiadas y Cálidas",
+        coffee: "Las Hortensias (Orgánico)",
+        url: "https://varietale.com/products/las-hortensias",
+        ctaText: "Ver Las Hortensias en varietale.com",
+      },
+      {
+        val: acido ?? 0,
+        title: "Te falta explorar cafés con perfil Ácido y Cítrico",
+        coffee: "Bourbon Papayo",
+        url: "https://varietale.com/products/borbon-papayo",
+        ctaText: "Ver Bourbon Papayo en varietale.com",
+      },
+    ];
+
+    catalogOptions.sort((a, b) => a.val - b.val);
+    return catalogOptions[0];
   }, [explorationProfile]);
 
   const cataA = tastings.find((t) => t.id === compCataAId) || tastings[0];
@@ -732,31 +768,75 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
               </div>
             </div>
 
-            {/* Macro percentages */}
-            <div className="grid grid-cols-4 gap-2.5 text-center text-xs sm:text-sm mt-4 pt-4 border-t border-[#E8EDF1]">
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#00D9B4]/40 shadow-2xs">
-                <span className="text-xs sm:text-sm font-extrabold text-[#00897B] block">Frutal</span>
-                <strong className="text-base sm:text-lg font-black text-[#01374C]">
-                  {explorationProfile.frutal}%
-                </strong>
+            {/* Porcentajes de las 9 categorías oficiales de la Rueda Sensorial SCA */}
+            <div className="mt-4 pt-4 border-t border-[#E8EDF1]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs sm:text-sm font-bold text-[#4A5D68] uppercase tracking-wider">
+                  Territorio Explorado por Familia (Rueda SCA)
+                </span>
+                <span className="text-xs font-bold text-[#00897B] bg-[#EBFBFA] px-2.5 py-0.5 rounded-full border border-[#00D9B4]/30">
+                  9 categorías oficiales
+                </span>
               </div>
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#DDC1AB] shadow-2xs">
-                <span className="text-xs sm:text-sm font-extrabold text-[#3B2212] block">Dulce</span>
-                <strong className="text-base sm:text-lg font-black text-[#01374C]">
-                  {explorationProfile.dulce}%
-                </strong>
+
+              {/* Grid responsivo de las 9 familias sensoriales alineadas con el Radar */}
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-9 gap-2 text-center text-xs">
+                {RADAR_AXES.map((axis) => {
+                  const val = explorationProfile[axis.key] ?? 0;
+                  const isExplored = val > 0;
+                  return (
+                    <div
+                      key={axis.key}
+                      className={`p-2.5 sm:p-3 rounded-xl bg-white border transition-all flex flex-col justify-between ${
+                        isExplored
+                          ? "shadow-2xs ring-1 ring-black/5"
+                          : "opacity-75"
+                      }`}
+                      style={{
+                        borderColor: isExplored ? `${axis.color}70` : "#E8EDF1",
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-1.5 mb-1 min-w-0">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: axis.color }}
+                        />
+                        <span
+                          className="text-xs sm:text-sm font-black truncate leading-tight"
+                          style={{ color: isExplored ? axis.color : "#4A5D68" }}
+                          title={axis.label}
+                        >
+                          {axis.label}
+                        </span>
+                      </div>
+                      <strong className="text-base sm:text-lg font-black text-[#01374C] mt-0.5">
+                        {val}%
+                      </strong>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#3B2212]/30 shadow-2xs">
-                <span className="text-xs sm:text-sm font-extrabold text-[#3B2212] block">Tostado</span>
-                <strong className="text-base sm:text-lg font-black text-[#01374C]">
-                  {explorationProfile.tostado}%
-                </strong>
-              </div>
-              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#01374C]/30 shadow-2xs">
-                <span className="text-xs sm:text-sm font-extrabold text-[#01374C] block">Floral</span>
-                <strong className="text-base sm:text-lg font-black text-[#01374C]">
-                  {explorationProfile.floral}%
-                </strong>
+
+              {/* Métricas Organolépticas de Taza: Acidez, Cuerpo, Balance */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-2.5 mt-3 pt-3 border-t border-[#E8EDF1]/80 text-center text-xs">
+                <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]">
+                  <span className="text-xs text-[#6A7B85] block font-semibold mb-0.5">Acidez</span>
+                  <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                    {explorationProfile.acidez}%
+                  </strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]">
+                  <span className="text-xs text-[#6A7B85] block font-semibold mb-0.5">Cuerpo</span>
+                  <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                    {explorationProfile.cuerpo}%
+                  </strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]">
+                  <span className="text-xs text-[#6A7B85] block font-semibold mb-0.5">Balance</span>
+                  <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                    {explorationProfile.balance}%
+                  </strong>
+                </div>
               </div>
             </div>
           </div>
