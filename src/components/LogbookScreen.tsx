@@ -1,0 +1,785 @@
+/**
+ * ============================================================================
+ * BITÁCORA DE CATACIÓN (LOGBOOK SCREEN) - HISTORIAL Y COMPARADOR
+ * ============================================================================
+ * Pantalla que permite al catador:
+ * 1. Historial: Explorar todas sus catas registradas con ficha sensorial,
+ *    descriptores, notas y opción de eliminación con confirmación modal.
+ * 2. Comparador: Comparar dos cataciones lado a lado en un gráfico de radar superpuesto.
+ * 3. Exploración: Ver el perfil sensorial acumulado y recomendaciones de cafés.
+ */
+
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  BookOpen,
+  ArrowLeft,
+  Plus,
+  GitCompare,
+  Compass,
+  Star,
+  Calendar,
+  Layers,
+  ShoppingBag,
+  ExternalLink,
+  Trash2,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Check,
+  Edit3,
+} from "lucide-react";
+import { TastingRecord, SensorySpiderProfile } from "../types";
+import { RadarChart } from "./RadarChart";
+import { BrewMethodIcon } from "./BrewMethodIcons";
+import { BREW_METHODS } from "../data/coffeeData";
+import { BrandFooter } from "./BrandFooter";
+
+interface LogbookScreenProps {
+  /** Lista de catas del usuario activo */
+  tastings: TastingRecord[];
+  /** Acción para iniciar una nueva cata */
+  onStartNewCata: () => void;
+  /** Acción para editar/modificar una cata existente */
+  onEditCata?: (cata: TastingRecord) => void;
+  /** Acción para eliminar una cata por su ID */
+  onDeleteCata: (id: string) => void;
+  /** Regresa a la pantalla de inicio */
+  onBackToHome: () => void;
+}
+
+export const LogbookScreen: React.FC<LogbookScreenProps> = ({
+  tastings,
+  onStartNewCata,
+  onEditCata,
+  onDeleteCata,
+  onBackToHome,
+}) => {
+  const [activeTab, setActiveTab] = useState<"historial" | "comparador" | "exploracion">("historial");
+
+  // Asegurar que la bitácora siempre cargue en la parte superior y al cambiar de pestaña
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [activeTab]);
+  const [expandedCataId, setExpandedCataId] = useState<string | null>(null);
+  const [cataToDelete, setCataToDelete] = useState<TastingRecord | null>(null);
+
+  // Comparison State
+  const [compCataAId, setCompCataAId] = useState<string>(tastings[0]?.id || "");
+  const [compCataBId, setCompCataBId] = useState<string>(tastings[1]?.id || tastings[0]?.id || "");
+
+  // Detect candidates for comparison (e.g. same coffee with different methods)
+  const sameCoffeeMultiMethods = useMemo(() => {
+    const coffeeGroups: Record<string, TastingRecord[]> = {};
+    tastings.forEach((t) => {
+      if (!coffeeGroups[t.coffeeName]) coffeeGroups[t.coffeeName] = [];
+      coffeeGroups[t.coffeeName].push(t);
+    });
+
+    const candidates: { coffeeName: string; records: TastingRecord[] }[] = [];
+    Object.entries(coffeeGroups).forEach(([coffeeName, records]) => {
+      if (records.length >= 2) {
+        candidates.push({ coffeeName, records });
+      }
+    });
+    return candidates;
+  }, [tastings]);
+
+  // Compute cumulative exploration profile
+  const explorationProfile: SensorySpiderProfile = useMemo(() => {
+    if (tastings.length === 0) {
+      return {
+        floral: 20,
+        frutal: 20,
+        acido: 20,
+        verde: 20,
+        otros: 20,
+        tostado: 20,
+        especias: 20,
+        nueces: 20,
+        dulce: 20,
+        cuerpo: 30,
+        acidez: 30,
+        balance: 30,
+      };
+    }
+
+    let sumFloral = 0;
+    let sumFrutal = 0;
+    let sumAcido = 0;
+    let sumVerde = 0;
+    let sumOtros = 0;
+    let sumTostado = 0;
+    let sumEspecias = 0;
+    let sumNueces = 0;
+    let sumDulce = 0;
+    let sumCuerpo = 0;
+    let sumAcidez = 0;
+    let sumBalance = 0;
+
+    tastings.forEach((t) => {
+      sumFloral += t.spiderProfile.floral ?? 20;
+      sumFrutal += t.spiderProfile.frutal ?? 20;
+      sumAcido += t.spiderProfile.acido ?? t.spiderProfile.acidez ?? 20;
+      sumVerde += t.spiderProfile.verde ?? 20;
+      sumOtros += t.spiderProfile.otros ?? 20;
+      sumTostado += t.spiderProfile.tostado ?? 20;
+      sumEspecias += t.spiderProfile.especias ?? 20;
+      sumNueces += t.spiderProfile.nueces ?? 20;
+      sumDulce += t.spiderProfile.dulce ?? 20;
+      sumCuerpo += t.spiderProfile.cuerpo ?? 50;
+      sumAcidez += t.spiderProfile.acidez ?? 50;
+      sumBalance += t.spiderProfile.balance ?? 50;
+    });
+
+    const n = tastings.length;
+    return {
+      floral: Math.round(sumFloral / n),
+      frutal: Math.round(sumFrutal / n),
+      acido: Math.round(sumAcido / n),
+      verde: Math.round(sumVerde / n),
+      otros: Math.round(sumOtros / n),
+      tostado: Math.round(sumTostado / n),
+      especias: Math.round(sumEspecias / n),
+      nueces: Math.round(sumNueces / n),
+      dulce: Math.round(sumDulce / n),
+      cuerpo: Math.round(sumCuerpo / n),
+      acidez: Math.round(sumAcidez / n),
+      balance: Math.round(sumBalance / n),
+    };
+  }, [tastings]);
+
+  // Dynamic Rebuy CTA recommendation
+  const recommendation = useMemo(() => {
+    const { floral, frutal, tostado, dulce } = explorationProfile;
+    const lowest = Math.min(floral, frutal, tostado, dulce);
+
+    if (lowest === floral) {
+      return {
+        title: "Te falta explorar cafés con perfil Floral",
+        coffee: "La Argelia",
+        url: "https://varietale.com/products/la-argelia",
+        ctaText: "Ver La Argelia en varietale.com",
+      };
+    } else if (lowest === frutal) {
+      return {
+        title: "Te falta explorar cafés con perfil Frutal y Tropical",
+        coffee: "Bourbon Papayo",
+        url: "https://varietale.com/products/borbon-papayo",
+        ctaText: "Ver Bourbon Papayo en varietale.com",
+      };
+    } else if (lowest === tostado) {
+      return {
+        title: "Te falta explorar cafés con perfil Tostado y Especiado",
+        coffee: "Las Hortensias (Orgánico)",
+        url: "https://varietale.com/products/las-hortensias",
+        ctaText: "Ver Las Hortensias en varietale.com",
+      };
+    } else {
+      return {
+        title: "Te falta explorar cafés con perfil Dulce y Achocolatado",
+        coffee: "San Antonio",
+        url: "https://varietale.com/products/san-antonio",
+        ctaText: "Ver San Antonio en varietale.com",
+      };
+    }
+  }, [explorationProfile]);
+
+  const cataA = tastings.find((t) => t.id === compCataAId) || tastings[0];
+  const cataB = tastings.find((t) => t.id === compCataBId) || tastings[1] || tastings[0];
+
+  const formatDate = (isoString: string) => {
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleDateString("es-CO", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "Reciente";
+    }
+  };
+
+  const getMethodName = (id: string) => {
+    const found = BREW_METHODS.find((m) => m.id === id);
+    return found ? found.name : id;
+  };
+
+  return (
+    <div className="min-h-screen bg-white pb-32 pt-4 px-4 max-w-lg mx-auto">
+      {/* Top Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={onBackToHome}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#01374C] bg-white border border-[#DDC1AB] shadow-xs hover:bg-[#FAF6F2] transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Inicio</span>
+        </button>
+
+        <button
+          id="new-cata-from-logbook-btn"
+          onClick={onStartNewCata}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#01374C] text-white text-xs font-bold shadow-xs hover:bg-[#002636] transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5 text-[#00D9B4]" />
+          <span>Nueva Cata</span>
+        </button>
+      </div>
+
+      <div className="mb-4">
+        <h1 className="text-2xl font-black text-[#01374C] tracking-tight">
+          Mi Bitácora de Catación
+        </h1>
+        <p className="text-xs text-[#6A7B85] mt-0.5">
+          {tastings.length} {tastings.length === 1 ? "cata registrada" : "catas registradas"} con perfil de sabor sensorial.
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex bg-[#E8EDF1] p-1 rounded-2xl mb-5">
+        <button
+          id="tab-historial-btn"
+          onClick={() => setActiveTab("historial")}
+          className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === "historial"
+              ? "bg-[#01374C] text-white shadow-xs"
+              : "text-[#4A5D68] hover:text-[#01374C]"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Historial ({tastings.length})</span>
+        </button>
+        <button
+          id="tab-comparador-btn"
+          onClick={() => setActiveTab("comparador")}
+          className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === "comparador"
+              ? "bg-[#01374C] text-white shadow-xs"
+              : "text-[#4A5D68] hover:text-[#01374C]"
+          }`}
+        >
+          <GitCompare className="w-4 h-4" />
+          <span>Comparador</span>
+        </button>
+        <button
+          id="tab-exploracion-btn"
+          onClick={() => setActiveTab("exploracion")}
+          className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            activeTab === "exploracion"
+              ? "bg-[#01374C] text-white shadow-xs"
+              : "text-[#4A5D68] hover:text-[#01374C]"
+          }`}
+        >
+          <Compass className="w-4 h-4" />
+          <span>Exploración</span>
+        </button>
+      </div>
+
+      {/* TAB 1: HISTORIAL DE TARJETAS */}
+      {activeTab === "historial" && (
+        <div className="space-y-4">
+          {/* Empty state when user has 0 catas */}
+          {tastings.length === 0 && (
+            <div className="bg-white rounded-2xl p-8 border border-[#E8EDF1] text-center shadow-xs">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] flex items-center justify-center mx-auto mb-3 text-[#01374C]">
+                <BookOpen className="w-7 h-7 text-[#00D9B4]" />
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-[#01374C]">
+                Aún no tienes catas registradas
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4A5D68] mt-1 max-w-xs mx-auto leading-relaxed">
+                Cada cata que realices con tus notas y rueda de sabores se guardará aquí en tu historial personal.
+              </p>
+              <button
+                onClick={onStartNewCata}
+                className="mt-4 px-5 py-2.5 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-bold shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#00D9B4]" />
+                <span>Iniciar mi primera cata</span>
+              </button>
+            </div>
+          )}
+
+          {/* Quick Notice about Same Coffee Comparison if exists */}
+          {sameCoffeeMultiMethods.length > 0 && (
+            <div className="bg-[#EBFBFA] border border-[#00D9B4]/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+              <div>
+                <span className="text-xs font-extrabold text-[#01374C] uppercase tracking-wider block">
+                  Modo Comparativo Disponible
+                </span>
+                <p className="text-sm text-[#01374C] font-semibold mt-0.5">
+                  Cataste "{sameCoffeeMultiMethods[0].coffeeName}" con diferentes métodos.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setCompCataAId(sameCoffeeMultiMethods[0].records[0].id);
+                  setCompCataBId(sameCoffeeMultiMethods[0].records[1].id);
+                  setActiveTab("comparador");
+                }}
+                className="shrink-0 text-xs sm:text-sm font-bold bg-[#01374C] text-white px-3.5 py-2 rounded-xl hover:bg-[#002636] cursor-pointer"
+              >
+                Comparar →
+              </button>
+            </div>
+          )}
+
+          {tastings.map((cata) => {
+            const isExpanded = expandedCataId === cata.id;
+            return (
+              <div
+                key={cata.id}
+                id={`cata-card-${cata.id}`}
+                className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs transition-all hover:border-[#DDC1AB]"
+              >
+                {/* Card Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    {/* Origen Tag in Varietale Brand Dark Blue #01374C with #00D9B4 dot */}
+                    {cata.origin ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider bg-[#01374C] text-white px-3 py-1 rounded-full mb-1.5 shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00D9B4]" />
+                        {cata.origin}
+                      </span>
+                    ) : null}
+                    <h3 className="text-base sm:text-lg md:text-xl font-black text-[#01374C] leading-tight break-words">
+                      {cata.coffeeName}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-[#4A5D68] mt-1 flex-wrap">
+                      <span className="flex items-center gap-1 font-bold text-[#01374C]">
+                        <BrewMethodIcon type={cata.brewMethod} className="w-4 h-4 text-[#00D9B4]" />
+                        {getMethodName(cata.brewMethod)}
+                      </span>
+                      {cata.variety ? (
+                        <>
+                          <span>•</span>
+                          <span>{cata.variety}</span>
+                        </>
+                      ) : null}
+                      {cata.process ? (
+                        <>
+                          <span>•</span>
+                          <span>{cata.process}</span>
+                        </>
+                      ) : null}
+                      <span>•</span>
+                      <span>{formatDate(cata.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  {/* Rating Stars, Edit Action and Delete Action */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-0.5 bg-white px-2 py-1 rounded-xl border border-[#E8EDF1]">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={`star-${cata.id}-${star}`}
+                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                            cata.rating >= star
+                              ? "fill-[#00D9B4] text-[#00D9B4]"
+                              : "text-[#DDE4E8]"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {onEditCata && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditCata(cata);
+                        }}
+                        className="p-1.5 rounded-lg border border-[#DDC1AB] hover:border-[#01374C] text-[#01374C] bg-[#FAF6F2] hover:bg-[#F2ECE4] transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+                        title="Modificar esta cata"
+                        aria-label="Modificar cata"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-[#01374C]" />
+                        <span className="hidden sm:inline">Modificar</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCataToDelete(cata);
+                      }}
+                      className="p-1.5 rounded-lg border border-transparent hover:border-red-200 text-[#889DA7] hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      title="Eliminar esta cata"
+                      aria-label="Eliminar cata"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Radar and Flavors Summary */}
+                <div className="mt-4 flex items-center gap-4 bg-white p-3.5 rounded-xl border border-[#E8EDF1]">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
+                    <RadarChart
+                      primaryProfile={cata.spiderProfile}
+                      size={105}
+                      showLabels={false}
+                    />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-bold text-[#4A5D68] uppercase tracking-wide block mb-1.5">
+                      Sabores Percibidos:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {cata.selectedFlavors.slice(0, 4).map((f) => (
+                        <span
+                          key={f.descriptorId}
+                          className="text-xs font-semibold bg-white text-[#01374C] px-2.5 py-0.5 rounded-full border border-[#DDC1AB]"
+                        >
+                          {f.name} ({f.intensity})
+                        </span>
+                      ))}
+                      {cata.selectedFlavors.length > 4 && (
+                        <span className="text-xs font-bold text-[#01374C] bg-[#E8EDF1] px-2 py-0.5 rounded-full">
+                          +{cata.selectedFlavors.length - 4} más
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-2 text-xs sm:text-sm text-[#4A5D68]">
+                      <span>Cuerpo: </span>
+                      <strong className="text-[#01374C] font-bold">
+                        {cata.bodyLevel === 1 ? "Ligero" : cata.bodyLevel === 2 ? "Medio" : "Denso"}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expand / Collapse Details */}
+                {isExpanded && (
+                  <div className="mt-3.5 pt-3.5 border-t border-[#E8EDF1] space-y-3.5">
+                    {/* User Notes */}
+                    {cata.userNotes && (
+                      <div className="bg-white p-3.5 rounded-xl border border-[#DDC1AB]">
+                        <span className="text-xs sm:text-sm font-bold text-[#4A5D68] uppercase block mb-1">
+                          Tus Apuntes Sensoriales:
+                        </span>
+                        <p className="text-sm sm:text-base text-[#01374C] italic leading-relaxed">
+                          "{cata.userNotes}"
+                        </p>
+                      </div>
+                    )}
+
+                    {/* All perceived flavors list */}
+                    <div>
+                      <span className="text-xs sm:text-sm font-bold text-[#4A5D68] uppercase block mb-2">
+                        Todos los descriptores y dominancia:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {cata.selectedFlavors.map((f) => (
+                          <span
+                            key={`full-${f.descriptorId}`}
+                            className="text-xs sm:text-sm font-semibold bg-[#EBFBFA] text-[#01374C] px-3.5 py-1.5 rounded-full border border-[#00D9B4]/30 flex items-center gap-2"
+                          >
+                            <span>{f.name}</span>
+                            <span className="bg-[#01374C] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                              {f.intensity}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Compare, Edit and Delete actions */}
+                    <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                      <button
+                        onClick={() => {
+                          setCompCataAId(cata.id);
+                          setActiveTab("comparador");
+                        }}
+                        className="text-xs sm:text-sm font-bold text-[#01374C] hover:text-[#00D9B4] flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <GitCompare className="w-4 h-4 text-[#00D9B4]" />
+                        <span>Comparar este café con otro método</span>
+                      </button>
+
+                      <div className="flex items-center gap-2">
+                        {onEditCata && (
+                          <button
+                            type="button"
+                            onClick={() => onEditCata(cata)}
+                            className="text-xs sm:text-sm text-[#01374C] hover:bg-[#FAF6F2] px-3 py-1.5 rounded-lg border border-[#DDC1AB] cursor-pointer flex items-center gap-1.5 font-bold transition-colors"
+                            title="Modificar cata"
+                          >
+                            <Edit3 className="w-4 h-4 text-[#01374C]" />
+                            <span>Entrar y Modificar cata</span>
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setCataToDelete(cata)}
+                          className="text-xs sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 cursor-pointer flex items-center gap-1.5 font-bold transition-colors"
+                          title="Eliminar cata"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setExpandedCataId(isExpanded ? null : cata.id)}
+                  className="w-full mt-3 pt-2.5 border-t border-[#E8EDF1] flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-[#4A5D68] hover:text-[#01374C] transition-colors cursor-pointer"
+                >
+                  <span>{isExpanded ? "Ocultar detalle" : "Ver detalle completo"}</span>
+                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* TAB 2: MODO COMPARATIVO */}
+      {activeTab === "comparador" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <GitCompare className="w-5 h-5 text-[#00D9B4]" />
+              <h2 className="text-base sm:text-lg font-black text-[#01374C]">
+                Comparación Sensorial Lado a Lado
+              </h2>
+            </div>
+            <p className="text-sm sm:text-base text-[#4A5D68] mb-4 leading-relaxed">
+              Compara cómo un mismo grano (o dos orígenes distintos) expresan acidez, dulzura y cuerpo según el método.
+            </p>
+
+            {/* Selectors for Cata A and Cata B */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="text-xs font-black uppercase text-[#01374C] block mb-1.5 tracking-wider">
+                  ● Cata A (Azul Primario)
+                </label>
+                <select
+                  value={compCataAId}
+                  onChange={(e) => setCompCataAId(e.target.value)}
+                  className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                >
+                  {tastings.map((t) => (
+                    <option key={`opt-a-${t.id}`} value={t.id}>
+                      {t.coffeeName} ({getMethodName(t.brewMethod)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-black uppercase text-[#00897B] block mb-1.5 tracking-wider">
+                  ● Cata B (Acento Menta)
+                </label>
+                <select
+                  value={compCataBId}
+                  onChange={(e) => setCompCataBId(e.target.value)}
+                  className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                >
+                  {tastings.map((t) => (
+                    <option key={`opt-b-${t.id}`} value={t.id}>
+                      {t.coffeeName} ({getMethodName(t.brewMethod)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Overlaid Radar Chart */}
+            <div className="flex justify-center my-3 bg-white p-3 sm:p-5 rounded-2xl border border-[#E8EDF1]">
+              <div className="w-full max-w-[min(92vw,360px)] sm:max-w-[460px] md:max-w-[540px] aspect-square flex items-center justify-center mx-auto">
+                <RadarChart
+                  primaryProfile={cataA.spiderProfile}
+                  primaryLabel={`${cataA.coffeeName} (${getMethodName(cataA.brewMethod)})`}
+                  secondaryProfile={cataB.spiderProfile}
+                  secondaryLabel={`${cataB.coffeeName} (${getMethodName(cataB.brewMethod)})`}
+                  responsive={true}
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+
+            {/* Side by side comparison metrics */}
+            <div className="grid grid-cols-2 gap-3 mt-4 text-xs sm:text-sm">
+              <div className="p-3.5 rounded-xl bg-white border border-[#01374C]/25 shadow-xs">
+                <span className="text-xs font-black text-[#01374C] uppercase block mb-1">
+                  {cataA.coffeeName}
+                </span>
+                <p className="font-bold text-[#01374C]">
+                  Método: {getMethodName(cataA.brewMethod)}
+                </p>
+                <p className="text-[#4A5D68] mt-0.5">
+                  Cuerpo: {cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}
+                </p>
+                <div className="mt-2 pt-2 border-t border-[#E8EDF1]">
+                  <span className="text-xs font-bold text-[#4A5D68] block">Notas dominantes:</span>
+                  <span className="font-semibold text-[#01374C]">
+                    {cataA.selectedFlavors.map((f) => f.name).join(", ")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-[#00D9B4]/50 shadow-xs">
+                <span className="text-xs font-black text-[#01374C] uppercase block mb-1">
+                  {cataB.coffeeName}
+                </span>
+                <p className="font-bold text-[#01374C]">
+                  Método: {getMethodName(cataB.brewMethod)}
+                </p>
+                <p className="text-[#4A5D68] mt-0.5">
+                  Cuerpo: {cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}
+                </p>
+                <div className="mt-2 pt-2 border-t border-[#E8EDF1]">
+                  <span className="text-xs font-bold text-[#4A5D68] block">Notas dominantes:</span>
+                  <span className="font-semibold text-[#01374C]">
+                    {cataB.selectedFlavors.map((f) => f.name).join(", ")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: MAPA DE EXPLORACIÓN Y RECOMPRA */}
+      {activeTab === "exploracion" && (
+        <div className="space-y-4">
+          {/* Mapa Acumulativo */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Compass className="w-5 h-5 text-[#00D9B4]" />
+                <h2 className="text-base sm:text-lg font-black text-[#01374C]">
+                  Mapa de Exploración Sensorial
+                </h2>
+              </div>
+              <span className="text-xs font-bold text-[#01374C] bg-[#EBFBFA] px-3 py-1 rounded-full border border-[#00D9B4]/30">
+                Acumulado
+              </span>
+            </div>
+            <p className="text-sm sm:text-base text-[#4A5D68] mb-3.5 leading-relaxed">
+              Muestra el territorio sensorial de la rueda de sabores que has recorrido a través de tus {tastings.length} catas.
+            </p>
+
+            <div className="flex justify-center my-3 bg-white p-3 sm:p-5 rounded-2xl border border-[#E8EDF1]">
+              <div className="w-full max-w-[min(92vw,360px)] sm:max-w-[460px] md:max-w-[540px] aspect-square flex items-center justify-center mx-auto">
+                <RadarChart primaryProfile={explorationProfile} responsive={true} className="w-full h-full" />
+              </div>
+            </div>
+
+            {/* Macro percentages */}
+            <div className="grid grid-cols-4 gap-2 text-center text-xs sm:text-sm mt-3 pt-3 border-t border-[#E8EDF1]">
+              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#00D9B4]/40">
+                <span className="text-xs font-extrabold text-[#00897B] block">Frutal</span>
+                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  {explorationProfile.frutal}%
+                </strong>
+              </div>
+              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#DDC1AB]">
+                <span className="text-xs font-extrabold text-[#3B2212] block">Dulce</span>
+                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  {explorationProfile.dulce}%
+                </strong>
+              </div>
+              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#3B2212]/30">
+                <span className="text-xs font-extrabold text-[#3B2212] block">Tostado</span>
+                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  {explorationProfile.tostado}%
+                </strong>
+              </div>
+              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#01374C]/30">
+                <span className="text-xs font-extrabold text-[#01374C] block">Floral</span>
+                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  {explorationProfile.floral}%
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA DE RECOMPRA PERSONALIZADA */}
+          <div className="bg-[#01374C] text-white rounded-3xl p-5 sm:p-6 shadow-lg relative overflow-hidden">
+            <div className="flex items-start gap-3.5 mb-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0">
+                <ShoppingBag className="w-5 h-5 text-[#01374C]" />
+              </div>
+              <div>
+                <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
+                  Recomendación Varietale
+                </span>
+                <h3 className="text-base sm:text-lg font-black text-white leading-snug mt-0.5">
+                  {recommendation.title}
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-4">
+              Según tu mapa de exploración, expande tu paladar descubriendo nuestro micro-lote{" "}
+              <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
+            </p>
+
+            <a
+              id="cta-recompra-link"
+              href={recommendation.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#00D9B4] hover:bg-[#00c4a3] text-[#01374C] font-black text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99]"
+            >
+              <span>{recommendation.ctaText}</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar cata (sin depender de window.confirm) */}
+      {cataToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl border border-[#E8EDF1] text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 mx-auto flex items-center justify-center mb-3 border border-red-100">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-base sm:text-lg font-black text-[#01374C] mb-1">
+              ¿Eliminar esta cata?
+            </h3>
+            <p className="text-xs sm:text-sm text-[#4A5D68] mb-4 leading-relaxed">
+              Esta acción borrará de forma permanente el registro de{" "}
+              <strong className="text-[#01374C] font-extrabold">{cataToDelete.coffeeName}</strong>{" "}
+              de tu historial de catación.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCataToDelete(null)}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-[#FAF6F2] hover:bg-[#F2ECE4] text-[#01374C] font-bold text-xs sm:text-sm border border-[#DDC1AB] transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const id = cataToDelete.id;
+                  setCataToDelete(null);
+                  onDeleteCata(id);
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm transition-colors cursor-pointer shadow-sm"
+              >
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Brand Footer */}
+      <BrandFooter className="mt-4" />
+    </div>
+  );
+};

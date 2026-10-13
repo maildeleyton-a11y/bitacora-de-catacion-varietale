@@ -1,0 +1,6 @@
+{
+  "name": "Bitácora de Catación Varietale",
+  "description": "Bitácora móvil y guía de aprendizaje sensorial en café de especialidad Varietale, con rueda de sabores interactiva táctil, OCR inteligente de bolsas y perfiles sensoriales.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

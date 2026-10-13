@@ -1,0 +1,1244 @@
+{
+  "metadatos": {
+    "version": "1.0.0",
+    "idioma": "es-CO",
+    "fecha_consulta": "2026-10-06",
+    "fuentes": [
+      {
+        "nombre": "Not Bad Coffee — rueda interactiva",
+        "url": "https://notbadcoffee.com/flavor-wheel-en/"
+      },
+      {
+        "nombre": "Not Bad Coffee — estructura de la rueda SCAA 2016",
+        "url": "https://notbadcoffee.com/flavor-wheel/scaa-2.json"
+      },
+      {
+        "nombre": "World Coffee Research — contexto del Sensory Lexicon",
+        "url": "https://worldcoffeeresearch.org/resources/sensory-lexicon"
+      }
+    ],
+    "alcance": "Toda la rueda enlazada: categorías generales, intermedias y descriptores terminales. No equivale a la lista completa de atributos del WCR Sensory Lexicon.",
+    "contenido": "Nombres originales y traducción editorial. Descripciones propias; referencias cotidianas orientativas, sin patrones de intensidad ni validación sensorial oficial.",
+    "regla_referencias": "Breves; modificadores solo cuando distinguen el perfil. Las referencias parciales se marcan como aproximación.",
+    "campos": [
+      "ID",
+      "FAMILIA",
+      "SUBFAMILIA",
+      "DESCRIPTOR_EN",
+      "DESCRIPTOR_ES",
+      "REFERENCIA_SABOR",
+      "DESCRIPCION"
+    ],
+    "jerarquia": "children contiene los hijos en el orden de la fuente; [] identifica los nodos terminales.",
+    "total_segmentos": 110,
+    "total_familias": 9,
+    "total_segundo_nivel": 28,
+    "total_tercer_nivel": 73,
+    "total_terminales": 85,
+    "total_agrupadores": 25,
+    "correcciones_fuente": [
+      {
+        "original": "Mapple syrup",
+        "corregido": "Maple syrup",
+        "motivo": "Errata ortográfica en la fuente; mismo descriptor y misma posición."
+      }
+    ],
+    "notas": [
+      {
+        "criterio": "Estructura acordada",
+        "explicacion": "ID | FAMILIA | SUBFAMILIA | DESCRIPTOR_EN | DESCRIPTOR_ES | REFERENCIA_SABOR | DESCRIPCION"
+      },
+      {
+        "criterio": "Cobertura",
+        "explicacion": "110 segmentos: 9 familias, 28 segmentos de segundo nivel y 73 de tercer nivel. Hay 85 segmentos terminales y 25 agrupadores."
+      },
+      {
+        "criterio": "Alcance",
+        "explicacion": "Se incluye toda la rueda enlazada, también las categorías generales. No se añaden sabores ajenos a esa rueda."
+      },
+      {
+        "criterio": "Rueda y Lexicon",
+        "explicacion": "Los 110 segmentos de esta rueda no son los mismos 110 atributos del WCR Sensory Lexicon. El número coincide, pero son conjuntos distintos."
+      },
+      {
+        "criterio": "Nombres EN",
+        "explicacion": "Se conservan los nombres de la fuente. Se corrige únicamente la errata «Mapple syrup» a «Maple syrup»."
+      },
+      {
+        "criterio": "Nombres ES",
+        "explicacion": "Traducción editorial en español pensada para usuarios colombianos. No es una traducción oficial ni una validación sensorial de SCA o WCR."
+      },
+      {
+        "criterio": "Referencias",
+        "explicacion": "Nombres breves; se conserva un modificador cuando distingue el perfil. Las comparaciones parciales llevan «(aproximación)»."
+      },
+      {
+        "criterio": "Descripciones",
+        "explicacion": "Textos propios y concisos para orientar el reconocimiento. No son una reproducción literal ni una traducción íntegra de las fichas originales."
+      },
+      {
+        "criterio": "Aroma y sabor",
+        "explicacion": "Una fruta puede orientar un aroma sin indicar el nivel de acidez o dulzor del café. Se distinguen aroma, sabor básico y sensación cuando es necesario."
+      },
+      {
+        "criterio": "Lemon / Lime",
+        "explicacion": "Lemon = limón amarillo; Lime = limón verde. Se preserva esta diferencia para evitar ambigüedad en Colombia."
+      },
+      {
+        "criterio": "Categorías",
+        "explicacion": "Los agrupadores también tienen una descripción orientativa. Algunas categorías de la fuente no poseen definición propia."
+      },
+      {
+        "criterio": "Familia / subfamilia",
+        "explicacion": "FAMILIA siempre indica el primer nivel. SUBFAMILIA queda vacía en las familias; en el segundo nivel coincide con el nombre de ese segmento."
+      },
+      {
+        "criterio": "Nombres repetidos",
+        "explicacion": "Floral y Green/Vegetative aparecen en dos niveles. Se conservan ambos segmentos con IDs diferentes y el orden original."
+      },
+      {
+        "criterio": "ID",
+        "explicacion": "Identificador formado por los nombres ingleses de la ruta, separados por __. Permite distinguir cada segmento y mantener sus relaciones."
+      },
+      {
+        "criterio": "Uso profesional",
+        "explicacion": "Las referencias cotidianas son ayudas de reconocimiento, no patrones de intensidad. Para calibración profesional, consultar el WCR Sensory Lexicon y su protocolo."
+      },
+      {
+        "criterio": "Referencias olfativas",
+        "explicacion": "Algunas referencias son olores de objetos o ambientes: la rueda también describe aromas y sensaciones, además de alimentos."
+      },
+      {
+        "criterio": "Rueda original",
+        "explicacion": "Coffee Taster’s Flavor Wheel (SCA/WCR, 2016), referenciada por Not Bad Coffee."
+      }
+    ]
+  },
+  "rueda": [
+    {
+      "ID": "fruity",
+      "FAMILIA": "Frutal",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Fruity",
+      "DESCRIPTOR_ES": "Frutal",
+      "REFERENCIA_SABOR": "Frutas",
+      "DESCRIPCION": "Busca un aroma que recuerde a frutas. Esta familia permite pasar de una impresión general a bayas, frutas secas, cítricos u otras frutas.",
+      "children": [
+        {
+          "ID": "fruity__berry",
+          "FAMILIA": "Frutal",
+          "SUBFAMILIA": "Bayas",
+          "DESCRIPTOR_EN": "Berry",
+          "DESCRIPTOR_ES": "Bayas",
+          "REFERENCIA_SABOR": "Mora, fresa",
+          "DESCRIPCION": "Busca el carácter de frutas pequeñas como mora o fresa. Identifica la fruta que te recuerda antes de elegir un descriptor más específico.",
+          "children": [
+            {
+              "ID": "fruity__berry__blackberry",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Bayas",
+              "DESCRIPTOR_EN": "Blackberry",
+              "DESCRIPTOR_ES": "Mora",
+              "REFERENCIA_SABOR": "Mora",
+              "DESCRIPCION": "Recuerda el aroma de la mora, con un carácter de fruta oscura. Puede evocar su contraste entre dulzor y acidez, sin medir la acidez del café.",
+              "children": []
+            },
+            {
+              "ID": "fruity__berry__raspberry",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Bayas",
+              "DESCRIPTOR_EN": "Raspberry",
+              "DESCRIPTOR_ES": "Frambuesa",
+              "REFERENCIA_SABOR": "Frambuesa",
+              "DESCRIPCION": "Busca una nota de fruta roja delicada y perfumada, como la frambuesa. Su carácter suele sentirse más ligero que el de la mora.",
+              "children": []
+            },
+            {
+              "ID": "fruity__berry__blueberry",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Bayas",
+              "DESCRIPTOR_EN": "Blueberry",
+              "DESCRIPTOR_ES": "Arándano azul",
+              "REFERENCIA_SABOR": "Arándano azul",
+              "DESCRIPCION": "Recuerda el arándano azul: una nota de fruta oscura suave, con dulzor aromático. No es el mismo perfil del agraz ni del arándano rojo.",
+              "children": []
+            },
+            {
+              "ID": "fruity__berry__strawberry",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Bayas",
+              "DESCRIPTOR_EN": "Strawberry",
+              "DESCRIPTOR_ES": "Fresa",
+              "REFERENCIA_SABOR": "Fresa",
+              "DESCRIPCION": "Busca el aroma reconocible de la fresa, perfumado y con impresión dulce. Puede recordar la fruta al cortarla, sin necesitar un sabor azucarado.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "fruity__dried-fruit",
+          "FAMILIA": "Frutal",
+          "SUBFAMILIA": "Frutas secas",
+          "DESCRIPTOR_EN": "Dried fruit",
+          "DESCRIPTOR_ES": "Frutas secas",
+          "REFERENCIA_SABOR": "Uvas pasas, ciruelas pasas",
+          "DESCRIPCION": "Busca aromas de fruta deshidratada, más concentrados y oscuros que los de fruta fresca. Aquí se agrupan las pasas y las ciruelas pasas.",
+          "children": [
+            {
+              "ID": "fruity__dried-fruit__raisin",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Frutas secas",
+              "DESCRIPTOR_EN": "Raisin",
+              "DESCRIPTOR_ES": "Uva pasa",
+              "REFERENCIA_SABOR": "Uva pasa",
+              "DESCRIPCION": "Recuerda la uva deshidratada: un aroma concentrado, dulce y de fruta oscura. Se diferencia de la uva fresca por su carácter más profundo.",
+              "children": []
+            },
+            {
+              "ID": "fruity__dried-fruit__prune",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Frutas secas",
+              "DESCRIPTOR_EN": "Prune",
+              "DESCRIPTOR_ES": "Ciruela pasa",
+              "REFERENCIA_SABOR": "Ciruela pasa",
+              "DESCRIPCION": "Busca el carácter de la ciruela deshidratada, con una impresión dulce y oscura. Puede recordar la pulpa densa de una ciruela pasa.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "fruity__other-fruit",
+          "FAMILIA": "Frutal",
+          "SUBFAMILIA": "Otras frutas",
+          "DESCRIPTOR_EN": "Other fruit",
+          "DESCRIPTOR_ES": "Otras frutas",
+          "REFERENCIA_SABOR": "Manzana, piña, durazno",
+          "DESCRIPCION": "Agrupa frutas que no pertenecen a bayas, frutas secas o cítricos. Elige después la fruta concreta que mejor describa lo que percibes.",
+          "children": [
+            {
+              "ID": "fruity__other-fruit__coconut",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Coconut",
+              "DESCRIPTOR_ES": "Coco",
+              "REFERENCIA_SABOR": "Coco",
+              "DESCRIPCION": "Busca el aroma de la pulpa del coco, con una impresión dulce y cremosa. La referencia es el coco, sin añadir sabores de leche o azúcar.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__cherry",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Cherry",
+              "DESCRIPTOR_ES": "Cereza",
+              "REFERENCIA_SABOR": "Cereza",
+              "DESCRIPCION": "Recuerda el aroma de la cereza, con un carácter de fruta roja y un matiz perfumado. No implica que haya cerezas en el café.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__pomegranate",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Pomegranate",
+              "DESCRIPTOR_ES": "Granada",
+              "REFERENCIA_SABOR": "Granada",
+              "DESCRIPCION": "Busca la nota frutal de los granos de granada. Puede evocar su combinación de frescura, acidez y una ligera sensación seca.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__pineapple",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Pineapple",
+              "DESCRIPTOR_ES": "Piña",
+              "REFERENCIA_SABOR": "Piña",
+              "DESCRIPCION": "Busca el aroma de la piña, claramente tropical y perfumado. Puede evocar su dulzor y acidez característicos, sin confundirlo con fruta fermentada.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__grape",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Grape",
+              "DESCRIPTOR_ES": "Uva",
+              "REFERENCIA_SABOR": "Uva",
+              "DESCRIPCION": "Recuerda el aroma de la uva o de su jugo. Tiene una impresión frutal dulce; si predomina el carácter alcohólico, considera el descriptor vinoso.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__apple",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Apple",
+              "DESCRIPTOR_ES": "Manzana",
+              "REFERENCIA_SABOR": "Manzana",
+              "DESCRIPCION": "Busca el aroma de una manzana al cortarla. El carácter puede recordar su pulpa o su cáscara, sin exigir una variedad específica.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__peach",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Peach",
+              "DESCRIPTOR_ES": "Durazno",
+              "REFERENCIA_SABOR": "Durazno",
+              "DESCRIPCION": "Recuerda el durazno: una nota de fruta de pulpa suave, perfumada y con impresión dulce. Puede aparecer un matiz floral ligero.",
+              "children": []
+            },
+            {
+              "ID": "fruity__other-fruit__pear",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Otras frutas",
+              "DESCRIPTOR_EN": "Pear",
+              "DESCRIPTOR_ES": "Pera",
+              "REFERENCIA_SABOR": "Pera",
+              "DESCRIPCION": "Busca una nota frutal suave y delicada, como la pera. Suele evocar su pulpa jugosa y un dulzor aromático discreto.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "fruity__citrus-fruit",
+          "FAMILIA": "Frutal",
+          "SUBFAMILIA": "Cítricos",
+          "DESCRIPTOR_EN": "Citrus fruit",
+          "DESCRIPTOR_ES": "Cítricos",
+          "REFERENCIA_SABOR": "Naranja, limón",
+          "DESCRIPCION": "Busca aromas de frutas cítricas o de sus cáscaras. La sensación ácida por sí sola no basta para identificar cuál de estos aromas está presente.",
+          "children": [
+            {
+              "ID": "fruity__citrus-fruit__grapefruit",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Cítricos",
+              "DESCRIPTOR_EN": "Grapefruit",
+              "DESCRIPTOR_ES": "Toronja",
+              "REFERENCIA_SABOR": "Toronja",
+              "DESCRIPCION": "Recuerda la toronja, con aroma cítrico y un matiz de cáscara que puede evocar amargor. También se conoce como pomelo.",
+              "children": []
+            },
+            {
+              "ID": "fruity__citrus-fruit__orange",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Cítricos",
+              "DESCRIPTOR_EN": "Orange",
+              "DESCRIPTOR_ES": "Naranja",
+              "REFERENCIA_SABOR": "Naranja",
+              "DESCRIPCION": "Busca el aroma de la naranja, tanto de la pulpa como de la cáscara. Tiene un carácter cítrico reconocible y una impresión dulce.",
+              "children": []
+            },
+            {
+              "ID": "fruity__citrus-fruit__lemon",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Cítricos",
+              "DESCRIPTOR_EN": "Lemon",
+              "DESCRIPTOR_ES": "Limón amarillo",
+              "REFERENCIA_SABOR": "Limón amarillo",
+              "DESCRIPCION": "Busca el aroma del limón amarillo, especialmente su cáscara. Se distingue del limón verde habitual en Colombia; no representa cualquier sensación ácida.",
+              "children": []
+            },
+            {
+              "ID": "fruity__citrus-fruit__lime",
+              "FAMILIA": "Frutal",
+              "SUBFAMILIA": "Cítricos",
+              "DESCRIPTOR_EN": "Lime",
+              "DESCRIPTOR_ES": "Limón verde",
+              "REFERENCIA_SABOR": "Limón verde",
+              "DESCRIPCION": "Recuerda el limón verde, de aroma cítrico intenso y carácter de cáscara. Es el limón común en Colombia, distinto del limón amarillo.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": "sour-fermented",
+      "FAMILIA": "Ácido / fermentado",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Sour/Fermented",
+      "DESCRIPTOR_ES": "Ácido / fermentado",
+      "REFERENCIA_SABOR": "Limón, frutas fermentadas",
+      "DESCRIPCION": "Agrupa la sensación ácida y los aromas relacionados con ácidos, alcohol o fermentación. Elige una subfamilia para precisar cuál de ellos percibes.",
+      "children": [
+        {
+          "ID": "sour-fermented__sour",
+          "FAMILIA": "Ácido / fermentado",
+          "SUBFAMILIA": "Ácido",
+          "DESCRIPTOR_EN": "Sour",
+          "DESCRIPTOR_ES": "Ácido",
+          "REFERENCIA_SABOR": "Jugo de limón (aproximación)",
+          "DESCRIPCION": "Identifica la sensación ácida en la boca, como la del jugo de limón. Puede existir sin un aroma cítrico; no significa necesariamente un defecto.",
+          "children": [
+            {
+              "ID": "sour-fermented__sour__sour-aromatics",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Ácido",
+              "DESCRIPTOR_EN": "Sour aromatics",
+              "DESCRIPTOR_ES": "Aromas ácidos",
+              "REFERENCIA_SABOR": "Vinagre suave (aproximación)",
+              "DESCRIPCION": "Busca un olor que sugiera acidez, aunque todavía no pruebes el café. Es una impresión aromática; no es una medida de la acidez en boca.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__sour__acetic-acid",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Ácido",
+              "DESCRIPTOR_EN": "Acetic acid",
+              "DESCRIPTOR_ES": "Ácido acético",
+              "REFERENCIA_SABOR": "Vinagre",
+              "DESCRIPCION": "Recuerda el olor del vinagre, con una nota punzante y ácida. Aquí importa ese carácter aromático, más específico que la acidez general del café.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__sour__butyric-acid",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Ácido",
+              "DESCRIPTOR_EN": "Butyric acid",
+              "DESCRIPTOR_ES": "Ácido butírico",
+              "REFERENCIA_SABOR": "Queso parmesano",
+              "DESCRIPCION": "Busca una nota de lácteo fermentado, como la que aparece en algunos quesos curados. Se distingue del aroma cremoso de un lácteo fresco.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__sour__isovaleric-acid",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Ácido",
+              "DESCRIPTOR_EN": "Isovaleric acid",
+              "DESCRIPTOR_ES": "Ácido isovalérico",
+              "REFERENCIA_SABOR": "Queso curado fuerte (aproximación)",
+              "DESCRIPCION": "Busca un olor intenso que puede recordar queso muy curado o sudor. La referencia al queso orienta, pero no representa exactamente todo el perfil.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__sour__citric-acid",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Ácido",
+              "DESCRIPTOR_EN": "Citric acid",
+              "DESCRIPTOR_ES": "Ácido cítrico",
+              "REFERENCIA_SABOR": "Limón (aproximación)",
+              "DESCRIPCION": "Busca un carácter ácido limpio con una impresión ligeramente cítrica. El limón ayuda a orientarse, pero incorpora otros aromas; no identifica la composición química del café.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__sour__malic-acid",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Ácido",
+              "DESCRIPTOR_EN": "Malic acid",
+              "DESCRIPTOR_ES": "Ácido málico",
+              "REFERENCIA_SABOR": "Manzana verde (aproximación)",
+              "DESCRIPCION": "Busca una impresión ácida que puede recordar la manzana verde. Esta comparación orienta; no equivale al aroma de manzana ni confirma la presencia de un ácido concreto.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "sour-fermented__alcohol-fermented",
+          "FAMILIA": "Ácido / fermentado",
+          "SUBFAMILIA": "Alcohol / fermentado",
+          "DESCRIPTOR_EN": "Alcohol/Fermented",
+          "DESCRIPTOR_ES": "Alcohol / fermentado",
+          "REFERENCIA_SABOR": "Vino, frutas fermentadas",
+          "DESCRIPCION": "Busca aromas que recuerden bebidas alcohólicas o productos fermentados. Puede haber notas de fruta o levadura; distingue el tipo de aroma en los siguientes descriptores.",
+          "children": [
+            {
+              "ID": "sour-fermented__alcohol-fermented__winey",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Alcohol / fermentado",
+              "DESCRIPTOR_EN": "Winey",
+              "DESCRIPTOR_ES": "Vinoso",
+              "REFERENCIA_SABOR": "Vino",
+              "DESCRIPCION": "Recuerda el aroma del vino, donde la fruta se combina con una nota alcohólica. Se diferencia de una nota de uva sin carácter fermentado.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__alcohol-fermented__whiskey",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Alcohol / fermentado",
+              "DESCRIPTOR_EN": "Whiskey",
+              "DESCRIPTOR_ES": "Whisky",
+              "REFERENCIA_SABOR": "Whisky",
+              "DESCRIPCION": "Busca el aroma de un destilado de cereales, como el whisky. Puede combinar carácter alcohólico, notas de grano y matices asociados a su crianza.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__alcohol-fermented__fermented",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Alcohol / fermentado",
+              "DESCRIPTOR_EN": "Fermented",
+              "DESCRIPTOR_ES": "Fermentado",
+              "REFERENCIA_SABOR": "Masa de pan fermentada (aproximación)",
+              "DESCRIPCION": "Recuerda productos que han fermentado: pueden aparecer levadura, fruta y un matiz alcohólico. La masa de pan es una guía parcial, no una equivalencia exacta.",
+              "children": []
+            },
+            {
+              "ID": "sour-fermented__alcohol-fermented__overripe",
+              "FAMILIA": "Ácido / fermentado",
+              "SUBFAMILIA": "Alcohol / fermentado",
+              "DESCRIPTOR_EN": "Overripe",
+              "DESCRIPTOR_ES": "Sobremaduro",
+              "REFERENCIA_SABOR": "Banano sobremaduro",
+              "DESCRIPCION": "Busca una nota de fruta pasada de su punto de madurez, como el banano muy blando. Puede mezclar dulzor intenso con un inicio de fermentación.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": "green-vegetative",
+      "FAMILIA": "Verde / vegetal",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Green/Vegetative",
+      "DESCRIPTOR_ES": "Verde / vegetal",
+      "REFERENCIA_SABOR": "Hojas, vegetales",
+      "DESCRIPCION": "Busca aromas de hojas, pasto o vegetales. Esta familia también reúne notas de productos crudos y legumbres; no significa necesariamente que el café esté sin tostar.",
+      "children": [
+        {
+          "ID": "green-vegetative__olive-oil",
+          "FAMILIA": "Verde / vegetal",
+          "SUBFAMILIA": "Aceite de oliva",
+          "DESCRIPTOR_EN": "Olive oil",
+          "DESCRIPTOR_ES": "Aceite de oliva",
+          "REFERENCIA_SABOR": "Aceite de oliva",
+          "DESCRIPCION": "Recuerda el aroma del aceite de oliva, con matices verdes y, a veces, un toque de pimienta. Describe el aroma; no requiere una textura aceitosa.",
+          "children": []
+        },
+        {
+          "ID": "green-vegetative__raw",
+          "FAMILIA": "Verde / vegetal",
+          "SUBFAMILIA": "Crudo",
+          "DESCRIPTOR_EN": "Raw",
+          "DESCRIPTOR_ES": "Crudo",
+          "REFERENCIA_SABOR": "Almendra cruda",
+          "DESCRIPCION": "Busca el carácter de un alimento sin cocinar, como una almendra cruda. Se diferencia de las notas que aparecen al dorar o tostar ese alimento.",
+          "children": []
+        },
+        {
+          "ID": "green-vegetative__green-vegetative",
+          "FAMILIA": "Verde / vegetal",
+          "SUBFAMILIA": "Verde / vegetal",
+          "DESCRIPTOR_EN": "Green/Vegetative",
+          "DESCRIPTOR_ES": "Verde / vegetal",
+          "REFERENCIA_SABOR": "Pasto, hojas, vegetales",
+          "DESCRIPCION": "Agrupa notas vegetales que van del pasto fresco al heno y las verduras cocidas. Elige el descriptor que mejor represente el aroma que percibes.",
+          "children": [
+            {
+              "ID": "green-vegetative__green-vegetative__under-ripe",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Under-ripe",
+              "DESCRIPTOR_ES": "Fruta inmadura",
+              "REFERENCIA_SABOR": "Cáscara de toronja (aproximación)",
+              "DESCRIPCION": "Recuerda fruta que aún no ha madurado, con un carácter verde. La cáscara de toronja ayuda a reconocer parte de ese perfil.",
+              "children": []
+            },
+            {
+              "ID": "green-vegetative__green-vegetative__peapod",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Peapod",
+              "DESCRIPTOR_ES": "Vaina de arveja",
+              "REFERENCIA_SABOR": "Vaina de arveja",
+              "DESCRIPCION": "Busca el olor verde de una vaina de arveja al abrirla. Se diferencia del aroma de las legumbres cocidas o secas.",
+              "children": []
+            },
+            {
+              "ID": "green-vegetative__green-vegetative__fresh",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Fresh",
+              "DESCRIPTOR_ES": "Vegetal fresco",
+              "REFERENCIA_SABOR": "Pasto recién cortado",
+              "DESCRIPCION": "Recuerda pasto recién cortado u hojas recién partidas. Busca un aroma verde vivo; fresco aquí describe el carácter vegetal, no la fecha de tostión.",
+              "children": []
+            },
+            {
+              "ID": "green-vegetative__green-vegetative__dark-green",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Dark green",
+              "DESCRIPTOR_ES": "Vegetal verde oscuro",
+              "REFERENCIA_SABOR": "Espinaca cocida",
+              "DESCRIPCION": "Busca una nota vegetal más profunda, como la espinaca cocida. Se diferencia del olor ligero del pasto recién cortado o de una hoja fresca.",
+              "children": []
+            },
+            {
+              "ID": "green-vegetative__green-vegetative__vegetative",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Vegetative",
+              "DESCRIPTOR_ES": "Vegetal",
+              "REFERENCIA_SABOR": "Espárrago",
+              "DESCRIPCION": "Busca el carácter de tallos, hojas o vegetales como el espárrago. Puede sentirse penetrante, y se distingue de una nota frutal o de hierba aromática.",
+              "children": []
+            },
+            {
+              "ID": "green-vegetative__green-vegetative__hay-like",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Hay-like",
+              "DESCRIPTOR_ES": "Heno",
+              "REFERENCIA_SABOR": "Pasto seco",
+              "DESCRIPCION": "Recuerda pasto seco o heno, con una nota vegetal apagada. Se diferencia del carácter vivo del pasto recién cortado.",
+              "children": []
+            },
+            {
+              "ID": "green-vegetative__green-vegetative__herb-like",
+              "FAMILIA": "Verde / vegetal",
+              "SUBFAMILIA": "Verde / vegetal",
+              "DESCRIPTOR_EN": "Herb-like",
+              "DESCRIPTOR_ES": "Hierbas",
+              "REFERENCIA_SABOR": "Hierbas secas",
+              "DESCRIPCION": "Busca una nota que recuerde hierbas, especialmente secas. No implica necesariamente mentol o hierbabuena; identifica primero ese carácter vegetal aromático.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "green-vegetative__beany",
+          "FAMILIA": "Verde / vegetal",
+          "SUBFAMILIA": "Legumbres",
+          "DESCRIPTOR_EN": "Beany",
+          "DESCRIPTOR_ES": "Legumbres",
+          "REFERENCIA_SABOR": "Fríjol cocido",
+          "DESCRIPCION": "Recuerda el aroma del fríjol o de otras legumbres. Puede tener matices de grano, tierra o vegetal, distintos del olor de una vaina fresca.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "ID": "other",
+      "FAMILIA": "Otros",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Other",
+      "DESCRIPTOR_ES": "Otros",
+      "REFERENCIA_SABOR": "Papel, madera, notas químicas",
+      "DESCRIPCION": "Reúne descriptores que no encajan en las demás familias. Incluye notas de papel, humedad y productos químicos, además de las sensaciones amarga y salada.",
+      "children": [
+        {
+          "ID": "other__papery-musty",
+          "FAMILIA": "Otros",
+          "SUBFAMILIA": "Papel / humedad",
+          "DESCRIPTOR_EN": "Papery/Musty",
+          "DESCRIPTOR_ES": "Papel / humedad",
+          "REFERENCIA_SABOR": "Papel, tierra, espacios cerrados",
+          "DESCRIPCION": "Agrupa aromas de papel, madera, polvo y humedad, entre otros. Usa los descriptores siguientes para separar una nota seca de una húmeda o terrosa.",
+          "children": [
+            {
+              "ID": "other__papery-musty__stale",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Stale",
+              "DESCRIPTOR_ES": "Falta de frescura",
+              "REFERENCIA_SABOR": "Galleta almacenada (aproximación)",
+              "DESCRIPCION": "Busca una impresión apagada, como la de un alimento que perdió frescura al almacenarse. No significa necesariamente que haya una nota de humedad o moho.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__cardboard",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Cardboard",
+              "DESCRIPTOR_ES": "Cartón",
+              "REFERENCIA_SABOR": "Cartón",
+              "DESCRIPCION": "Recuerda el olor de una caja de cartón. Busca ese carácter seco de empaque, diferente del de tierra húmeda o madera.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__papery",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Papery",
+              "DESCRIPTOR_ES": "Papel",
+              "REFERENCIA_SABOR": "Papel blanco",
+              "DESCRIPCION": "Busca el olor del papel blanco o de un vaso de papel. Es una nota más ligera que la de cartón y no exige humedad.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__woody",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Woody",
+              "DESCRIPTOR_ES": "Madera",
+              "REFERENCIA_SABOR": "Corteza de árbol",
+              "DESCRIPCION": "Recuerda madera o corteza de árbol. Puede tener un carácter seco u oscuro; se diferencia del humo que aparece cuando la madera se quema.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__moldy-damp",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Moldy/Damp",
+              "DESCRIPTOR_ES": "Moho / humedad",
+              "REFERENCIA_SABOR": "Habitación húmeda",
+              "DESCRIPCION": "Busca el olor de un espacio cerrado y húmedo. Se distingue de polvo seco o tierra; la nota sensorial por sí sola no confirma contaminación.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__musty-dusty",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Musty/Dusty",
+              "DESCRIPTOR_ES": "Guardado / polvo",
+              "REFERENCIA_SABOR": "Armario cerrado",
+              "DESCRIPCION": "Recuerda un espacio seco que lleva tiempo cerrado, como un armario. Predomina una impresión de guardado o polvo, diferente de la humedad marcada.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__musty-earthy",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Musty/Earthy",
+              "DESCRIPTOR_ES": "Guardado / tierra",
+              "REFERENCIA_SABOR": "Tierra húmeda",
+              "DESCRIPCION": "Busca una nota de tierra húmeda, con un carácter profundo. Puede recordar vegetación en descomposición; se diferencia del polvo seco o del papel.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__animalic",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Animalic",
+              "DESCRIPTOR_ES": "Animal",
+              "REFERENCIA_SABOR": "Establo",
+              "DESCRIPCION": "Recuerda el olor de un lugar donde habitan animales de granja. Describe una impresión aromática, distinta del caldo de carne o de cuero por sí solo.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__meaty-brothy",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Meaty/Brothy",
+              "DESCRIPTOR_ES": "Carne / caldo",
+              "REFERENCIA_SABOR": "Caldo de carne",
+              "DESCRIPCION": "Busca el aroma de un caldo de carne, como el que se percibe durante su cocción. No es una nota de carne asada o humo.",
+              "children": []
+            },
+            {
+              "ID": "other__papery-musty__phenolic",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Papel / humedad",
+              "DESCRIPTOR_EN": "Phenolic",
+              "DESCRIPTOR_ES": "Fenólico",
+              "REFERENCIA_SABOR": "Cuero húmedo",
+              "DESCRIPCION": "Busca un olor que recuerde cuero húmedo y guardado. En esta rueda, fenólico tiene ese carácter concreto; no equivale a cualquier nota medicinal.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "other__chemical",
+          "FAMILIA": "Otros",
+          "SUBFAMILIA": "Químico",
+          "DESCRIPTOR_EN": "Chemical",
+          "DESCRIPTOR_ES": "Químico",
+          "REFERENCIA_SABOR": "Alcohol, caucho",
+          "DESCRIPCION": "Agrupa aromas que recuerdan productos químicos y, según la organización original, también amargo y salado. Cada descriptor identifica una impresión diferente.",
+          "children": [
+            {
+              "ID": "other__chemical__bitter",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Químico",
+              "DESCRIPTOR_EN": "Bitter",
+              "DESCRIPTOR_ES": "Amargo",
+              "REFERENCIA_SABOR": "Café sin azúcar (aproximación)",
+              "DESCRIPCION": "Identifica el amargor como sensación en la boca. Puede aparecer sin olor a quemado; el café de referencia también tiene otras notas y no es una calibración.",
+              "children": []
+            },
+            {
+              "ID": "other__chemical__salty",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Químico",
+              "DESCRIPTOR_EN": "Salty",
+              "DESCRIPTOR_ES": "Salado",
+              "REFERENCIA_SABOR": "Sal",
+              "DESCRIPCION": "Busca una sensación salada, como la que aporta la sal. Es una percepción en la boca, distinta de los aromas frutales, tostados o químicos.",
+              "children": []
+            },
+            {
+              "ID": "other__chemical__medicinal",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Químico",
+              "DESCRIPTOR_EN": "Medicinal",
+              "DESCRIPTOR_ES": "Medicinal",
+              "REFERENCIA_SABOR": "Antiséptico",
+              "DESCRIPCION": "Recuerda el olor de un antiséptico o del material de curación. Busca ese carácter de botiquín, diferente del de combustible o caucho.",
+              "children": []
+            },
+            {
+              "ID": "other__chemical__petroleum",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Químico",
+              "DESCRIPTOR_EN": "Petroleum",
+              "DESCRIPTOR_ES": "Petróleo",
+              "REFERENCIA_SABOR": "Combustible",
+              "DESCRIPCION": "Busca una nota que recuerde derivados del petróleo, como combustible. Describe un olor químico específico, distinto del humo de leña o del caucho.",
+              "children": []
+            },
+            {
+              "ID": "other__chemical__skunky",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Químico",
+              "DESCRIPTOR_EN": "Skunky",
+              "DESCRIPTOR_ES": "Zorrillo",
+              "REFERENCIA_SABOR": "Globo de látex (aproximación)",
+              "DESCRIPCION": "Busca un olor muy penetrante asociado al zorrillo, con carácter azufrado. El globo de látex orienta parcialmente; no equivale al descriptor caucho.",
+              "children": []
+            },
+            {
+              "ID": "other__chemical__rubber",
+              "FAMILIA": "Otros",
+              "SUBFAMILIA": "Químico",
+              "DESCRIPTOR_EN": "Rubber",
+              "DESCRIPTOR_ES": "Caucho",
+              "REFERENCIA_SABOR": "Caucho",
+              "DESCRIPCION": "Recuerda el olor del caucho, como el de una llanta. Es una nota densa y penetrante, diferente de madera quemada o de papel.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": "roasted",
+      "FAMILIA": "Tostado",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Roasted",
+      "DESCRIPTOR_ES": "Tostado",
+      "REFERENCIA_SABOR": "Maní tostado",
+      "DESCRIPCION": "Busca aromas de alimentos dorados por calor seco, como el maní tostado. La nota tostada puede existir sin una impresión de quemado.",
+      "children": [
+        {
+          "ID": "roasted__pipe-tobacco",
+          "FAMILIA": "Tostado",
+          "SUBFAMILIA": "Tabaco de pipa",
+          "DESCRIPTOR_EN": "Pipe tobacco",
+          "DESCRIPTOR_ES": "Tabaco de pipa",
+          "REFERENCIA_SABOR": "Tabaco de pipa",
+          "DESCRIPCION": "Recuerda el tabaco curado de pipa antes de encenderlo. Puede tener matices dulces, de fruta o especias; no es lo mismo que humo de tabaco.",
+          "children": []
+        },
+        {
+          "ID": "roasted__tobacco",
+          "FAMILIA": "Tostado",
+          "SUBFAMILIA": "Tabaco",
+          "DESCRIPTOR_EN": "Tobacco",
+          "DESCRIPTOR_ES": "Tabaco",
+          "REFERENCIA_SABOR": "Tabaco",
+          "DESCRIPCION": "Busca el olor de las hojas de tabaco curado, antes de quemarlas. Se distingue del humo y puede presentar una impresión seca y ligeramente dulce.",
+          "children": []
+        },
+        {
+          "ID": "roasted__burnt",
+          "FAMILIA": "Tostado",
+          "SUBFAMILIA": "Quemado",
+          "DESCRIPTOR_EN": "Burnt",
+          "DESCRIPTOR_ES": "Quemado",
+          "REFERENCIA_SABOR": "Pan quemado",
+          "DESCRIPCION": "Busca el carácter de un alimento que pasó del tostado al quemado. Puede aparecer una impresión áspera o amarga, más intensa que un dorado agradable.",
+          "children": [
+            {
+              "ID": "roasted__burnt__acrid",
+              "FAMILIA": "Tostado",
+              "SUBFAMILIA": "Quemado",
+              "DESCRIPTOR_EN": "Acrid",
+              "DESCRIPTOR_ES": "Acre",
+              "REFERENCIA_SABOR": "Olor de pan muy quemado",
+              "DESCRIPCION": "Busca una nota de quemado especialmente áspera y punzante en la nariz. Acre describe ese carácter agresivo; no es sinónimo de acidez frutal.",
+              "children": []
+            },
+            {
+              "ID": "roasted__burnt__ashy",
+              "FAMILIA": "Tostado",
+              "SUBFAMILIA": "Quemado",
+              "DESCRIPTOR_EN": "Ashy",
+              "DESCRIPTOR_ES": "Ceniza",
+              "REFERENCIA_SABOR": "Ceniza",
+              "DESCRIPCION": "Recuerda el olor de la ceniza que queda después de una combustión. Tiene una impresión seca, diferente del humo que aún se desprende al quemar.",
+              "children": []
+            },
+            {
+              "ID": "roasted__burnt__smoky",
+              "FAMILIA": "Tostado",
+              "SUBFAMILIA": "Quemado",
+              "DESCRIPTOR_EN": "Smoky",
+              "DESCRIPTOR_ES": "Ahumado",
+              "REFERENCIA_SABOR": "Humo de leña",
+              "DESCRIPCION": "Busca una nota de humo, como la que produce la leña al arder. No requiere amargor ni la sensación seca característica de la ceniza.",
+              "children": []
+            },
+            {
+              "ID": "roasted__burnt__brown-roast",
+              "FAMILIA": "Tostado",
+              "SUBFAMILIA": "Quemado",
+              "DESCRIPTOR_EN": "Brown, Roast",
+              "DESCRIPTOR_ES": "Dorado / tostado",
+              "REFERENCIA_SABOR": "Pan tostado, maní tostado",
+              "DESCRIPCION": "Busca una impresión profunda de alimento dorado o tostado, con matices que pueden recordar frutos secos y dulzor. No exige olor a carbonizado.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "roasted__cereal",
+          "FAMILIA": "Tostado",
+          "SUBFAMILIA": "Cereales",
+          "DESCRIPTOR_EN": "Cereal",
+          "DESCRIPTOR_ES": "Cereales",
+          "REFERENCIA_SABOR": "Granos, malta",
+          "DESCRIPCION": "Agrupa notas que recuerdan cereales, tanto grano como malta. Identifica si predomina el carácter del grano o el de un cereal malteado.",
+          "children": [
+            {
+              "ID": "roasted__cereal__grain",
+              "FAMILIA": "Tostado",
+              "SUBFAMILIA": "Cereales",
+              "DESCRIPTOR_EN": "Grain",
+              "DESCRIPTOR_ES": "Grano de cereal",
+              "REFERENCIA_SABOR": "Avena",
+              "DESCRIPCION": "Busca el aroma de un cereal como la avena, con una nota seca y suave. No implica el carácter fermentado de la malta.",
+              "children": []
+            },
+            {
+              "ID": "roasted__cereal__malt",
+              "FAMILIA": "Tostado",
+              "SUBFAMILIA": "Cereales",
+              "DESCRIPTOR_EN": "Malt",
+              "DESCRIPTOR_ES": "Malta",
+              "REFERENCIA_SABOR": "Malta de cebada",
+              "DESCRIPCION": "Recuerda el cereal malteado, como la malta de cebada. Puede evocar dulzor de grano y un ligero carácter fermentado, sin requerir aroma alcohólico.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": "spices",
+      "FAMILIA": "Especias",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Spices",
+      "DESCRIPTOR_ES": "Especias",
+      "REFERENCIA_SABOR": "Canela, clavo, pimienta",
+      "DESCRIPCION": "Busca aromas que recuerden especias. Separa una nota cálida, como canela o clavo, de una impresión punzante como la pimienta.",
+      "children": [
+        {
+          "ID": "spices__pungent",
+          "FAMILIA": "Especias",
+          "SUBFAMILIA": "Penetrante",
+          "DESCRIPTOR_EN": "Pungent",
+          "DESCRIPTOR_ES": "Penetrante",
+          "REFERENCIA_SABOR": "Aroma de cáscara de naranja (aproximación)",
+          "DESCRIPCION": "Busca un aroma intenso que se sienta punzante en la nariz. La cáscara de naranja orienta parcialmente; no exige picor en la lengua ni aroma de pimienta.",
+          "children": []
+        },
+        {
+          "ID": "spices__pepper",
+          "FAMILIA": "Especias",
+          "SUBFAMILIA": "Pimienta",
+          "DESCRIPTOR_EN": "Pepper",
+          "DESCRIPTOR_ES": "Pimienta",
+          "REFERENCIA_SABOR": "Pimienta negra",
+          "DESCRIPCION": "Busca el olor de la pimienta negra molida, con un matiz seco y amaderado. Su aroma puede aparecer sin producir picor en la boca.",
+          "children": []
+        },
+        {
+          "ID": "spices__brown-spice",
+          "FAMILIA": "Especias",
+          "SUBFAMILIA": "Especias cálidas",
+          "DESCRIPTOR_EN": "Brown spice",
+          "DESCRIPTOR_ES": "Especias cálidas",
+          "REFERENCIA_SABOR": "Canela, clavo, nuez moscada",
+          "DESCRIPCION": "Agrupa especias de aroma cálido, que pueden sugerir dulzor. Ese dulzor aromático no implica azúcar; elige la especia concreta si logras reconocerla.",
+          "children": [
+            {
+              "ID": "spices__brown-spice__anise",
+              "FAMILIA": "Especias",
+              "SUBFAMILIA": "Especias cálidas",
+              "DESCRIPTOR_EN": "Anise",
+              "DESCRIPTOR_ES": "Anís",
+              "REFERENCIA_SABOR": "Anís",
+              "DESCRIPCION": "Recuerda el aroma del anís, dulce y muy reconocible. Busca ese carácter de especia, sin necesidad de una nota alcohólica como la del aguardiente.",
+              "children": []
+            },
+            {
+              "ID": "spices__brown-spice__nutmeg",
+              "FAMILIA": "Especias",
+              "SUBFAMILIA": "Especias cálidas",
+              "DESCRIPTOR_EN": "Nutmeg",
+              "DESCRIPTOR_ES": "Nuez moscada",
+              "REFERENCIA_SABOR": "Nuez moscada",
+              "DESCRIPCION": "Busca el aroma de la nuez moscada rallada, cálido y amaderado. Puede tener un matiz cítrico leve, distinto del carácter del clavo o la canela.",
+              "children": []
+            },
+            {
+              "ID": "spices__brown-spice__cinnamon",
+              "FAMILIA": "Especias",
+              "SUBFAMILIA": "Especias cálidas",
+              "DESCRIPTOR_EN": "Cinnamon",
+              "DESCRIPTOR_ES": "Canela",
+              "REFERENCIA_SABOR": "Canela",
+              "DESCRIPCION": "Busca el aroma de la canela, cálido y con impresión dulce. Puede recordar la especia sola, sin azúcar ni leche añadidas.",
+              "children": []
+            },
+            {
+              "ID": "spices__brown-spice__clove",
+              "FAMILIA": "Especias",
+              "SUBFAMILIA": "Especias cálidas",
+              "DESCRIPTOR_EN": "Clove",
+              "DESCRIPTOR_ES": "Clavo",
+              "REFERENCIA_SABOR": "Clavo de olor",
+              "DESCRIPCION": "Recuerda el clavo de olor, una especia de aroma intenso y penetrante. Se diferencia de la canela por su carácter más punzante.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": "nutty-cocoa",
+      "FAMILIA": "Frutos secos / cacao",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Nutty/Cocoa",
+      "DESCRIPTOR_ES": "Frutos secos / cacao",
+      "REFERENCIA_SABOR": "Maní, cacao",
+      "DESCRIPCION": "Agrupa aromas de frutos secos y cacao. Elige si predomina una nota de semilla o nuez, o el carácter de cacao y chocolate.",
+      "children": [
+        {
+          "ID": "nutty-cocoa__nutty",
+          "FAMILIA": "Frutos secos / cacao",
+          "SUBFAMILIA": "Frutos secos",
+          "DESCRIPTOR_EN": "Nutty",
+          "DESCRIPTOR_ES": "Frutos secos",
+          "REFERENCIA_SABOR": "Maní, almendra, avellana",
+          "DESCRIPCION": "Busca aromas de frutos secos, como maní, almendra o avellana. Pueden sugerir una nota aceitosa o dulce sin requerir sabor a chocolate.",
+          "children": [
+            {
+              "ID": "nutty-cocoa__nutty__peanuts",
+              "FAMILIA": "Frutos secos / cacao",
+              "SUBFAMILIA": "Frutos secos",
+              "DESCRIPTOR_EN": "Peanuts",
+              "DESCRIPTOR_ES": "Maní",
+              "REFERENCIA_SABOR": "Maní",
+              "DESCRIPCION": "Recuerda el aroma del maní, con su carácter de semilla y una impresión ligeramente aceitosa. Se distingue de avellana y almendra.",
+              "children": []
+            },
+            {
+              "ID": "nutty-cocoa__nutty__hazelnut",
+              "FAMILIA": "Frutos secos / cacao",
+              "SUBFAMILIA": "Frutos secos",
+              "DESCRIPTOR_EN": "Hazelnut",
+              "DESCRIPTOR_ES": "Avellana",
+              "REFERENCIA_SABOR": "Avellana",
+              "DESCRIPCION": "Busca el aroma de la avellana sola, con carácter de fruto seco y un matiz amaderado. Evita confundirla con cremas que mezclan avellana y chocolate.",
+              "children": []
+            },
+            {
+              "ID": "nutty-cocoa__nutty__almond",
+              "FAMILIA": "Frutos secos / cacao",
+              "SUBFAMILIA": "Frutos secos",
+              "DESCRIPTOR_EN": "Almond",
+              "DESCRIPTOR_ES": "Almendra",
+              "REFERENCIA_SABOR": "Almendra",
+              "DESCRIPCION": "Recuerda el aroma suave de la almendra, con una impresión ligeramente dulce. Puede tener matices delicados de fruta o flor; no equivale a mazapán azucarado.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "nutty-cocoa__cocoa",
+          "FAMILIA": "Frutos secos / cacao",
+          "SUBFAMILIA": "Cacao",
+          "DESCRIPTOR_EN": "Cocoa",
+          "DESCRIPTOR_ES": "Cacao",
+          "REFERENCIA_SABOR": "Cacao en polvo",
+          "DESCRIPCION": "Busca el aroma del cacao, como el que se percibe en cacao en polvo. Puede sugerir amargor; no necesita el dulzor de un chocolate preparado.",
+          "children": [
+            {
+              "ID": "nutty-cocoa__cocoa__chocolate",
+              "FAMILIA": "Frutos secos / cacao",
+              "SUBFAMILIA": "Cacao",
+              "DESCRIPTOR_EN": "Chocolate",
+              "DESCRIPTOR_ES": "Chocolate",
+              "REFERENCIA_SABOR": "Chocolate",
+              "DESCRIPCION": "Recuerda el aroma del chocolate, combinando cacao y un carácter tostado. Describe esa nota aromática sin exigir leche o azúcar.",
+              "children": []
+            },
+            {
+              "ID": "nutty-cocoa__cocoa__dark-chocolate",
+              "FAMILIA": "Frutos secos / cacao",
+              "SUBFAMILIA": "Cacao",
+              "DESCRIPTOR_EN": "Dark chocolate",
+              "DESCRIPTOR_ES": "Chocolate oscuro",
+              "REFERENCIA_SABOR": "Chocolate oscuro",
+              "DESCRIPCION": "Busca un carácter de cacao intenso, como el chocolate de alto contenido de cacao. Puede evocar más amargor y sequedad que un chocolate dulce.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ID": "sweet",
+      "FAMILIA": "Dulce",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Sweet",
+      "DESCRIPTOR_ES": "Dulce",
+      "REFERENCIA_SABOR": "Azúcar",
+      "DESCRIPCION": "Identifica la sensación dulce en la boca. Esta familia también contiene aromas que sugieren dulzor, aunque no haya azúcar añadido al café.",
+      "children": [
+        {
+          "ID": "sweet__brown-sugar",
+          "FAMILIA": "Dulce",
+          "SUBFAMILIA": "Azúcar morena",
+          "DESCRIPTOR_EN": "Brown sugar",
+          "DESCRIPTOR_ES": "Azúcar morena",
+          "REFERENCIA_SABOR": "Azúcar morena",
+          "DESCRIPCION": "Busca el aroma cálido y profundo del azúcar morena. Se diferencia de la sensación dulce simple del azúcar blanco y puede recordar azúcar cocida.",
+          "children": [
+            {
+              "ID": "sweet__brown-sugar__molasses",
+              "FAMILIA": "Dulce",
+              "SUBFAMILIA": "Azúcar morena",
+              "DESCRIPTOR_EN": "Molasses",
+              "DESCRIPTOR_ES": "Melaza",
+              "REFERENCIA_SABOR": "Melaza",
+              "DESCRIPCION": "Recuerda la melaza, con un carácter oscuro y de azúcar muy cocida. El melado de panela puede orientar, pero no reproduce exactamente su perfil.",
+              "children": []
+            },
+            {
+              "ID": "sweet__brown-sugar__maple-syrup",
+              "FAMILIA": "Dulce",
+              "SUBFAMILIA": "Azúcar morena",
+              "DESCRIPTOR_EN": "Maple syrup",
+              "DESCRIPTOR_ES": "Jarabe de arce",
+              "REFERENCIA_SABOR": "Melado de panela (aproximación)",
+              "DESCRIPCION": "Busca un aroma dulce de azúcar cocida con un matiz de madera. El melado de panela aproxima parte del perfil, pero no sustituye al jarabe de arce.",
+              "children": []
+            },
+            {
+              "ID": "sweet__brown-sugar__caramelized",
+              "FAMILIA": "Dulce",
+              "SUBFAMILIA": "Azúcar morena",
+              "DESCRIPTOR_EN": "Caramelized",
+              "DESCRIPTOR_ES": "Caramelizado",
+              "REFERENCIA_SABOR": "Caramelo",
+              "DESCRIPCION": "Busca el aroma que aparece al cocinar azúcar hasta dorarla. Se diferencia del azúcar quemada: el carácter caramelizado no exige aspereza o carbonización.",
+              "children": []
+            },
+            {
+              "ID": "sweet__brown-sugar__honey",
+              "FAMILIA": "Dulce",
+              "SUBFAMILIA": "Azúcar morena",
+              "DESCRIPTOR_EN": "Honey",
+              "DESCRIPTOR_ES": "Miel",
+              "REFERENCIA_SABOR": "Miel",
+              "DESCRIPCION": "Recuerda el aroma de la miel, que puede tener matices florales o de especias. La impresión aromática es distinta de medir cuánto dulzor tiene el café.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "ID": "sweet__vanilla",
+          "FAMILIA": "Dulce",
+          "SUBFAMILIA": "Vainilla",
+          "DESCRIPTOR_EN": "Vanilla",
+          "DESCRIPTOR_ES": "Vainilla",
+          "REFERENCIA_SABOR": "Vaina de vainilla",
+          "DESCRIPCION": "Busca el aroma de la vaina de vainilla, con matices de madera y especias. Se distingue del aroma más simple de una esencia de vainilla.",
+          "children": []
+        },
+        {
+          "ID": "sweet__vanillin",
+          "FAMILIA": "Dulce",
+          "SUBFAMILIA": "Vainillina",
+          "DESCRIPTOR_EN": "Vanillin",
+          "DESCRIPTOR_ES": "Vainillina",
+          "REFERENCIA_SABOR": "Esencia de vainilla",
+          "DESCRIPCION": "Busca una nota de vainilla muy marcada y de impresión dulce, como ciertas esencias de repostería. Es más simple que el perfil de la vaina completa.",
+          "children": []
+        },
+        {
+          "ID": "sweet__overall-sweet",
+          "FAMILIA": "Dulce",
+          "SUBFAMILIA": "Dulzor general",
+          "DESCRIPTOR_EN": "Overall sweet",
+          "DESCRIPTOR_ES": "Dulzor general",
+          "REFERENCIA_SABOR": "Galleta dulce",
+          "DESCRIPCION": "Describe la impresión conjunta de sabor dulce y aromas que sugieren dulzor. Puede recordar una galleta dulce, sin identificar todavía miel, vainilla o caramelo.",
+          "children": []
+        },
+        {
+          "ID": "sweet__sweet-aromatics",
+          "FAMILIA": "Dulce",
+          "SUBFAMILIA": "Aromas dulces",
+          "DESCRIPTOR_EN": "Sweet Aromatics",
+          "DESCRIPTOR_ES": "Aromas dulces",
+          "REFERENCIA_SABOR": "Aroma de galleta dulce",
+          "DESCRIPCION": "Busca olores que hagan pensar en algo dulce, como una galleta. Se pueden percibir al oler; no equivalen necesariamente a una sensación dulce en boca.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "ID": "floral",
+      "FAMILIA": "Floral",
+      "SUBFAMILIA": "",
+      "DESCRIPTOR_EN": "Floral",
+      "DESCRIPTOR_ES": "Floral",
+      "REFERENCIA_SABOR": "Flores",
+      "DESCRIPCION": "Busca aromas que recuerden flores. Esta familia permite identificar después manzanilla, rosa o jazmín, y también incluye té negro según la jerarquía original.",
+      "children": [
+        {
+          "ID": "floral__black-tea",
+          "FAMILIA": "Floral",
+          "SUBFAMILIA": "Té negro",
+          "DESCRIPTOR_EN": "Black Tea",
+          "DESCRIPTOR_ES": "Té negro",
+          "REFERENCIA_SABOR": "Té negro",
+          "DESCRIPCION": "Recuerda la infusión de té negro, con carácter de hojas secas y un matiz de madera. No significa cualquier té ni una nota floral pura.",
+          "children": []
+        },
+        {
+          "ID": "floral__floral",
+          "FAMILIA": "Floral",
+          "SUBFAMILIA": "Floral",
+          "DESCRIPTOR_EN": "Floral",
+          "DESCRIPTOR_ES": "Floral",
+          "REFERENCIA_SABOR": "Manzanilla, rosa, jazmín",
+          "DESCRIPCION": "Agrupa aromas de flores. Si reconoces una flor concreta, avanza hacia manzanilla, rosa o jazmín; si no, puedes quedarte en esta categoría.",
+          "children": [
+            {
+              "ID": "floral__floral__chamomile",
+              "FAMILIA": "Floral",
+              "SUBFAMILIA": "Floral",
+              "DESCRIPTOR_EN": "Chamomile",
+              "DESCRIPTOR_ES": "Manzanilla",
+              "REFERENCIA_SABOR": "Manzanilla",
+              "DESCRIPCION": "Busca el aroma de la manzanilla, como en una infusión sin azúcar. Tiene una nota floral suave, diferente de rosa o jazmín.",
+              "children": []
+            },
+            {
+              "ID": "floral__floral__rose",
+              "FAMILIA": "Floral",
+              "SUBFAMILIA": "Floral",
+              "DESCRIPTOR_EN": "Rose",
+              "DESCRIPTOR_ES": "Rosa",
+              "REFERENCIA_SABOR": "Rosa",
+              "DESCRIPCION": "Recuerda el perfume de los pétalos de rosa. Busca ese carácter floral reconocible, sin añadir notas de jabón o cosmético.",
+              "children": []
+            },
+            {
+              "ID": "floral__floral__jasmine",
+              "FAMILIA": "Floral",
+              "SUBFAMILIA": "Floral",
+              "DESCRIPTOR_EN": "Jasmine",
+              "DESCRIPTOR_ES": "Jazmín",
+              "REFERENCIA_SABOR": "Jazmín",
+              "DESCRIPCION": "Busca el perfume del jazmín, floral y expresivo. Se distingue del aroma suave de la manzanilla y del perfume de rosa.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
