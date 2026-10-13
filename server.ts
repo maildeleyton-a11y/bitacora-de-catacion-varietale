@@ -405,7 +405,13 @@ REGLAS CRÍTICAS:
   // --------------------------------------------------------------------------
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        host: "0.0.0.0",
+        hmr: {
+          clientPort: PORT,
+        },
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -421,7 +427,9 @@ REGLAS CRÍTICAS:
   // ARRANQUE DEL SERVIDOR
   // --------------------------------------------------------------------------
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Bitácora Varietale running on http://0.0.0.0:${PORT}`);
+    console.log(`Bitácora Varietale running on:`);
+    console.log(`  - Local:    http://localhost:${PORT}`);
+    console.log(`  - Red Wi-Fi: http://192.168.1.39:${PORT}`);
   });
 }
 
