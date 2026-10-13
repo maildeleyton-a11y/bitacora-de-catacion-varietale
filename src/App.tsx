@@ -36,7 +36,11 @@ import { OnboardingGuideModal } from "./components/OnboardingGuideModal";
 import { UserAuthModal } from "./components/UserAuthModal";
 import { AuthScreen } from "./components/AuthScreen";
 import { LaunchSequence } from "./components/LaunchSequence";
-import { InstallPwaModal, InstallPwaBanner } from "./components/InstallPwaModal";
+import {
+  InstallPwaModal,
+  InstallPwaPromptModal,
+  checkIsAppInstalled,
+} from "./components/InstallPwaModal";
 
 // ============================================================================
 // 1. CONSTANTES DE PERSISTENCIA Y SESIÓN
@@ -183,6 +187,13 @@ export default function App() {
   // Modal de instalación PWA y evento diferido de instalación nativa
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState<boolean>(false);
+
+  const triggerInstallPromptIfEligible = () => {
+    if (!checkIsAppInstalled()) {
+      setShowInstallPrompt(true);
+    }
+  };
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -195,6 +206,20 @@ export default function App() {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
+
+  // Al estar en la pantalla principal (sea tras login o recarga), invitar a instalar si no está en el teléfono
+  useEffect(() => {
+    try {
+      localStorage.removeItem("varietale_pwa_banner_dismissed_until");
+    } catch {}
+
+    if (currentScreen === "home") {
+      const timer = setTimeout(() => {
+        triggerInstallPromptIfEligible();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentScreen]);
 
   // --------------------------------------------------------------------------
   // D. Historial de Catas Particionado por Usuario
@@ -231,6 +256,11 @@ export default function App() {
     const userTastings = loadUserTastings(user);
     setTastings(userTastings);
     setCurrentScreen("home");
+
+    // Disparar siempre después del signin si la app no está instalada en el dispositivo
+    setTimeout(() => {
+      triggerInstallPromptIfEligible();
+    }, 600);
   };
 
   const handleContinueAsGuest = () => {
@@ -256,6 +286,11 @@ export default function App() {
     const guestTastings = loadUserTastings(guestUser);
     setTastings(guestTastings);
     setCurrentScreen("home");
+
+    // Disparar siempre después del signin si la app no está instalada en el dispositivo
+    setTimeout(() => {
+      triggerInstallPromptIfEligible();
+    }, 600);
   };
 
   const handleLogout = () => {
@@ -720,8 +755,12 @@ export default function App() {
         onOpenInstall={() => setIsInstallModalOpen(true)}
       />
 
-      {/* Banner discreto para invitar a instalar la app en móvil */}
-      <InstallPwaBanner onOpenModal={() => setIsInstallModalOpen(true)} />
+      {/* Popup centrado de invitación a instalar la app (aparece siempre tras sign-in si no está instalada) */}
+      <InstallPwaPromptModal
+        isOpen={showInstallPrompt}
+        onClose={() => setShowInstallPrompt(false)}
+        onOpenGuide={() => setIsInstallModalOpen(true)}
+      />
 
       {/* Modal interactivo con guía visual para agregar a inicio en iOS y Android */}
       <InstallPwaModal

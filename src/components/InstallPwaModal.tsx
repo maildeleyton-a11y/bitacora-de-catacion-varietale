@@ -351,49 +351,36 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
 };
 
 /**
- * ============================================================================
- * POPUP INICIAL DE INVITACIÓN (CENTRADO EN PANTALLA)
- * ============================================================================
- * Aparece centrado en pantalla sin tapar el encabezado superior (logo, usuario,
- * botón a la bitácora) invitando a instalar la app.
+ * Verifica si la aplicación ya está instalada y ejecutándose en modo standalone PWA.
  */
-export const InstallPwaBanner: React.FC<{ onOpenModal: () => void }> = ({ onOpenModal }) => {
-  const [visible, setVisible] = useState(false);
+export const checkIsAppInstalled = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return Boolean(
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true ||
+    (document.referrer && document.referrer.startsWith("android-app://"))
+  );
+};
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+interface InstallPwaPromptModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenGuide: () => void;
+}
 
-    // Si ya está ejecutándose como app nativa instalada, no mostrar
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true;
-    if (isStandalone) return;
-
-    // Verificar si el usuario lo descartó recientemente
-    const dismissedUntil = localStorage.getItem("varietale_pwa_banner_dismissed_until");
-    if (dismissedUntil && Date.now() < Number(dismissedUntil)) {
-      return;
-    }
-
-    // Esperar 2 segundos para dar prioridad a la carga inicial suave
-    const timer = setTimeout(() => {
-      setVisible(true);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleDismiss = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setVisible(false);
-    // Descartar por 5 días para respetar la decisión del usuario
-    localStorage.setItem(
-      "varietale_pwa_banner_dismissed_until",
-      (Date.now() + 5 * 86400000).toString()
-    );
-  };
-
-  if (!visible) return null;
+/**
+ * ============================================================================
+ * POPUP INICIAL DE INVITACIÓN (CENTRADO EN PANTALLA TRAS SIGN-IN)
+ * ============================================================================
+ * Aparece centrado en pantalla tras iniciar sesión si no está instalada,
+ * sin tapar el encabezado superior (logo, usuario, botón a la bitácora).
+ */
+export const InstallPwaPromptModal: React.FC<InstallPwaPromptModalProps> = ({
+  isOpen,
+  onClose,
+  onOpenGuide,
+}) => {
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -404,7 +391,7 @@ export const InstallPwaBanner: React.FC<{ onOpenModal: () => void }> = ({ onOpen
       >
         {/* Botón Cerrar */}
         <button
-          onClick={handleDismiss}
+          onClick={onClose}
           className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
           aria-label="Cerrar aviso"
         >
@@ -439,8 +426,8 @@ export const InstallPwaBanner: React.FC<{ onOpenModal: () => void }> = ({ onOpen
         {/* Botón Principal exacto solicitado */}
         <button
           onClick={() => {
-            setVisible(false);
-            onOpenModal();
+            onClose();
+            onOpenGuide();
           }}
           className="w-full py-3 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer mb-2.5"
         >
@@ -450,7 +437,7 @@ export const InstallPwaBanner: React.FC<{ onOpenModal: () => void }> = ({ onOpen
 
         {/* Botón secundario */}
         <button
-          onClick={handleDismiss}
+          onClick={onClose}
           className="w-full py-1.5 text-xs font-semibold text-[#889DA7] hover:text-[#01374C] transition-colors cursor-pointer"
         >
           Ahora no
@@ -459,3 +446,6 @@ export const InstallPwaBanner: React.FC<{ onOpenModal: () => void }> = ({ onOpen
     </div>
   );
 };
+
+// Alias para compatibilidad de importaciones
+export const InstallPwaBanner = InstallPwaPromptModal;
