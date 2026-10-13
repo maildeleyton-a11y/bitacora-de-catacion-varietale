@@ -485,33 +485,36 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
 
         {/* FORMA 2: Selecciona tu café en una lista (Catálogo Varietale) */}
         {inputMode === "lista" && (
-          <div className="space-y-2.5">
-            {/* Filtros de Categoría */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[10px] font-bold">
+          <div className="space-y-3">
+            {/* Filtros de Categoría: Envoltura fluida (flex-wrap) sin scroll horizontal */}
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               {[
-                { id: "todos", label: "Todos" },
+                { id: "todos", label: "Todos los Cafés" },
                 { id: "exoticos", label: "Exóticos" },
                 { id: "especiales", label: "Especiales" },
                 { id: "edicion", label: "Edición Limitada" },
                 { id: "descafeinado", label: "Descafeinado" },
-              ].map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setListCategory(cat.id)}
-                  className={`px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
-                    listCategory === cat.id
-                      ? "bg-[#01374C] text-white shadow-2xs"
-                      : "bg-[#FAF6F2] text-[#4A5D68] hover:bg-[#F2ECE4] border border-[#E8EDF1]"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
+              ].map((cat) => {
+                const isActive = listCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setListCategory(cat.id)}
+                    className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-[#01374C] text-white shadow-xs"
+                        : "bg-[#FAF6F2] text-[#4A5D68] hover:bg-[#F2ECE4] hover:text-[#01374C] border border-[#E8EDF1]"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Listado interactivo de cafés */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1">
+            {/* Listado interactivo de cafés integrado al scroll de la página (sin scroll interno) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-1">
               {filteredCatalog.map((sample) => {
                 const isSelected = coffeeInfo.coffeeName === sample.coffeeName;
                 return (
@@ -519,30 +522,36 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                     key={sample.coffeeName}
                     type="button"
                     onClick={() => handleSelectSamplePreset(sample)}
-                    className={`text-left p-2.5 rounded-xl border transition-all flex items-center gap-2.5 ${
+                    className={`text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-center gap-3 sm:gap-3.5 cursor-pointer ${
                       isSelected
-                        ? "bg-[#01374C] text-white border-[#01374C] shadow-xs"
-                        : "bg-white text-[#01374C] border-[#E8EDF1] hover:border-[#01374C]/40 hover:bg-[#FAF6F2]"
+                        ? "bg-[#01374C] text-white border-[#01374C] shadow-md ring-2 ring-[#00D9B4]/60"
+                        : "bg-white text-[#01374C] border-[#E8EDF1] hover:border-[#01374C]/40 hover:bg-[#FAF6F2]/60 shadow-2xs"
                     }`}
                   >
-                    {sample.imageUrl && (
-                      <img
-                        src={sample.imageUrl}
-                        alt={sample.coffeeName}
-                        className="w-12 h-12 rounded-lg object-contain bg-[#FAF6F2] p-0.5 shrink-0 border border-black/5"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = "none";
-                        }}
-                      />
+                    {sample.imageUrl ? (
+                      <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-xl bg-[#FAF6F2] p-1 shrink-0 border border-black/5 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={sample.imageUrl}
+                          alt={sample.coffeeName}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-xl bg-[#01374C] text-[#00D9B4] flex items-center justify-center shrink-0">
+                        <Coffee className="w-8 h-8" />
+                      </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="mb-0.5">
+                      <div className="mb-1">
                         <span
-                          className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md inline-block ${
+                          className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md inline-block tracking-wider ${
                             isSelected
                               ? "bg-white/20 text-[#00D9B4]"
-                              : "bg-[#EBFBFA] text-[#01374C]"
+                              : "bg-[#EBFBFA] text-[#01374C] border border-[#00D9B4]/30"
                           }`}
                         >
                           {sample.productType || sample.suggestedMacro || "Varietale"}
@@ -552,15 +561,26 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                         {sample.coffeeName}
                       </h3>
                       <p
-                        className={`text-xs block mt-0.5 font-medium break-words leading-tight ${
+                        className={`text-xs block mt-1 font-medium break-words leading-tight ${
                           isSelected ? "text-white/80" : "text-[#6A7B85]"
                         }`}
                       >
-                        {sample.origin} • {sample.process}
+                        {[sample.origin, sample.process].filter(Boolean).join(" • ")}
                       </p>
+                      {sample.variety && (
+                        <span
+                          className={`text-[11px] block mt-0.5 truncate ${
+                            isSelected ? "text-white/60" : "text-[#889DA7]"
+                          }`}
+                        >
+                          Varietal: {sample.variety}
+                        </span>
+                      )}
                     </div>
                     {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-[#00D9B4] shrink-0" />
+                      <div className="w-6 h-6 rounded-full bg-[#00D9B4] text-[#01374C] flex items-center justify-center shrink-0 shadow-xs">
+                        <CheckCircle2 className="w-5 h-5 text-[#01374C]" />
+                      </div>
                     )}
                   </button>
                 );
