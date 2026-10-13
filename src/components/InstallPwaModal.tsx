@@ -126,7 +126,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           <div className="flex items-center gap-4 pr-8">
             <div className="w-14 h-14 rounded-2xl bg-[#002636] p-1.5 shadow-md shrink-0 flex items-center justify-center border border-white/20">
               <img
-                src="/icon-192.png"
+                src="./icon-192.png"
                 alt="Bitácora Varietale"
                 className="w-full h-full object-contain rounded-xl"
               />
@@ -400,7 +400,7 @@ export const InstallPwaPromptModal: React.FC<InstallPwaPromptModalProps> = ({
         {/* Logo oficial de la PWA */}
         <div className="w-18 h-18 rounded-2xl bg-[#01374C] p-2.5 mx-auto shadow-md flex items-center justify-center mb-3.5 border border-[#DDC1AB]/50">
           <img
-            src="/icon-192.png"
+            src="./icon-192.png"
             alt="Bitácora Varietale"
             className="w-full h-full object-contain rounded-xl"
           />

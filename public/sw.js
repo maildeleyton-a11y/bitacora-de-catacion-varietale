@@ -9,17 +9,17 @@ const CACHE_NAME = 'varietale-pwa-v1';
 
 // Recursos críticos para navegación inicial y funcionamiento sin conexión
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/manifest.webmanifest',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-maskable-192.png',
-  '/icon-maskable-512.png',
-  '/apple-touch-icon.png',
-  '/favicon.png',
-  '/og-image.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-192.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './favicon.png',
+  './og-image.png'
 ];
 
 // 1. INSTALACIÓN: Precarga el shell básico de la aplicación
