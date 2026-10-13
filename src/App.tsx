@@ -10,7 +10,7 @@
  * - Barra de navegación táctil móvil y modales de celebración/guía.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Coffee, BookOpen, Plus, User, Compass } from "lucide-react";
 import {
   TastingRecord,
@@ -55,10 +55,6 @@ const GUIDE_STORAGE_KEY = "varietale_onboarding_guide_seen_v1";
  * - Se destruye automáticamente al cerrar el navegador o la pestaña, o al pulsar 'Cerrar sesión'.
  */
 const SESSION_USER_KEY = "varietale_session_user";
-
-/** Intervalo para volver a mostrar la animación líquida de inicio (2 horas) */
-const TWO_HOURS_MS = 7200000;
-const LAST_SPLASH_KEY = "last_splash_seen";
 
 // ============================================================================
 // 2. UTILIDADES DE PERSISTENCIA POR USUARIO

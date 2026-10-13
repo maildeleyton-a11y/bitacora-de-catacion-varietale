@@ -15,17 +15,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Camera,
-  UploadCloud,
   CheckCircle2,
   Sparkles,
   ArrowRight,
-  HelpCircle,
   RefreshCw,
-  Sliders,
-  Flame,
   Droplets,
   Layers,
-  Image as ImageIcon,
   ListFilter,
   Edit3,
   Coffee,

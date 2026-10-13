@@ -18,16 +18,11 @@ import {
   GitCompare,
   Compass,
   Star,
-  Calendar,
-  Layers,
   ShoppingBag,
   ExternalLink,
   Trash2,
-  Share2,
   ChevronDown,
   ChevronUp,
-  Info,
-  Check,
   Edit3,
 } from "lucide-react";
 import { TastingRecord, SensorySpiderProfile } from "../types";

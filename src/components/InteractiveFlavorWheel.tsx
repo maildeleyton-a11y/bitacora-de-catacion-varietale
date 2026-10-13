@@ -15,16 +15,11 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Sparkles,
   Sliders,
   Check,
-  ChevronRight,
-  Info,
-  Flame,
   Star,
   Coffee,
   X,
-  Plus,
 } from "lucide-react";
 import {
   MacroProfile,

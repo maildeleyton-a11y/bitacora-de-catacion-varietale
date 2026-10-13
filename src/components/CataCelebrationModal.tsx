@@ -12,7 +12,7 @@
 import React, { useEffect } from "react";
 import confetti from "canvas-confetti";
 import { motion } from "motion/react";
-import { Sparkles, Check, ArrowRight, Star } from "lucide-react";
+import { Sparkles, Check, ArrowRight } from "lucide-react";
 import { TastingRecord } from "../types";
 import { RadarChart } from "./RadarChart";
 import { BrewMethodIcon } from "./BrewMethodIcons";
@@ -41,8 +41,8 @@ export const CataCelebrationModal: React.FC<CataCelebrationModalProps> = ({
         origin: { y: 0.6 },
         colors: ["#01374C", "#00D9B4", "#DDC1AB", "#3B2212"],
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
+      // Ignorar fallo no crítico de confeti
     }
   }, []);
 

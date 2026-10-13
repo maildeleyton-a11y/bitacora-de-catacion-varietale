@@ -10,13 +10,6 @@
 
 import React from "react";
 
-interface VarietaleLogoProps {
-  variant?: "horizontal" | "vertical" | "icon" | "sello";
-  className?: string;
-  color?: string; // default #01374C
-  accentColor?: string; // default #00D9B4
-  size?: "sm" | "md" | "lg";
-}
 
 /**
  * Isotipo oficial de Varietale (emblema de dos hojas y corazón de cafeto).
@@ -103,8 +96,7 @@ export const VarietaleLogoHorizontal: React.FC<{
 export const VarietaleSello: React.FC<{
   size?: number;
   color?: string;
-  accent?: string;
-}> = ({ size = 72, color = "#01374C", accent = "#00D9B4" }) => (
+}> = ({ size = 72, color = "#01374C" }) => (
   <div
     className="relative flex items-center justify-center rounded-full"
     style={{ width: size, height: size }}
