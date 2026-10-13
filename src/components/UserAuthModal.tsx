@@ -22,6 +22,7 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  Smartphone,
 } from "lucide-react";
 import { UserProfile, TastingRecord } from "../types";
 import { GoogleAccountChooserModal } from "./GoogleAccountChooserModal";
@@ -47,6 +48,8 @@ interface UserAuthModalProps {
   onLogout: () => void;
   /** Catas registradas por el catador */
   tastings: TastingRecord[];
+  /** Acción para abrir el modal de instalación PWA */
+  onOpenInstall?: () => void;
 }
 
 export const UserAuthModal: React.FC<UserAuthModalProps> = ({
@@ -56,6 +59,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
   onLogin,
   onLogout,
   tastings,
+  onOpenInstall,
 }) => {
   const [activeTab, setActiveTab] = useState<
     "register" | "login" | "profile" | "resetPassword" | "quickReminder"
@@ -785,6 +789,21 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     <span className="text-[11px] text-[#52646E]">Métodos Explorados</span>
                   </div>
                 </div>
+
+                {/* Opción de instalación de App PWA en móvil */}
+                {onOpenInstall && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenInstall();
+                      onClose();
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#EBFBFA] border border-[#00D9B4]/60 text-[#00897B] hover:bg-[#d6f7f4] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Smartphone className="w-4 h-4 text-[#00897B]" />
+                    <span>Instalar App en el Celular (PWA)</span>
+                  </button>
+                )}
 
                 {/* Logout Button */}
                 <button

@@ -36,6 +36,7 @@ import { OnboardingGuideModal } from "./components/OnboardingGuideModal";
 import { UserAuthModal } from "./components/UserAuthModal";
 import { AuthScreen } from "./components/AuthScreen";
 import { LaunchSequence } from "./components/LaunchSequence";
+import { InstallPwaModal, InstallPwaBanner } from "./components/InstallPwaModal";
 
 // ============================================================================
 // 1. CONSTANTES DE PERSISTENCIA Y SESIÓN
@@ -178,6 +179,22 @@ export default function App() {
 
   // Modal lateral/flotante de información de perfil
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
+
+  // Modal de instalación PWA y evento diferido de instalación nativa
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
 
   // --------------------------------------------------------------------------
   // D. Historial de Catas Particionado por Usuario
@@ -515,6 +532,7 @@ export default function App() {
             onOpenLogbook={() => setCurrentScreen("logbook")}
             onOpenGuide={() => setIsGuideOpen(true)}
             onOpenAuth={() => setIsAuthOpen(true)}
+            onOpenInstall={() => setIsInstallModalOpen(true)}
             liveCoffees={liveCoffees}
             isSyncing={isSyncingCatalog}
             onRefreshCatalog={() => refreshLiveCatalog(true)}
@@ -699,6 +717,18 @@ export default function App() {
         onLogin={handleLogin}
         onLogout={handleLogout}
         tastings={tastings}
+        onOpenInstall={() => setIsInstallModalOpen(true)}
+      />
+
+      {/* Banner discreto para invitar a instalar la app en móvil */}
+      <InstallPwaBanner onOpenModal={() => setIsInstallModalOpen(true)} />
+
+      {/* Modal interactivo con guía visual para agregar a inicio en iOS y Android */}
+      <InstallPwaModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+        deferredPrompt={deferredPrompt}
+        onInstallSuccess={() => setDeferredPrompt(null)}
       />
 
       {/* Secuencia de Lanzamiento Líquida Inicial */}

@@ -17,6 +17,7 @@ import {
   Compass,
   ExternalLink,
   User,
+  Smartphone,
 } from "lucide-react";
 import { TastingRecord, UserProfile, CoffeeInfo, BrewMethod } from "../types";
 import { VarietaleLogoHorizontal, VarietaleBrandIcon } from "./VarietaleLogo";
@@ -35,6 +36,8 @@ interface HomeScreenProps {
   onOpenGuide: () => void;
   /** Abre el modal de perfil de usuario / autenticación */
   onOpenAuth: () => void;
+  /** Abre la guía modal para instalar la PWA */
+  onOpenInstall?: () => void;
   onSelectSampleCata?: (id: string) => void;
   liveCoffees?: CoffeeInfo[];
   isSyncing?: boolean;
@@ -48,6 +51,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenLogbook,
   onOpenGuide,
   onOpenAuth,
+  onOpenInstall,
 }) => {
   // Asegurar que la pantalla de inicio siempre cargue en la parte superior
   useEffect(() => {
@@ -110,6 +114,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {totalCatas}
             </span>
           </button>
+
+          {/* Botón PWA / Instalar en Celular */}
+          {onOpenInstall && (
+            <button
+              onClick={onOpenInstall}
+              className="min-h-[44px] flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-full bg-[#EBFBFA] border border-[#00D9B4]/60 text-xs font-bold text-[#00897B] shadow-2xs hover:bg-[#d6f7f4] active:scale-95 transition-all cursor-pointer"
+              title="Instalar App o Compartir"
+            >
+              <Smartphone className="w-4 h-4 text-[#00897B]" />
+              <span className="hidden md:inline">Instalar App</span>
+            </button>
+          )}
         </div>
       </div>
 

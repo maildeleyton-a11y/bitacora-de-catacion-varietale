@@ -3,16 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- PWA & Mobile Web App Capabilities -->
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>Bitácora de Catación Varietale</title>
-    <meta name="description" content="Bitácora móvil y guía de aprendizaje sensorial en café de especialidad Varietale, con rueda de sabores interactiva táctil, OCR inteligente de bolsas y perfiles sensoriales." />
-    <meta property="og:title" content="Bitácora de Catación Varietale" />
-    <meta property="og:description" content="Bitácora móvil y guía de aprendizaje sensorial en café de especialidad Varietale, con rueda de sabores interactiva táctil, OCR inteligente de bolsas y perfiles sensoriales." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Bitácora Varietale" />
+    <meta name="application-name" content="Bitácora Varietale" />
+    <meta name="theme-color" content="#01374C" />
+    <meta name="msapplication-TileColor" content="#01374C" />
+
+    <title>Bitácora de Catación Varietale | Amor por el café</title>
+    <meta name="description" content="Aprende a catar café de especialidad, explora métodos de filtrado y registra tus notas sensoriales en tu Bitácora Varietale." />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Favicons & App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph (WhatsApp, Facebook, iMessage) -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Varietale" />
+    <meta property="og:title" content="Bitácora de Catación Varietale | Amor por el café" />
+    <meta property="og:description" content="Aprende a catar café de especialidad, explora métodos de filtrado y registra tus notas sensoriales interactivas." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Bitácora de Catación Varietale - Amor por el café" />
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="twitter:title" content="Bitácora de Catación Varietale | Amor por el café" />
+    <meta name="twitter:description" content="Aprende a catar café de especialidad, explora métodos de filtrado y registra tus notas sensoriales interactivas." />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,4 +51,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
