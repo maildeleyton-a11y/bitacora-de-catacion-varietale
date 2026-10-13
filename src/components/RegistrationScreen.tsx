@@ -791,39 +791,42 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
           if (!currentMethod) return null;
           return (
             <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] space-y-3.5">
-              <div className="flex items-center justify-between border-b border-[#DDC1AB]/60 pb-3">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#DDC1AB]/60 pb-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-12 h-12 rounded-xl bg-[#01374C] text-[#00D9B4] flex items-center justify-center shrink-0 shadow-xs">
                     <BrewMethodIcon type={currentMethod.id} className="w-8 h-8" />
                   </div>
-                  <div>
-                    <strong className="text-base sm:text-lg font-black text-[#01374C] block leading-tight">
+                  <div className="min-w-0 flex-1">
+                    <strong className="text-base sm:text-lg font-black text-[#01374C] block leading-tight break-words">
                       {currentMethod.name}
                     </strong>
-                    <span className="text-xs sm:text-sm font-bold text-[#00897B] block mt-0.5">
+                    <span className="text-xs sm:text-sm font-bold text-[#00897B] block mt-0.5 break-words">
                       {currentMethod.shortDesc}
                     </span>
                   </div>
                 </div>
                 {currentMethod.time && (
-                  <span className="text-xs sm:text-sm font-bold text-[#01374C] bg-white px-3 py-1.5 rounded-lg border border-[#DDC1AB] shadow-2xs shrink-0">
-                    ⏱️ Tiempo: {currentMethod.time.split("(")[0].trim()}
-                  </span>
+                  <div className="self-start sm:self-center shrink-0 max-w-full">
+                    <span className="inline-flex items-center flex-wrap gap-1.5 text-xs sm:text-sm font-bold text-[#01374C] bg-white px-3 py-1.5 rounded-lg border border-[#DDC1AB] shadow-2xs max-w-full">
+                      <span>⏱️ Tiempo:</span>
+                      <strong className="text-[#01374C] break-words">{currentMethod.time.split("(")[0].trim()}</strong>
+                    </span>
+                  </div>
                 )}
               </div>
 
               {/* Parámetros clave de calibración */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {currentMethod.ratio && (
-                  <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1]">
-                    <span className="text-[#4A5D68] font-bold block mb-0.5">Proporción Sugerida - Café/Agua:</span>
-                    <strong className="text-[#01374C] font-extrabold text-xs sm:text-sm block">{currentMethod.ratio}</strong>
+                  <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1] min-w-0">
+                    <span className="text-[#4A5D68] font-bold block mb-0.5 break-words">Proporción Sugerida - Café/Agua:</span>
+                    <strong className="text-[#01374C] font-extrabold text-xs sm:text-sm block break-words">{currentMethod.ratio}</strong>
                   </div>
                 )}
                 {currentMethod.grind && (
-                  <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1]">
-                    <span className="text-[#4A5D68] font-bold block mb-0.5">Molienda recomendada:</span>
-                    <strong className="text-[#01374C] font-extrabold text-xs sm:text-sm block">{currentMethod.grind}</strong>
+                  <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1] min-w-0">
+                    <span className="text-[#4A5D68] font-bold block mb-0.5 break-words">Molienda recomendada:</span>
+                    <strong className="text-[#01374C] font-extrabold text-xs sm:text-sm block break-words">{currentMethod.grind}</strong>
                   </div>
                 )}
               </div>
