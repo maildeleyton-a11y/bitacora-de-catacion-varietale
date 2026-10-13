@@ -94,7 +94,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
 
   const getLabelCoords = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const labelDistance = radius + (responsive ? 28 : size > 300 ? 24 : 20);
+    const labelDistance = radius + (responsive ? 34 : size > 300 ? 28 : 22);
     const x = center + labelDistance * Math.cos(angle);
     const y = center + labelDistance * Math.sin(angle);
     return { x, y };
@@ -284,7 +284,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                 y={y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={responsive ? "13.5" : size > 300 ? "11.5" : "9.5"}
+                fontSize={responsive ? "15" : size > 300 ? "13" : "11"}
                 fontWeight="800"
                 className="select-none pointer-events-none"
                 style={{ fontFamily: "inherit" }}
@@ -297,7 +297,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                     dx="4"
                     fontWeight="800"
                     fill={axis.color}
-                    fontSize={responsive ? "12" : size > 300 ? "10.5" : "9"}
+                    fontSize={responsive ? "13.5" : size > 300 ? "12" : "10"}
                   >
                     {val}%
                   </tspan>
@@ -309,14 +309,14 @@ export const RadarChart: React.FC<RadarChartProps> = ({
 
       {/* Legend if comparison active */}
       {secondaryProfile && (
-        <div className="mt-2 flex items-center justify-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[#01374C]" />
-            <span className="font-semibold text-[#01374C]">{primaryLabel}</span>
+        <div className="mt-3 flex items-center justify-center gap-5 text-xs sm:text-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-3.5 h-3.5 rounded-full bg-[#01374C]" />
+            <span className="font-bold text-[#01374C]">{primaryLabel}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[#00D9B4] border border-[#00A387]" />
-            <span className="font-semibold text-[#01374C]">{secondaryLabel}</span>
+          <div className="flex items-center gap-2">
+            <span className="w-3.5 h-3.5 rounded-full bg-[#00D9B4] border border-[#00A387]" />
+            <span className="font-bold text-[#01374C]">{secondaryLabel}</span>
           </div>
         </div>
       )}

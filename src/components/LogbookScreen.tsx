@@ -209,96 +209,96 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-white pb-32 pt-4 px-4 max-w-lg mx-auto">
+    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full">
       {/* Top Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#E8EDF1]">
         <button
           onClick={onBackToHome}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#01374C] bg-white border border-[#DDC1AB] shadow-xs hover:bg-[#FAF6F2] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold text-[#01374C] bg-white border border-[#DDC1AB] shadow-xs hover:bg-[#FAF6F2] transition-colors min-h-[44px]"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>Inicio</span>
         </button>
 
         <button
           id="new-cata-from-logbook-btn"
           onClick={onStartNewCata}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#01374C] text-white text-xs font-bold shadow-xs hover:bg-[#002636] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#01374C] text-white text-xs sm:text-sm font-bold shadow-xs hover:bg-[#002636] transition-colors min-h-[44px]"
         >
-          <Plus className="w-3.5 h-3.5 text-[#00D9B4]" />
+          <Plus className="w-4 h-4 text-[#00D9B4]" />
           <span>Nueva Cata</span>
         </button>
       </div>
 
-      <div className="mb-4">
-        <h1 className="text-2xl font-black text-[#01374C] tracking-tight">
+      <div className="mb-5">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#01374C] tracking-tight">
           Mi Bitácora de Catación
         </h1>
-        <p className="text-xs text-[#6A7B85] mt-0.5">
-          {tastings.length} {tastings.length === 1 ? "cata registrada" : "catas registradas"} con perfil de sabor sensorial.
+        <p className="text-sm sm:text-base text-[#6A7B85] mt-1">
+          {tastings.length} {tastings.length === 1 ? "cata registrada" : "catas registradas"} con perfil sensorial y rueda de sabores.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-[#E8EDF1] p-1 rounded-2xl mb-5">
+      <div className="flex bg-[#E8EDF1] p-1.5 rounded-2xl mb-6">
         <button
           id="tab-historial-btn"
           onClick={() => setActiveTab("historial")}
-          className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2.5 sm:py-3 text-xs sm:text-sm md:text-base font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "historial"
               ? "bg-[#01374C] text-white shadow-xs"
               : "text-[#4A5D68] hover:text-[#01374C]"
           }`}
         >
-          <BookOpen className="w-4 h-4" />
+          <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Historial ({tastings.length})</span>
         </button>
         <button
           id="tab-comparador-btn"
           onClick={() => setActiveTab("comparador")}
-          className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2.5 sm:py-3 text-xs sm:text-sm md:text-base font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "comparador"
               ? "bg-[#01374C] text-white shadow-xs"
               : "text-[#4A5D68] hover:text-[#01374C]"
           }`}
         >
-          <GitCompare className="w-4 h-4" />
+          <GitCompare className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Comparador</span>
         </button>
         <button
           id="tab-exploracion-btn"
           onClick={() => setActiveTab("exploracion")}
-          className={`flex-1 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2.5 sm:py-3 text-xs sm:text-sm md:text-base font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "exploracion"
               ? "bg-[#01374C] text-white shadow-xs"
               : "text-[#4A5D68] hover:text-[#01374C]"
           }`}
         >
-          <Compass className="w-4 h-4" />
+          <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Exploración</span>
         </button>
       </div>
 
       {/* TAB 1: HISTORIAL DE TARJETAS */}
       {activeTab === "historial" && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Empty state when user has 0 catas */}
           {tastings.length === 0 && (
-            <div className="bg-white rounded-2xl p-8 border border-[#E8EDF1] text-center shadow-xs">
-              <div className="w-14 h-14 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] flex items-center justify-center mx-auto mb-3 text-[#01374C]">
-                <BookOpen className="w-7 h-7 text-[#00D9B4]" />
+            <div className="col-span-full bg-white rounded-2xl p-8 sm:p-12 border border-[#E8EDF1] text-center shadow-xs">
+              <div className="w-16 h-16 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] flex items-center justify-center mx-auto mb-4 text-[#01374C]">
+                <BookOpen className="w-8 h-8 text-[#00D9B4]" />
               </div>
-              <h3 className="text-base sm:text-lg font-black text-[#01374C]">
+              <h3 className="text-lg sm:text-xl font-black text-[#01374C]">
                 Aún no tienes catas registradas
               </h3>
-              <p className="text-xs sm:text-sm text-[#4A5D68] mt-1 max-w-xs mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base text-[#4A5D68] mt-2 max-w-sm mx-auto leading-relaxed">
                 Cada cata que realices con tus notas y rueda de sabores se guardará aquí en tu historial personal.
               </p>
               <button
                 onClick={onStartNewCata}
-                className="mt-4 px-5 py-2.5 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-bold shadow-xs transition-all inline-flex items-center gap-2 cursor-pointer"
+                className="mt-5 px-6 py-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-xs transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
               >
-                <Plus className="w-4 h-4 text-[#00D9B4]" />
+                <Plus className="w-5 h-5 text-[#00D9B4]" />
                 <span>Iniciar mi primera cata</span>
               </button>
             </div>
@@ -306,12 +306,12 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
           {/* Quick Notice about Same Coffee Comparison if exists */}
           {sameCoffeeMultiMethods.length > 0 && (
-            <div className="bg-[#EBFBFA] border border-[#00D9B4]/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div className="col-span-full bg-[#EBFBFA] border border-[#00D9B4]/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
               <div>
-                <span className="text-xs font-extrabold text-[#01374C] uppercase tracking-wider block">
+                <span className="text-xs sm:text-sm font-extrabold text-[#01374C] uppercase tracking-wider block">
                   Modo Comparativo Disponible
                 </span>
-                <p className="text-sm text-[#01374C] font-semibold mt-0.5">
+                <p className="text-sm sm:text-base text-[#01374C] font-semibold mt-0.5">
                   Cataste "{sameCoffeeMultiMethods[0].coffeeName}" con diferentes métodos.
                 </p>
               </div>
@@ -321,7 +321,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                   setCompCataBId(sameCoffeeMultiMethods[0].records[1].id);
                   setActiveTab("comparador");
                 }}
-                className="shrink-0 text-xs sm:text-sm font-bold bg-[#01374C] text-white px-3.5 py-2 rounded-xl hover:bg-[#002636] cursor-pointer"
+                className="shrink-0 text-xs sm:text-sm font-bold bg-[#01374C] text-white px-4 py-2.5 rounded-xl hover:bg-[#002636] cursor-pointer min-h-[44px] flex items-center justify-center"
               >
                 Comparar →
               </button>
@@ -544,105 +544,130 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
       {/* TAB 2: MODO COMPARATIVO */}
       {activeTab === "comparador" && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-xs">
-            <div className="flex items-center gap-2 mb-2">
-              <GitCompare className="w-5 h-5 text-[#00D9B4]" />
-              <h2 className="text-base sm:text-lg font-black text-[#01374C]">
-                Comparación Sensorial Lado a Lado
-              </h2>
-            </div>
-            <p className="text-sm sm:text-base text-[#4A5D68] mb-4 leading-relaxed">
-              Compara cómo un mismo grano (o dos orígenes distintos) expresan acidez, dulzura y cuerpo según el método.
-            </p>
+        <div className="bg-white rounded-3xl p-5 sm:p-7 md:p-8 border border-[#E8EDF1] shadow-xs">
+          <div className="flex items-center gap-2.5 mb-2">
+            <GitCompare className="w-5 h-5 sm:w-6 sm:h-6 text-[#00D9B4]" />
+            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-[#01374C]">
+              Comparación Sensorial Lado a Lado
+            </h2>
+          </div>
+          <p className="text-sm sm:text-base text-[#4A5D68] mb-6 leading-relaxed max-w-2xl">
+            Compara cómo un mismo grano (o dos orígenes distintos) expresan acidez, dulzura y cuerpo según el método de extracción.
+          </p>
 
-            {/* Selectors for Cata A and Cata B */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <div>
-                <label className="text-xs font-black uppercase text-[#01374C] block mb-1.5 tracking-wider">
-                  ● Cata A (Azul Primario)
-                </label>
-                <select
-                  value={compCataAId}
-                  onChange={(e) => setCompCataAId(e.target.value)}
-                  className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
-                >
-                  {tastings.map((t) => (
-                    <option key={`opt-a-${t.id}`} value={t.id}>
-                      {t.coffeeName} ({getMethodName(t.brewMethod)})
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* Columna Izquierda: Selectores y Radar Superpuesto */}
+            <div className="lg:col-span-6 flex flex-col gap-4">
+              {/* Selectors for Cata A and Cata B */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-[#FAF6F2]/80 p-3 rounded-2xl border border-[#DDC1AB]/60">
+                  <label className="text-xs font-black uppercase text-[#01374C] block mb-1.5 tracking-wider">
+                    ● Cata A (Azul Primario)
+                  </label>
+                  <select
+                    value={compCataAId}
+                    onChange={(e) => setCompCataAId(e.target.value)}
+                    className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                  >
+                    {tastings.map((t) => (
+                      <option key={`opt-a-${t.id}`} value={t.id}>
+                        {t.coffeeName} ({getMethodName(t.brewMethod)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="text-xs font-black uppercase text-[#00897B] block mb-1.5 tracking-wider">
-                  ● Cata B (Acento Menta)
-                </label>
-                <select
-                  value={compCataBId}
-                  onChange={(e) => setCompCataBId(e.target.value)}
-                  className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
-                >
-                  {tastings.map((t) => (
-                    <option key={`opt-b-${t.id}`} value={t.id}>
-                      {t.coffeeName} ({getMethodName(t.brewMethod)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Overlaid Radar Chart */}
-            <div className="flex justify-center my-3 bg-white p-3 sm:p-5 rounded-2xl border border-[#E8EDF1]">
-              <div className="w-full max-w-[min(92vw,360px)] sm:max-w-[460px] md:max-w-[540px] aspect-square flex items-center justify-center mx-auto">
-                <RadarChart
-                  primaryProfile={cataA.spiderProfile}
-                  primaryLabel={`${cataA.coffeeName} (${getMethodName(cataA.brewMethod)})`}
-                  secondaryProfile={cataB.spiderProfile}
-                  secondaryLabel={`${cataB.coffeeName} (${getMethodName(cataB.brewMethod)})`}
-                  responsive={true}
-                  className="w-full h-full"
-                />
-              </div>
-            </div>
-
-            {/* Side by side comparison metrics */}
-            <div className="grid grid-cols-2 gap-3 mt-4 text-xs sm:text-sm">
-              <div className="p-3.5 rounded-xl bg-white border border-[#01374C]/25 shadow-xs">
-                <span className="text-xs font-black text-[#01374C] uppercase block mb-1">
-                  {cataA.coffeeName}
-                </span>
-                <p className="font-bold text-[#01374C]">
-                  Método: {getMethodName(cataA.brewMethod)}
-                </p>
-                <p className="text-[#4A5D68] mt-0.5">
-                  Cuerpo: {cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}
-                </p>
-                <div className="mt-2 pt-2 border-t border-[#E8EDF1]">
-                  <span className="text-xs font-bold text-[#4A5D68] block">Notas dominantes:</span>
-                  <span className="font-semibold text-[#01374C]">
-                    {cataA.selectedFlavors.map((f) => f.name).join(", ")}
-                  </span>
+                <div className="bg-[#EBFBFA]/80 p-3 rounded-2xl border border-[#00D9B4]/40">
+                  <label className="text-xs font-black uppercase text-[#00897B] block mb-1.5 tracking-wider">
+                    ● Cata B (Acento Menta)
+                  </label>
+                  <select
+                    value={compCataBId}
+                    onChange={(e) => setCompCataBId(e.target.value)}
+                    className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                  >
+                    {tastings.map((t) => (
+                      <option key={`opt-b-${t.id}`} value={t.id}>
+                        {t.coffeeName} ({getMethodName(t.brewMethod)})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-[#00D9B4]/50 shadow-xs">
-                <span className="text-xs font-black text-[#01374C] uppercase block mb-1">
-                  {cataB.coffeeName}
-                </span>
-                <p className="font-bold text-[#01374C]">
-                  Método: {getMethodName(cataB.brewMethod)}
-                </p>
-                <p className="text-[#4A5D68] mt-0.5">
-                  Cuerpo: {cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}
-                </p>
-                <div className="mt-2 pt-2 border-t border-[#E8EDF1]">
-                  <span className="text-xs font-bold text-[#4A5D68] block">Notas dominantes:</span>
-                  <span className="font-semibold text-[#01374C]">
-                    {cataB.selectedFlavors.map((f) => f.name).join(", ")}
+              {/* Overlaid Radar Chart */}
+              <div className="flex justify-center bg-white p-4 sm:p-6 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-full max-w-[min(92vw,380px)] sm:max-w-[440px] md:max-w-[500px] aspect-square flex items-center justify-center mx-auto">
+                  <RadarChart
+                    primaryProfile={cataA.spiderProfile}
+                    primaryLabel={`${cataA.coffeeName} (${getMethodName(cataA.brewMethod)})`}
+                    secondaryProfile={cataB.spiderProfile}
+                    secondaryLabel={`${cataB.coffeeName} (${getMethodName(cataB.brewMethod)})`}
+                    responsive={true}
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Tarjetas de detalles sensoriales de Cata A y Cata B */}
+            <div className="lg:col-span-6 flex flex-col gap-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF6F2]/80 border-2 border-[#01374C]/30 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs sm:text-sm font-black text-[#01374C] uppercase tracking-wider">
+                    ● Cata A: {cataA.coffeeName}
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#01374C] text-white">
+                    {getMethodName(cataA.brewMethod)}
                   </span>
                 </div>
+                <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
+                  Cuerpo: <strong className="text-[#01374C]">{cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
+                </p>
+                <div className="mt-3 pt-3 border-t border-[#DDC1AB]/60">
+                  <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cataA.selectedFlavors.map((f) => (
+                      <span key={`comp-a-flv-${f.descriptorId}`} className="text-xs sm:text-sm font-semibold bg-white text-[#01374C] px-3 py-1 rounded-full border border-[#DDC1AB] shadow-2xs">
+                        {f.name} ({f.intensity}★)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                {cataA.userNotes && (
+                  <p className="text-xs sm:text-sm text-[#52646E] italic mt-3 pt-2.5 border-t border-[#DDC1AB]/40">
+                    "{cataA.userNotes}"
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#EBFBFA]/80 border-2 border-[#00D9B4]/60 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs sm:text-sm font-black text-[#00897B] uppercase tracking-wider">
+                    ● Cata B: {cataB.coffeeName}
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C]">
+                    {getMethodName(cataB.brewMethod)}
+                  </span>
+                </div>
+                <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
+                  Cuerpo: <strong className="text-[#01374C]">{cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
+                </p>
+                <div className="mt-3 pt-3 border-t border-[#00D9B4]/30">
+                  <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cataB.selectedFlavors.map((f) => (
+                      <span key={`comp-b-flv-${f.descriptorId}`} className="text-xs sm:text-sm font-semibold bg-white text-[#01374C] px-3 py-1 rounded-full border border-[#00D9B4]/50 shadow-2xs">
+                        {f.name} ({f.intensity}★)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                {cataB.userNotes && (
+                  <p className="text-xs sm:text-sm text-[#52646E] italic mt-3 pt-2.5 border-t border-[#00D9B4]/20">
+                    "{cataB.userNotes}"
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -651,53 +676,53 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
       {/* TAB 3: MAPA DE EXPLORACIÓN Y RECOMPRA */}
       {activeTab === "exploracion" && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Mapa Acumulativo */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-xs">
+          <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-7 border border-[#E8EDF1] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Compass className="w-5 h-5 text-[#00D9B4]" />
-                <h2 className="text-base sm:text-lg font-black text-[#01374C]">
+                <h2 className="text-base sm:text-lg md:text-xl font-black text-[#01374C]">
                   Mapa de Exploración Sensorial
                 </h2>
               </div>
-              <span className="text-xs font-bold text-[#01374C] bg-[#EBFBFA] px-3 py-1 rounded-full border border-[#00D9B4]/30">
-                Acumulado
+              <span className="text-xs font-bold text-[#01374C] bg-[#EBFBFA] px-3.5 py-1 rounded-full border border-[#00D9B4]/30">
+                Acumulado ({tastings.length} catas)
               </span>
             </div>
-            <p className="text-sm sm:text-base text-[#4A5D68] mb-3.5 leading-relaxed">
-              Muestra el territorio sensorial de la rueda de sabores que has recorrido a través de tus {tastings.length} catas.
+            <p className="text-sm sm:text-base text-[#4A5D68] mb-4 leading-relaxed">
+              Muestra el territorio sensorial de la rueda de sabores que has recorrido a través de tus cataciones.
             </p>
 
-            <div className="flex justify-center my-3 bg-white p-3 sm:p-5 rounded-2xl border border-[#E8EDF1]">
-              <div className="w-full max-w-[min(92vw,360px)] sm:max-w-[460px] md:max-w-[540px] aspect-square flex items-center justify-center mx-auto">
+            <div className="flex justify-center my-3 bg-white p-4 rounded-2xl border border-[#E8EDF1]">
+              <div className="w-full max-w-[min(92vw,360px)] sm:max-w-[440px] md:max-w-[500px] aspect-square flex items-center justify-center mx-auto">
                 <RadarChart primaryProfile={explorationProfile} responsive={true} className="w-full h-full" />
               </div>
             </div>
 
             {/* Macro percentages */}
-            <div className="grid grid-cols-4 gap-2 text-center text-xs sm:text-sm mt-3 pt-3 border-t border-[#E8EDF1]">
-              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#00D9B4]/40">
-                <span className="text-xs font-extrabold text-[#00897B] block">Frutal</span>
-                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+            <div className="grid grid-cols-4 gap-2.5 text-center text-xs sm:text-sm mt-4 pt-4 border-t border-[#E8EDF1]">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#00D9B4]/40 shadow-2xs">
+                <span className="text-xs sm:text-sm font-extrabold text-[#00897B] block">Frutal</span>
+                <strong className="text-base sm:text-lg font-black text-[#01374C]">
                   {explorationProfile.frutal}%
                 </strong>
               </div>
-              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#DDC1AB]">
-                <span className="text-xs font-extrabold text-[#3B2212] block">Dulce</span>
-                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#DDC1AB] shadow-2xs">
+                <span className="text-xs sm:text-sm font-extrabold text-[#3B2212] block">Dulce</span>
+                <strong className="text-base sm:text-lg font-black text-[#01374C]">
                   {explorationProfile.dulce}%
                 </strong>
               </div>
-              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#3B2212]/30">
-                <span className="text-xs font-extrabold text-[#3B2212] block">Tostado</span>
-                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#3B2212]/30 shadow-2xs">
+                <span className="text-xs sm:text-sm font-extrabold text-[#3B2212] block">Tostado</span>
+                <strong className="text-base sm:text-lg font-black text-[#01374C]">
                   {explorationProfile.tostado}%
                 </strong>
               </div>
-              <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#01374C]/30">
-                <span className="text-xs font-extrabold text-[#01374C] block">Floral</span>
-                <strong className="text-sm sm:text-base font-black text-[#01374C]">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-[#01374C]/30 shadow-2xs">
+                <span className="text-xs sm:text-sm font-extrabold text-[#01374C] block">Floral</span>
+                <strong className="text-base sm:text-lg font-black text-[#01374C]">
                   {explorationProfile.floral}%
                 </strong>
               </div>
@@ -705,32 +730,34 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
           </div>
 
           {/* CTA DE RECOMPRA PERSONALIZADA */}
-          <div className="bg-[#01374C] text-white rounded-3xl p-5 sm:p-6 shadow-lg relative overflow-hidden">
-            <div className="flex items-start gap-3.5 mb-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0">
-                <ShoppingBag className="w-5 h-5 text-[#01374C]" />
+          <div className="lg:col-span-5 bg-[#01374C] text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="flex items-start gap-3.5 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0">
+                  <ShoppingBag className="w-6 h-6 text-[#01374C]" />
+                </div>
+                <div>
+                  <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
+                    Recomendación Varietale
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-black text-white leading-snug mt-1">
+                    {recommendation.title}
+                  </h3>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
-                  Recomendación Varietale
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-white leading-snug mt-0.5">
-                  {recommendation.title}
-                </h3>
-              </div>
-            </div>
 
-            <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-4">
-              Según tu mapa de exploración, expande tu paladar descubriendo nuestro micro-lote{" "}
-              <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
-            </p>
+              <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-6">
+                Según tu mapa de exploración, expande tu paladar descubriendo nuestro café de especialidad{" "}
+                <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
+              </p>
+            </div>
 
             <a
               id="cta-recompra-link"
               href={recommendation.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3.5 px-4 rounded-xl bg-[#00D9B4] hover:bg-[#00c4a3] text-[#01374C] font-black text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99]"
+              className="w-full py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] text-[#01374C] font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] min-h-[50px]"
             >
               <span>{recommendation.ctaText}</span>
               <ExternalLink className="w-4 h-4" />

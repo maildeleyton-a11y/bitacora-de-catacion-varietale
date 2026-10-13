@@ -320,7 +320,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-[#FAF6F2] via-white to-[#F2ECE4] flex flex-col justify-between px-4 sm:px-6 py-4 sm:py-8 max-w-lg mx-auto safe-pb selection:bg-[#00D9B4]/30 selection:text-[#01374C]">
+    <div className="min-h-screen bg-linear-to-b from-[#FAF6F2] via-white to-[#F2ECE4] flex flex-col justify-between px-4 sm:px-6 md:px-8 py-4 sm:py-8 max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto safe-pb selection:bg-[#00D9B4]/30 selection:text-[#01374C]">
       {/* Top Brand Bar */}
       <header className="flex items-center justify-end pb-3 border-b border-[#E8EDF1]">
         <VarietaleLogoHorizontal primaryColor="#01374C" showTagline={false} />
@@ -329,11 +329,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       {/* Main Container Card */}
       <main className="my-auto py-3 sm:py-5">
         {/* Hero Title & Description */}
-        <div className="text-center mb-4 sm:mb-5">
-          <h1 className="text-xl sm:text-2xl font-black text-[#01374C] tracking-tight leading-snug">
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#01374C] tracking-tight leading-snug">
             {authMode === "login" ? "Bienvenid@ a tu Bitácora de catación." : "Crea una cuenta en Tu Bitácora"}
           </h1>
-          <p className="text-xs sm:text-sm text-[#4A5D68] mt-2 max-w-md mx-auto leading-relaxed font-normal">
+          <p className="text-sm sm:text-base text-[#4A5D68] mt-2.5 max-w-lg mx-auto leading-relaxed font-normal">
             {authMode === "login"
               ? "Aprende de forma divertida a catar tus cafés con diferentes métodos de filtrado, define tus preferidos y lleva el registro exacto de tus catas."
               : "Aprende a catar, disfrutar, comparar y guardar tus cafés y métodos de preparación favoritos con Tu Bitácora de Varietale."}
@@ -341,7 +341,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         </div>
 
         {/* Content Box */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xl shadow-[#01374C]/5 border border-[#E8EDF1]">
+        <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-xl shadow-[#01374C]/5 border border-[#E8EDF1]">
           {/* Tabs selector */}
           <div className="flex bg-[#F5F8FA] p-1.5 rounded-2xl mb-4 border border-[#E8EDF1]">
             <button
@@ -350,7 +350,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 setAuthMode("login");
                 setLoginError(null);
               }}
-              className={`flex-1 min-h-[44px] py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center ${
+              className={`flex-1 min-h-[48px] py-2.5 rounded-xl text-sm sm:text-base font-black transition-all cursor-pointer flex items-center justify-center ${
                 authMode === "login"
                   ? "bg-white text-[#01374C] shadow-xs"
                   : "text-[#889DA7] hover:text-[#01374C]"
@@ -364,7 +364,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 setAuthMode("register");
                 setRegError(null);
               }}
-              className={`flex-1 min-h-[44px] py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center ${
+              className={`flex-1 min-h-[48px] py-2.5 rounded-xl text-sm sm:text-base font-black transition-all cursor-pointer flex items-center justify-center ${
                 authMode === "register"
                   ? "bg-white text-[#01374C] shadow-xs"
                   : "text-[#889DA7] hover:text-[#01374C]"
@@ -383,7 +383,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 setGoogleModalMode(authMode);
                 setShowGoogleModal(true);
               }}
-              className="w-full min-h-[48px] py-3 px-4 rounded-2xl border border-[#DDC1AB] bg-white hover:bg-[#FAF6F2] active:scale-[0.99] text-[#01374C] font-bold text-xs sm:text-sm flex items-center justify-center gap-3 transition-all shadow-xs cursor-pointer group"
+              className="w-full min-h-[50px] py-3.5 px-4 rounded-2xl border border-[#DDC1AB] bg-white hover:bg-[#FAF6F2] active:scale-[0.99] text-[#01374C] font-bold text-sm sm:text-base flex items-center justify-center gap-3 transition-all shadow-xs cursor-pointer group"
             >
               {/* Official Google G Logo SVG */}
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -415,7 +415,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             {/* Separator */}
             <div className="relative flex py-3 items-center">
               <div className="grow border-t border-[#E8EDF1]"></div>
-              <span className="shrink mx-3 text-[11px] font-semibold text-[#889DA7] uppercase tracking-wider">
+              <span className="shrink mx-3 text-xs font-semibold text-[#889DA7] uppercase tracking-wider">
                 O con tu correo
               </span>
               <div className="grow border-t border-[#E8EDF1]"></div>
@@ -461,7 +461,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               {/* Email Input + Quick Reminder Link */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-[#01374C]">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C]">
                     Correo Electrónico
                   </label>
                   <button
@@ -471,7 +471,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       setForgotUserError(null);
                       setFoundUsername(null);
                     }}
-                    className="text-[11px] font-bold text-[#00897B] hover:underline cursor-pointer py-1 px-1"
+                    className="text-xs font-bold text-[#00897B] hover:underline cursor-pointer py-1 px-1"
                   >
                     ¿Olvidaste tu cuenta?
                   </button>
@@ -493,7 +493,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               {/* Password Input + Reset Password Link */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-[#01374C]">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C]">
                     Contraseña
                   </label>
                   <button
@@ -509,9 +509,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       setResetSuccessMessage(null);
                       setShowResetPasswordModal(true);
                     }}
-                    className="text-[11px] font-bold text-[#00897B] hover:underline cursor-pointer flex items-center gap-1 py-1 px-1"
+                    className="text-xs font-bold text-[#00897B] hover:underline cursor-pointer flex items-center gap-1 py-1 px-1"
                   >
-                    <KeyRound className="w-3 h-3" />
+                    <KeyRound className="w-3.5 h-3.5" />
                     <span>¿Olvidaste tu clave?</span>
                   </button>
                 </div>
@@ -571,7 +571,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <button
                 id="submit-login-main-btn"
                 type="submit"
-                className="w-full min-h-[48px] py-3.5 rounded-2xl bg-[#01374C] hover:bg-[#002636] active:scale-[0.98] text-white font-black text-sm sm:text-base transition-all shadow-md shadow-[#01374C]/25 flex items-center justify-center gap-2 cursor-pointer mt-1"
+                className="w-full min-h-[50px] py-3.5 rounded-2xl bg-[#01374C] hover:bg-[#002636] active:scale-[0.98] text-white font-black text-sm sm:text-base transition-all shadow-md shadow-[#01374C]/25 flex items-center justify-center gap-2 cursor-pointer mt-1"
               >
                 <span>Entrar en Mi Bitácora</span>
                 <ArrowRight className="w-4 h-4 text-[#00D9B4]" />
@@ -623,7 +623,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* Name */}
               <div>
-                <label className="block text-xs font-bold text-[#01374C] mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                   Nombre y Apellido *
                 </label>
                 <div className="relative">
@@ -648,7 +648,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* Username */}
               <div>
-                <label className="block text-xs font-bold text-[#01374C] mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                   Nombre de Usuario *
                 </label>
                 <div className="relative">
@@ -668,7 +668,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-bold text-[#01374C] mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                   Correo Electrónico (Opcional para login)
                 </label>
                 <div className="relative">
@@ -687,7 +687,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-bold text-[#01374C] mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                   Contraseña * (mínimo 6 caracteres)
                 </label>
                 <div className="relative">
@@ -721,17 +721,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <div className="p-3.5 bg-[#FAF6F2] rounded-2xl border border-[#DDC1AB] space-y-2.5">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-[#00897B]" />
-                  <span className="text-xs font-black text-[#01374C]">
+                  <span className="text-xs sm:text-sm font-black text-[#01374C]">
                     PIN de Respaldo (Sin correos ni códigos)
                   </span>
                 </div>
-                <p className="text-[11px] sm:text-xs text-[#52646E] leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#52646E] leading-relaxed">
                   Define un PIN de 4 dígitos para recuperar o restablecer tu contraseña al instante si la olvidas.
                 </p>
 
                 {/* 4-Digit PIN */}
                 <div>
-                  <label className="block text-[11px] font-bold text-[#01374C] mb-1">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1">
                     PIN de Respaldo (4 dígitos) *
                   </label>
                   <input
@@ -766,7 +766,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       {acceptTerms && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                     </div>
                   </div>
-                  <span className="text-xs text-[#6A7B85] leading-snug">
+                  <span className="text-xs sm:text-sm text-[#6A7B85] leading-snug">
                     Acepto los términos y el registro seguro de mis catas en Varietale.
                   </span>
                 </label>
@@ -776,7 +776,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <button
                 id="submit-register-btn"
                 type="submit"
-                className="w-full min-h-[48px] py-3.5 rounded-2xl bg-[#01374C] hover:bg-[#002636] active:scale-[0.98] text-white font-black text-sm sm:text-base transition-all shadow-md shadow-[#01374C]/25 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="w-full min-h-[50px] py-3.5 rounded-2xl bg-[#01374C] hover:bg-[#002636] active:scale-[0.98] text-white font-black text-sm sm:text-base transition-all shadow-md shadow-[#01374C]/25 flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 <span>Crear Cuenta y Comenzar</span>
                 <ArrowRight className="w-4 h-4 text-[#00D9B4]" />
@@ -853,12 +853,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-[#E8EDF1]"
+              className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-[#E8EDF1]"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#E8EDF1]">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-[#00897B]" />
-                  <h3 className="text-sm font-black text-[#01374C]">
+                  <h3 className="text-sm sm:text-base font-black text-[#01374C]">
                     Recordatorio Rápido de Cuenta
                   </h3>
                 </div>
@@ -872,7 +872,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </div>
 
               <div className="py-4 space-y-3">
-                <p className="text-xs text-[#52646E] leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#52646E] leading-relaxed">
                   Ingresa tu correo o teléfono registrado para recordarte de inmediato tu nombre de usuario:
                 </p>
 
@@ -889,26 +889,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       value={forgotUserEmail}
                       onChange={(e) => setForgotUserEmail(e.target.value)}
                       placeholder="Correo o teléfono (+57)"
-                      className="w-full px-3 py-2.5 bg-[#FAF6F2]/50 text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      className="w-full px-3 py-2.5 min-h-[46px] bg-[#FAF6F2]/50 text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                       autoFocus
                     />
                     <button
                       type="submit"
-                      className="w-full py-2.5 rounded-xl bg-[#01374C] text-white text-xs font-black hover:bg-[#002636] flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full min-h-[46px] py-2.5 rounded-xl bg-[#01374C] text-white text-xs sm:text-sm font-black hover:bg-[#002636] flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-[#00D9B4]" />
                       <span>Buscar mi Cuenta</span>
                     </button>
                   </form>
                 ) : (
-                  <div className="p-3 bg-[#EBFBFA] rounded-2xl border border-[#00D9B4]/40 text-center space-y-2">
+                  <div className="p-3.5 bg-[#EBFBFA] rounded-2xl border border-[#00D9B4]/40 text-center space-y-2">
                     <span className="text-[10px] font-black uppercase text-[#00897B] tracking-wider block">
                       ¡Cuenta Localizada!
                     </span>
-                    <div className="text-sm font-black text-[#01374C]">
+                    <div className="text-base font-black text-[#01374C]">
                       @{foundUsername.username}
                     </div>
-                    <div className="text-xs text-[#52646E]">
+                    <div className="text-xs sm:text-sm text-[#52646E]">
                       Nombre: <strong>{foundUsername.name}</strong>
                     </div>
                     <button
@@ -917,7 +917,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         setLoginIdentifier(foundUsername.email || foundUsername.username);
                         setShowForgotUserModal(false);
                       }}
-                      className="w-full mt-2 py-2 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                      className="w-full min-h-[46px] mt-2 py-2 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                     >
                       <Check className="w-3.5 h-3.5 text-[#00D9B4]" />
                       <span>Usar este correo en el login</span>
@@ -938,7 +938,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-[#E8EDF1] max-h-[92vh] overflow-y-auto"
+              className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-[#E8EDF1] max-h-[92vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#E8EDF1]">
                 <div className="flex items-center gap-2">

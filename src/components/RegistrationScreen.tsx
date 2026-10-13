@@ -281,7 +281,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-3.5 sm:px-6 md:px-8 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto safe-pb">
+    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full safe-pb">
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#E8EDF1]">
         <button
@@ -370,44 +370,44 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
         </div>
 
         {/* 3 Opciones principales en tres botones */}
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 bg-[#FAF6F2] rounded-xl border border-[#DDC1AB]/60 mb-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 p-1.5 sm:p-2 bg-[#FAF6F2] rounded-2xl border border-[#DDC1AB]/60 mb-5">
           <button
             type="button"
             onClick={() => setInputMode("foto")}
-            className={`min-h-[58px] py-3 px-2 rounded-lg text-center font-bold text-xs sm:text-sm leading-tight flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`min-h-[64px] py-3.5 px-2 sm:px-3 rounded-xl text-center font-bold text-xs sm:text-sm md:text-base leading-tight flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
               inputMode === "foto"
                 ? "bg-[#01374C] text-white shadow-xs"
                 : "text-[#4A5D68] hover:text-[#01374C] hover:bg-white/80"
             }`}
           >
-            <Camera className={`w-4 h-4 sm:w-5 sm:h-5 ${inputMode === "foto" ? "text-[#00D9B4]" : "text-[#6A7B85]"}`} />
-            <span>Haz una foto de la bolsa</span>
+            <Camera className={`w-5 h-5 sm:w-6 sm:h-6 ${inputMode === "foto" ? "text-[#00D9B4]" : "text-[#6A7B85]"}`} />
+            <span>Foto con IA</span>
           </button>
 
           <button
             type="button"
             onClick={() => setInputMode("lista")}
-            className={`min-h-[58px] py-3 px-2 rounded-lg text-center font-bold text-xs sm:text-sm leading-tight flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`min-h-[64px] py-3.5 px-2 sm:px-3 rounded-xl text-center font-bold text-xs sm:text-sm md:text-base leading-tight flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
               inputMode === "lista"
                 ? "bg-[#01374C] text-white shadow-xs"
                 : "text-[#4A5D68] hover:text-[#01374C] hover:bg-white/80"
             }`}
           >
-            <ListFilter className={`w-4 h-4 sm:w-5 sm:h-5 ${inputMode === "lista" ? "text-[#00D9B4]" : "text-[#6A7B85]"}`} />
-            <span>Selecciona en una lista</span>
+            <ListFilter className={`w-5 h-5 sm:w-6 sm:h-6 ${inputMode === "lista" ? "text-[#00D9B4]" : "text-[#6A7B85]"}`} />
+            <span>Lista Varietale</span>
           </button>
 
           <button
             type="button"
             onClick={() => setInputMode("manual")}
-            className={`min-h-[58px] py-3 px-2 rounded-lg text-center font-bold text-xs sm:text-sm leading-tight flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`min-h-[64px] py-3.5 px-2 sm:px-3 rounded-xl text-center font-bold text-xs sm:text-sm md:text-base leading-tight flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
               inputMode === "manual"
                 ? "bg-[#01374C] text-white shadow-xs"
                 : "text-[#4A5D68] hover:text-[#01374C] hover:bg-white/80"
             }`}
           >
-            <Edit3 className={`w-4 h-4 sm:w-5 sm:h-5 ${inputMode === "manual" ? "text-[#00D9B4]" : "text-[#6A7B85]"}`} />
-            <span>Incluir datos manualmente</span>
+            <Edit3 className={`w-5 h-5 sm:w-6 sm:h-6 ${inputMode === "manual" ? "text-[#00D9B4]" : "text-[#6A7B85]"}`} />
+            <span>Manual</span>
           </button>
         </div>
 
@@ -931,7 +931,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
 
       {/* Fixed Bottom Continue CTA */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-3 sm:p-4 pb-[calc(0.85rem+env(safe-area-inset-bottom,0px))] border-t border-[#E8EDF1] z-20 shadow-[0_-4px_20px_rgba(1,55,76,0.06)]">
-        <div className="max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto flex items-center gap-2">
+        <div className="max-w-xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center gap-2">
           <button
             id="proceed-to-wheel-btn"
             onClick={onProceedToWheel}

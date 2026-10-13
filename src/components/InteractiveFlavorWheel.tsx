@@ -264,15 +264,15 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
             )}
             <div className="min-w-0 flex-1">
               {origin && origin.trim() ? (
-                <span className="text-xs font-black text-[#00D9B4] uppercase tracking-wider block truncate mb-0.5">
+                <span className="text-xs sm:text-sm font-black text-[#00D9B4] uppercase tracking-wider block truncate mb-0.5">
                   {origin}
                 </span>
               ) : null}
-              <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug break-words">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug break-words">
                 {coffeeName}
               </h1>
-              <p className="text-xs sm:text-sm text-[#D1DFE6] mt-1 flex items-center gap-1.5 flex-wrap">
-                <span className="inline-block w-2 h-2 rounded-full bg-[#00D9B4] shrink-0 shadow-xs" />
+              <p className="text-sm sm:text-base text-[#D1DFE6] mt-1 flex items-center gap-2 flex-wrap">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#00D9B4] shrink-0 shadow-xs" />
                 <span>
                   Método:{" "}
                   <strong className="text-white font-bold">
@@ -285,25 +285,25 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
         </div>
 
         {/* Control 1: Sensación de Cuerpo (Debajo en ancho completo) */}
-        <div className="w-full bg-white rounded-2xl p-3.5 sm:p-4 border border-[#E8EDF1] shadow-xs flex flex-col justify-between">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
+        <div className="w-full bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2.5">
             <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-bold text-[#01374C] flex items-baseline">
-                <span className="text-sm sm:text-base font-black text-[#01374C] mr-1.5">1.</span>
+              <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#01374C] flex items-baseline">
+                <span className="text-base sm:text-lg font-black text-[#01374C] mr-1.5">1.</span>
                 <span>Sensación de Cuerpo</span>
-                <span className="text-xs font-normal text-[#4A5D68] ml-1.5 hidden sm:inline">(Táctil en Boca)</span>
+                <span className="text-xs sm:text-sm font-normal text-[#4A5D68] ml-2 hidden sm:inline">(Táctil en Boca)</span>
               </h2>
-              <p className="text-xs text-[#4A5D68] mt-0.5 leading-relaxed">
+              <p className="text-sm text-[#4A5D68] mt-1 leading-relaxed">
                 Elige la densidad y textura que percibes en tu paladar.
               </p>
             </div>
-            <span className="self-start sm:self-center text-xs font-bold px-3 py-0.5 rounded-full bg-[#EBFBFA] text-[#01374C] border border-[#00D9B4]/30 whitespace-nowrap">
+            <span className="self-start sm:self-center text-xs sm:text-sm font-bold px-3.5 py-1 rounded-full bg-[#EBFBFA] text-[#01374C] border border-[#00D9B4]/30 whitespace-nowrap">
               Nivel: {bodyDescriptions[bodyLevel].label}
             </span>
           </div>
 
           {/* 3-Step Tactile Slider Buttons */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-2.5 mt-1">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3 mt-1.5">
             {([1, 2, 3] as BodyLevel[]).map((level) => {
               const isSelected = bodyLevel === level;
               return (
@@ -311,14 +311,14 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                   key={`body-${level}`}
                   id={`body-btn-${level}`}
                   onClick={() => onBodyChange(level)}
-                  className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-2 rounded-xl text-center border transition-all cursor-pointer min-h-[46px] ${
+                  className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl text-center border transition-all cursor-pointer min-h-[48px] ${
                     isSelected
                       ? "bg-[#01374C] text-white border-[#01374C] shadow-xs"
                       : "bg-white text-[#01374C] border-[#E8EDF1] hover:bg-[#FAF6F2]"
                   }`}
                 >
                   <span
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    className={`w-3 h-3 rounded-full shrink-0 ${
                       isSelected
                         ? "bg-[#00D9B4]"
                         : level === 1
@@ -328,7 +328,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                         : "bg-[#3B2212]"
                     }`}
                   />
-                  <span className="text-xs sm:text-sm font-bold leading-tight">
+                  <span className="text-sm sm:text-base font-bold leading-tight">
                     {bodyDescriptions[level].label}
                   </span>
                 </button>
@@ -511,7 +511,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                             x={textX}
                             y={textY}
                             fill={textColor}
-                            fontSize="9.2"
+                            fontSize="11"
                             fontWeight={isActive ? "900" : "800"}
                             textAnchor="middle"
                             dominantBaseline="central"
@@ -525,15 +525,15 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                             x={textX}
                             y={textY}
                             fill={textColor}
-                            fontSize="8.2"
+                            fontSize="9.8"
                             fontWeight={isActive ? "900" : "800"}
                             textAnchor="middle"
                             dominantBaseline="central"
                             transform={`rotate(${textRotation}, ${textX}, ${textY})`}
                             className="select-none pointer-events-none"
                           >
-                            <tspan x={textX} dy="-4.5">{slice.lines[0]}</tspan>
-                            <tspan x={textX} dy="9.2">{slice.lines[1]}</tspan>
+                            <tspan x={textX} dy="-5">{slice.lines[0]}</tspan>
+                            <tspan x={textX} dy="10.5">{slice.lines[1]}</tspan>
                           </text>
                         )}
                       </g>
@@ -650,10 +650,10 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
             {Object.entries(subcategories).map(([subcategory, descriptors]) => (
               <div key={subcategory} className="bg-white/85 p-3.5 rounded-xl border border-white/70 shadow-xs flex flex-col justify-between">
                 <div>
-                  <span className="text-xs sm:text-sm font-extrabold text-[#01374C] uppercase tracking-wider block mb-2.5 pb-1 border-b border-[#01374C]/10">
+                  <span className="text-sm sm:text-base font-extrabold text-[#01374C] uppercase tracking-wider block mb-3 pb-1 border-b border-[#01374C]/10">
                     {subcategory}
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {descriptors.map((desc) => {
                       const selection = selectedFlavors.find(
                         (f) => f.descriptorId === desc.id
@@ -666,7 +666,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                           key={desc.id}
                           id={`flavor-btn-${desc.id}`}
                           onClick={() => handleSelectDescriptor(desc)}
-                          className={`min-h-[44px] text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-full border transition-all duration-200 flex items-center gap-1.5 cursor-pointer hover:scale-[1.03] hover:shadow-md active:scale-100 ${
+                          className={`min-h-[46px] text-sm sm:text-base font-bold px-4 py-2.5 rounded-full border transition-all duration-200 flex items-center gap-2 cursor-pointer hover:scale-[1.03] hover:shadow-md active:scale-100 ${
                             isSelected
                               ? "bg-white text-[#01374C] shadow-md scale-[1.02] ring-2 ring-offset-1"
                               : "bg-white text-[#01374C] border-[#DDC1AB] hover:border-[#01374C] shadow-2xs"
@@ -677,18 +677,18 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                           }}
                         >
                           <span
-                            className="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-2xs border border-black/10"
+                            className="w-3 h-3 rounded-full inline-block shrink-0 shadow-2xs border border-black/10"
                             style={{ backgroundColor: desc.color }}
                           />
-                          <span className="font-bold text-[#01374C]">{display.primary}</span>
+                          <span className="font-extrabold text-[#01374C]">{display.primary}</span>
                           {display.secondary && (
-                            <span className="text-xs font-normal text-[#52646E]">
+                            <span className="text-xs sm:text-sm font-medium text-[#52646E]">
                               ({display.secondary})
                             </span>
                           )}
                           {isSelected && (
                             <span
-                              className="text-xs font-black px-1.5 py-0.2 rounded-full text-white shadow-2xs ml-0.5"
+                              className="text-xs font-black px-2 py-0.5 rounded-full text-white shadow-2xs ml-1"
                               style={{ backgroundColor: desc.color }}
                             >
                               ★ {selection.intensity}

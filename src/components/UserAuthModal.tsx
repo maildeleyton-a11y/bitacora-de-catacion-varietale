@@ -275,24 +275,24 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
         <motion.div
           initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
-          className="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl border border-[#E8EDF1] max-h-[92vh] flex flex-col justify-between overflow-hidden"
+          className="bg-white rounded-3xl p-5 sm:p-6 max-w-md md:max-w-lg w-full shadow-2xl border border-[#E8EDF1] max-h-[92vh] flex flex-col justify-between overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#E8EDF1]">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#01374C] flex items-center justify-center text-white font-black text-sm shadow-xs">
+          <div className="flex items-center justify-between pb-3.5 border-b border-[#E8EDF1]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#01374C] flex items-center justify-center text-white font-black text-sm shadow-xs">
                 V
               </div>
               <div>
-                <h2 className="text-sm sm:text-base font-black text-[#01374C] leading-none">
+                <h2 className="text-base sm:text-lg font-black text-[#01374C] leading-none">
                   {currentUser ? "Perfil de Catador" : "Registro & Acceso"}
                 </h2>
-                <span className="text-xs text-[#52646E] font-medium">
+                <span className="text-xs sm:text-sm text-[#52646E] font-medium block mt-0.5">
                   Comunidad de Especialidad Varietale
                 </span>
               </div>
@@ -311,19 +311,19 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
           {/* Tab Navigation if not logged in */}
           {!currentUser && (
-            <div className="flex gap-2 p-1 bg-[#F5F8FA] rounded-xl my-3">
+            <div className="flex gap-2 p-1.5 bg-[#F5F8FA] rounded-2xl my-3 border border-[#E8EDF1]">
               <button
                 onClick={() => {
                   setActiveTab("login");
                   setLoginError(null);
                 }}
-                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 min-h-[44px] py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeTab === "login"
                     ? "bg-white text-[#01374C] shadow-xs border border-[#E8EDF1]"
                     : "text-[#52646E]"
                 }`}
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-4 h-4" />
                 <span>Entrar</span>
               </button>
               <button
@@ -331,13 +331,13 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                   setActiveTab("register");
                   setRegError(null);
                 }}
-                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 min-h-[44px] py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeTab === "register"
                     ? "bg-white text-[#01374C] shadow-xs border border-[#E8EDF1]"
                     : "text-[#52646E]"
                 }`}
               >
-                <UserPlus className="w-3.5 h-3.5 text-[#00D9B4]" />
+                <UserPlus className="w-4 h-4 text-[#00D9B4]" />
                 <span>Crear Cuenta</span>
               </button>
             </div>
@@ -388,35 +388,35 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
             {/* TAB 1: LOGIN */}
             {!currentUser && activeTab === "login" && (
-              <form onSubmit={handleLoginSubmit} className="space-y-3">
+              <form onSubmit={handleLoginSubmit} className="space-y-3.5">
                 {loginError && (
-                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium text-center">
+                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium text-center">
                     {loginError}
                   </div>
                 )}
 
                 {/* Email Input */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-[#01374C]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs sm:text-sm font-bold text-[#01374C]">
                       Correo Electrónico
                     </label>
                     <button
                       type="button"
                       onClick={() => setActiveTab("quickReminder")}
-                      className="text-[11px] font-bold text-[#00897B] hover:underline cursor-pointer"
+                      className="text-xs font-bold text-[#00897B] hover:underline cursor-pointer"
                     >
                       ¿Olvidaste tu cuenta?
                     </button>
                   </div>
                   <div className="relative">
-                    <User className="w-4 h-4 text-[#9FB2BC] absolute left-3 top-2.5" />
+                    <User className="w-4 h-4 text-[#9FB2BC] absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       value={loginIdentifier}
                       onChange={(e) => setLoginIdentifier(e.target.value)}
                       placeholder="tucorreo@ejemplo.com"
-                      className="w-full pl-9 pr-3 py-2 bg-white text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      className="w-full pl-10 pr-3 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                       required
                     />
                   </div>
@@ -424,8 +424,8 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
                 {/* Password */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-[#01374C]">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs sm:text-sm font-bold text-[#01374C]">
                       Contraseña
                     </label>
                     <button
@@ -436,25 +436,25 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                         setIsVerified(false);
                         setActiveTab("resetPassword");
                       }}
-                      className="text-[11px] font-bold text-[#00897B] hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-bold text-[#00897B] hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      <KeyRound className="w-3 h-3" />
+                      <KeyRound className="w-3.5 h-3.5" />
                       <span>¿Olvidaste tu contraseña?</span>
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-[#9FB2BC] absolute left-3 top-2.5" />
+                    <Lock className="w-4 h-4 text-[#9FB2BC] absolute left-3.5 top-3.5" />
                     <input
                       type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-9 pr-10 py-2 bg-white text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      className="w-full pl-10 pr-11 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      className="absolute right-3 top-2.5 text-[#889DA7] hover:text-[#01374C]"
+                      className="absolute right-3 top-3 text-[#889DA7] hover:text-[#01374C] cursor-pointer"
                     >
                       {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -463,7 +463,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#01374C] text-white text-xs sm:text-sm font-black rounded-xl hover:bg-[#002636] transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                  className="w-full min-h-[48px] py-3 bg-[#01374C] text-white text-sm sm:text-base font-black rounded-xl hover:bg-[#002636] transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-1"
                 >
                   <span>Entrar a Mi Bitácora</span>
                   <ArrowRight className="w-4 h-4 text-[#00D9B4]" />
@@ -473,15 +473,15 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
             {/* TAB 2: REGISTER */}
             {!currentUser && activeTab === "register" && (
-              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
                 {regError && (
-                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium text-center">
+                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium text-center">
                     {regError}
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-[#01374C] mb-1">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                     Nombre Completo *
                   </label>
                   <input
@@ -489,13 +489,13 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="ej: Leyton Silva"
-                    className="w-full px-3 py-2 bg-white text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                    className="w-full px-3.5 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#01374C] mb-1">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                     Nombre de Usuario *
                   </label>
                   <input
@@ -503,13 +503,13 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
                     placeholder="ej: leyton"
-                    className="w-full px-3 py-2 bg-white text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                    className="w-full px-3.5 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#01374C] mb-1">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                     Correo Electrónico (opcional)
                   </label>
                   <input
@@ -517,12 +517,12 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="ej: correo@gmail.com"
-                    className="w-full px-3 py-2 bg-white text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                    className="w-full px-3.5 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#01374C] mb-1">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                     Contraseña * (mínimo 6 caracteres)
                   </label>
                   <div className="relative">
@@ -531,13 +531,13 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 bg-white text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      className="w-full pl-3.5 pr-11 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowRegPassword(!showRegPassword)}
-                      className="absolute right-3 top-2 text-[#889DA7] hover:text-[#01374C]"
+                      className="absolute right-3 top-3 text-[#889DA7] hover:text-[#01374C] cursor-pointer"
                     >
                       {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -545,18 +545,18 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                 </div>
 
                 {/* Respaldo: PIN ÚNICAMENTE */}
-                <div className="p-3 bg-[#FAF6F2] rounded-2xl border border-[#DDC1AB] space-y-2">
+                <div className="p-3.5 bg-[#FAF6F2] rounded-2xl border border-[#DDC1AB] space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#00897B]" />
-                    <span className="text-[11px] font-black text-[#01374C]">
+                    <ShieldCheck className="w-4 h-4 text-[#00897B]" />
+                    <span className="text-xs sm:text-sm font-black text-[#01374C]">
                       PIN de Respaldo (Sin correos ni códigos)
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#52646E] leading-tight">
+                  <p className="text-xs sm:text-sm text-[#52646E] leading-relaxed">
                     Define un PIN de 4 dígitos para restablecer tu contraseña al instante si la olvidas.
                   </p>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#01374C] mb-1">
+                    <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1">
                       PIN de 4 dígitos *
                     </label>
                     <input
@@ -565,7 +565,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                       value={regPin}
                       onChange={(e) => setRegPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
                       placeholder="••••"
-                      className="w-full text-center font-bold tracking-widest px-3 py-2 text-sm bg-white border border-[#DDC1AB] rounded-xl"
+                      className="w-full min-h-[46px] text-center font-black tracking-widest px-3 py-2.5 text-base bg-white border border-[#DDC1AB] rounded-xl text-[#01374C]"
                       required
                     />
                   </div>
@@ -574,7 +574,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                 {/* Botón de registro con color azul corporativo #01374C */}
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-black rounded-xl transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                  className="w-full min-h-[48px] py-3 bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-black rounded-xl transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2 mt-1"
                 >
                   <span>Registrarse e Ingresar</span>
                   <ArrowRight className="w-4 h-4 text-[#00D9B4]" />

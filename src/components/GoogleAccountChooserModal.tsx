@@ -131,7 +131,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.94, opacity: 0, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-[#E8EDF1] max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-3xl p-5 sm:p-6 max-w-md sm:max-w-lg w-full shadow-2xl border border-[#E8EDF1] max-h-[90vh] overflow-y-auto"
         >
           {/* Header */}
           <div className="flex items-start justify-between pb-4 border-b border-[#E8EDF1]">
@@ -158,10 +158,10 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-black text-[#01374C]">
+                <h3 className="text-base sm:text-lg font-black text-[#01374C]">
                   {mode === "register" ? "Registrarse con Google" : "Iniciar sesión con Google"}
                 </h3>
-                <p className="text-xs text-[#52646E]">
+                <p className="text-xs sm:text-sm text-[#52646E]">
                   para continuar en Tu Bitácora Varietale
                 </p>
               </div>
@@ -177,7 +177,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
 
           <div className="py-4 space-y-4">
             {error && (
-              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold text-center">
+              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-semibold text-center">
                 {error}
               </div>
             )}
@@ -185,7 +185,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
             {/* List of existing Google accounts if any */}
             {existingAccounts.length > 0 && !showAddCustom && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#889DA7] uppercase tracking-wider block">
+                <span className="text-xs font-bold text-[#889DA7] uppercase tracking-wider block">
                   Cuentas guardadas en este dispositivo:
                 </span>
                 <div className="space-y-2">
@@ -193,22 +193,22 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                     <div
                       key={acc.id}
                       onClick={() => handleSelectExisting(acc)}
-                      className="p-3 rounded-2xl border border-[#DDC1AB] hover:border-[#00897B] bg-white hover:bg-[#FAF6F2] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
+                      className="p-3 sm:p-3.5 rounded-2xl border border-[#DDC1AB] hover:border-[#00897B] bg-white hover:bg-[#FAF6F2] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
                     >
                       <div className="flex items-center gap-3 truncate">
                         <div className="w-9 h-9 rounded-full bg-[#EA4335] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
                           {acc.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="truncate text-left">
-                          <div className="text-xs font-black text-[#01374C] group-hover:text-[#00897B] transition-colors truncate">
+                          <div className="text-xs sm:text-sm font-black text-[#01374C] group-hover:text-[#00897B] transition-colors truncate">
                             {acc.name}
                           </div>
-                          <div className="text-[11px] text-[#52646E] truncate">
+                          <div className="text-xs text-[#52646E] truncate">
                             {acc.email}
                           </div>
                         </div>
                       </div>
-                      <span className="text-[11px] font-bold text-[#00897B] opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-xs font-bold text-[#00897B] opacity-0 group-hover:opacity-100 transition-opacity">
                         Elegir →
                       </span>
                     </div>
@@ -218,9 +218,9 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                 <button
                   type="button"
                   onClick={() => setShowAddCustom(true)}
-                  className="w-full py-2.5 px-3 rounded-xl border border-dashed border-[#889DA7]/60 hover:border-[#01374C] text-[#01374C] text-xs font-bold flex items-center justify-center gap-2 hover:bg-black/5 transition-colors cursor-pointer mt-3"
+                  className="w-full min-h-[46px] py-2.5 px-3 rounded-xl border border-dashed border-[#889DA7]/60 hover:border-[#01374C] text-[#01374C] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-black/5 transition-colors cursor-pointer mt-3"
                 >
-                  <Plus className="w-3.5 h-3.5 text-[#00897B]" />
+                  <Plus className="w-4 h-4 text-[#00897B]" />
                   <span>Usar otra cuenta de Google</span>
                 </button>
               </div>
@@ -229,12 +229,12 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
             {/* Add / Choose any Google account form */}
             {showAddCustom && (
               <form onSubmit={handleCreateOrSelectCustom} className="space-y-3.5">
-                <div className="p-3 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] space-y-1">
-                  <div className="text-xs font-black text-[#01374C] flex items-center gap-1.5">
+                <div className="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] space-y-1">
+                  <div className="text-xs sm:text-sm font-black text-[#01374C] flex items-center gap-1.5">
                     {mode === "register" ? (
-                      <UserPlus className="w-3.5 h-3.5 text-[#00897B]" />
+                      <UserPlus className="w-4 h-4 text-[#00897B]" />
                     ) : (
-                      <LogIn className="w-3.5 h-3.5 text-[#00897B]" />
+                      <LogIn className="w-4 h-4 text-[#00897B]" />
                     )}
                     <span>
                       {mode === "register"
@@ -242,7 +242,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                         : "Ingresa tu correo de Google para iniciar sesión:"}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#52646E]">
+                  <p className="text-xs text-[#52646E]">
                     Puedes usar tu cuenta personal de Gmail o de Google Workspace.
                   </p>
                 </div>
@@ -250,7 +250,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                 {/* Nombre de usuario opcional: SOLO EN EL REGISTRO */}
                 {mode === "register" && (
                   <div>
-                    <label className="block text-xs font-bold text-[#01374C] mb-1">
+                    <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                       Nombre de usuario que quieres asignar (Opcional)
                     </label>
                     <input
@@ -258,14 +258,14 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                       value={customUsername}
                       onChange={(e) => setCustomUsername(e.target.value)}
                       placeholder="ej: mi_usuario (opcional)"
-                      className="w-full px-3 py-2.5 bg-[#FAF6F2]/50 text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      className="w-full px-3.5 py-2.5 min-h-[46px] bg-[#FAF6F2]/50 text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                     />
                   </div>
                 )}
 
                 {/* Correo de Google con placeholder tucorreo@gmail.com */}
                 <div>
-                  <label className="block text-xs font-bold text-[#01374C] mb-1">
+                  <label className="block text-xs sm:text-sm font-bold text-[#01374C] mb-1.5">
                     Correo Electrónico de Google *
                   </label>
                   <input
@@ -275,7 +275,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                     placeholder="tucorreo@gmail.com"
                     required
                     autoFocus
-                    className="w-full px-3 py-2.5 bg-[#FAF6F2]/50 text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                    className="w-full px-3.5 py-2.5 min-h-[46px] bg-[#FAF6F2]/50 text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                   />
                 </div>
 
@@ -283,7 +283,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                   <button
                     type="button"
                     onClick={() => setShowAddCustom(false)}
-                    className="text-xs text-[#00897B] font-bold underline cursor-pointer"
+                    className="text-xs sm:text-sm text-[#00897B] font-bold underline cursor-pointer"
                   >
                     ← Volver a mis cuentas guardadas
                   </button>
@@ -292,7 +292,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-2xl bg-[#01374C] text-white text-xs sm:text-sm font-black hover:bg-[#002636] flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#01374C]/20 transition-all"
+                    className="w-full min-h-[48px] py-3 rounded-2xl bg-[#01374C] text-white text-sm sm:text-base font-black hover:bg-[#002636] flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#01374C]/20 transition-all"
                   >
                     <span>
                       {mode === "register"

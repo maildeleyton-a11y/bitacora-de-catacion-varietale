@@ -141,7 +141,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
         initial={{ scale: 0.94, opacity: 0, y: 16 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 16 }}
-        className="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-[#E8EDF1] max-h-[92vh] flex flex-col justify-between overflow-hidden"
+        className="bg-white rounded-3xl p-5 sm:p-6 md:p-7 max-w-lg md:max-w-xl lg:max-w-2xl w-full shadow-2xl border border-[#E8EDF1] max-h-[92vh] flex flex-col justify-between overflow-hidden"
       >
         {/* Top Header */}
         <div className="flex items-center justify-between pb-3.5 border-b border-[#E8EDF1]">
@@ -153,14 +153,14 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
               <span className="text-xs font-extrabold uppercase tracking-widest text-[#00897B] block leading-none">
                 Visita Guiada
               </span>
-              <h2 className="text-sm sm:text-base font-bold text-[#01374C] leading-tight mt-0.5">
+              <h2 className="text-base sm:text-lg font-bold text-[#01374C] leading-tight mt-0.5">
                 Bitácora de Catación Varietale
               </h2>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-[#01374C] bg-[#FAF6F2] border border-[#DDC1AB] px-3 py-1 rounded-full">
+            <span className="text-xs sm:text-sm font-bold text-[#01374C] bg-[#FAF6F2] border border-[#DDC1AB] px-3 py-1 rounded-full">
               {currentStep + 1} / {totalSteps}
             </span>
             <button
@@ -176,11 +176,11 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
         {/* Step Header Indicator - Título solicitado sin subtítulo */}
         <div className="mt-3.5 mb-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#EBFBFA] border border-[#00D9B4]/40 text-[#01374C] flex items-center justify-center font-black text-sm shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#EBFBFA] border border-[#00D9B4]/40 text-[#01374C] flex items-center justify-center font-black text-sm shrink-0">
               <StepIcon className="w-4 h-4 text-[#00897B]" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black text-[#01374C] leading-snug">
+              <h3 className="text-base sm:text-lg font-black text-[#01374C] leading-snug">
                 {currentMeta.title}
               </h3>
             </div>
@@ -619,11 +619,11 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {currentStep > 0 && (
               <button
                 onClick={handlePrev}
-                className="py-3 px-4 rounded-xl border border-[#DDC1AB] text-xs sm:text-sm font-bold text-[#01374C] hover:bg-[#FAF6F2] transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="min-h-[48px] py-3 px-4 rounded-xl border border-[#DDC1AB] text-sm sm:text-base font-bold text-[#01374C] hover:bg-[#FAF6F2] transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Atrás</span>
@@ -634,7 +634,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
               <button
                 id="onboarding-next-btn"
                 onClick={handleNext}
-                className="flex-1 py-3 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                className="flex-1 min-h-[48px] py-3.5 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
               >
                 <span>Siguiente paso</span>
                 <ArrowRight className="w-4 h-4 text-[#00D9B4]" />
@@ -646,7 +646,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                   handleClose();
                   onStartFirstCata();
                 }}
-                className="flex-1 py-3.5 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] cursor-pointer"
+                className="flex-1 min-h-[48px] py-3.5 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-black flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-[#00D9B4]" />
                 <span>¡Comenzar mi primera cata!</span>

@@ -579,31 +579,31 @@ export default function App() {
 
       {/* Barra de Navegación Inferior Móvil (Visible en Inicio y Bitácora) */}
       {currentUser && (currentScreen === "home" || currentScreen === "logbook") && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-[#E8EDF1] pt-2 px-3 sm:px-4 z-30 shadow-[0_-4px_25px_rgba(1,55,76,0.08)] safe-nav-pb">
-          <div className="max-w-md mx-auto flex items-center justify-between relative px-1 sm:px-2">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-[#E8EDF1] pt-2 px-3 sm:px-6 z-30 shadow-[0_-4px_25px_rgba(1,55,76,0.08)] safe-nav-pb">
+          <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto flex items-center justify-between relative px-2 sm:px-4">
             {/* 1. Inicio */}
             <button
               id="nav-home-btn"
               onClick={() => setCurrentScreen("home")}
-              className={`flex-1 min-h-[46px] flex flex-col items-center justify-center py-1 transition-all active:scale-95 cursor-pointer ${
+              className={`flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 transition-all active:scale-95 cursor-pointer ${
                 currentScreen === "home"
                   ? "text-[#01374C] font-black"
                   : "text-[#889DA7] hover:text-[#01374C]"
               }`}
             >
-              <Coffee className={`w-5 h-5 ${currentScreen === "home" ? "text-[#01374C]" : "text-[#889DA7]"}`} />
-              <span className="text-[11px] mt-1 font-bold">Inicio</span>
+              <Coffee className={`w-5.5 h-5.5 ${currentScreen === "home" ? "text-[#01374C]" : "text-[#889DA7]"}`} />
+              <span className="text-xs sm:text-sm mt-1 font-bold">Inicio</span>
             </button>
 
             {/* 2. Guía */}
             <button
               id="nav-guide-btn"
               onClick={() => setIsGuideOpen(true)}
-              className="flex-1 min-h-[46px] flex flex-col items-center justify-center py-1 text-[#889DA7] hover:text-[#01374C] transition-all active:scale-95 cursor-pointer"
+              className="flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 text-[#889DA7] hover:text-[#01374C] transition-all active:scale-95 cursor-pointer"
               title="Visita Guiada"
             >
-              <Compass className="w-5 h-5 text-[#889DA7]" />
-              <span className="text-[11px] mt-1 font-bold">Guía</span>
+              <Compass className="w-5.5 h-5.5 text-[#889DA7]" />
+              <span className="text-xs sm:text-sm mt-1 font-bold">Guía</span>
             </button>
 
             {/* 3. Botón Flotante Central: Nueva Cata */}
@@ -623,40 +623,40 @@ export default function App() {
             <button
               id="nav-logbook-btn"
               onClick={() => setCurrentScreen("logbook")}
-              className={`flex-1 min-h-[46px] flex flex-col items-center justify-center py-1 transition-all active:scale-95 relative cursor-pointer ${
+              className={`flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 transition-all active:scale-95 relative cursor-pointer ${
                 currentScreen === "logbook"
                   ? "text-[#01374C] font-black"
                   : "text-[#889DA7] hover:text-[#01374C]"
               }`}
             >
               <div className="relative">
-                <BookOpen className={`w-5 h-5 ${currentScreen === "logbook" ? "text-[#01374C]" : "text-[#889DA7]"}`} />
+                <BookOpen className={`w-5.5 h-5.5 ${currentScreen === "logbook" ? "text-[#01374C]" : "text-[#889DA7]"}`} />
                 {tastings.length > 0 && (
-                  <span className="absolute -top-1 -right-2 bg-[#01374C] text-[#00D9B4] text-[9px] font-black px-1.5 py-0.2 rounded-full border border-white">
+                  <span className="absolute -top-1.5 -right-2.5 bg-[#01374C] text-[#00D9B4] text-[10px] font-black px-1.5 py-0.2 rounded-full border border-white">
                     {tastings.length}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] mt-1 font-bold">Bitácora</span>
+              <span className="text-xs sm:text-sm mt-1 font-bold">Bitácora</span>
             </button>
 
             {/* 5. Perfil de Catador */}
             <button
               id="nav-profile-btn"
               onClick={() => setIsAuthOpen(true)}
-              className="flex-1 min-h-[46px] flex flex-col items-center justify-center py-1 text-[#889DA7] hover:text-[#01374C] transition-all active:scale-95 cursor-pointer"
+              className="flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 text-[#889DA7] hover:text-[#01374C] transition-all active:scale-95 cursor-pointer"
             >
               {currentUser ? (
-                <span className="w-5 h-5 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center text-[10px] font-black relative">
+                <span className="w-5.5 h-5.5 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center text-[11px] font-black relative">
                   {currentUser.name.charAt(0).toUpperCase()}
                   {currentUser.authProvider === "google" && (
                     <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#4285F4] ring-1 ring-white" />
                   )}
                 </span>
               ) : (
-                <User className="w-5 h-5 text-[#889DA7]" />
+                <User className="w-5.5 h-5.5 text-[#889DA7]" />
               )}
-              <span className="text-[11px] mt-1 font-bold max-w-[65px] truncate">
+              <span className="text-xs sm:text-sm mt-1 font-bold max-w-[75px] truncate">
                 {currentUser ? currentUser.name.split(" ")[0] : "Ingresar"}
               </span>
             </button>
