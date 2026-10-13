@@ -209,7 +209,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full">
+    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full">
       {/* Top Header */}
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#E8EDF1]">
         <button
@@ -281,7 +281,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
       {/* TAB 1: HISTORIAL DE TARJETAS */}
       {activeTab === "historial" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
           {/* Empty state when user has 0 catas */}
           {tastings.length === 0 && (
             <div className="col-span-full bg-white rounded-2xl p-8 sm:p-12 border border-[#E8EDF1] text-center shadow-xs">
@@ -334,122 +334,131 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
               <div
                 key={cata.id}
                 id={`cata-card-${cata.id}`}
-                className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs transition-all hover:border-[#DDC1AB]"
+                className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs transition-all hover:border-[#DDC1AB] flex flex-col justify-between"
               >
-                {/* Card Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    {/* Origen Tag in Varietale Brand Dark Blue #01374C with #00D9B4 dot */}
+                {/* Contenido principal de la tarjeta */}
+                <div>
+                  {/* 1. Barra Superior: Origen / Distintivo + Calificación y Acciones Rápidas */}
+                  <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#E8EDF1]">
+                    {/* Origen Tag en Azul Corporativo Varietale #01374C con punto menta #00D9B4 */}
                     {cata.origin ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider bg-[#01374C] text-white px-3 py-1 rounded-full mb-1.5 shadow-xs">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-[#01374C] text-white px-2.5 py-1 rounded-full shadow-2xs">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#00D9B4]" />
-                        {cata.origin}
+                        <span>{cata.origin}</span>
                       </span>
-                    ) : null}
-                    <h3 className="text-base sm:text-lg md:text-xl font-black text-[#01374C] leading-tight break-words">
-                      {cata.coffeeName}
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-[#4A5D68] mt-1 flex-wrap">
-                      <span className="flex items-center gap-1 font-bold text-[#01374C]">
-                        <BrewMethodIcon type={cata.brewMethod} className="w-4 h-4 text-[#00D9B4]" />
-                        {getMethodName(cata.brewMethod)}
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider bg-[#FAF6F2] text-[#01374C] px-2.5 py-1 rounded-full border border-[#DDC1AB]">
+                        <span>Café Varietale</span>
                       </span>
-                      {cata.variety ? (
-                        <>
-                          <span>•</span>
-                          <span>{cata.variety}</span>
-                        </>
-                      ) : null}
-                      {cata.process ? (
-                        <>
-                          <span>•</span>
-                          <span>{cata.process}</span>
-                        </>
-                      ) : null}
-                      <span>•</span>
-                      <span>{formatDate(cata.createdAt)}</span>
-                    </div>
-                  </div>
+                    )}
 
-                  {/* Rating Stars, Edit Action and Delete Action */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="flex items-center gap-0.5 bg-white px-2 py-1 rounded-xl border border-[#E8EDF1]">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={`star-${cata.id}-${star}`}
-                          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                            cata.rating >= star
-                              ? "fill-[#00D9B4] text-[#00D9B4]"
-                              : "text-[#DDE4E8]"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    {onEditCata && (
+                    {/* Estrellas y Botones de Acción */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-0.5 bg-[#FAF6F2] px-2 py-1 rounded-xl border border-[#DDC1AB]/60">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={`star-${cata.id}-${star}`}
+                            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                              cata.rating >= star
+                                ? "fill-[#00D9B4] text-[#00D9B4]"
+                                : "text-[#DDE4E8]"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {onEditCata && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditCata(cata);
+                          }}
+                          className="p-1.5 rounded-lg border border-[#DDC1AB] hover:border-[#01374C] text-[#01374C] bg-white hover:bg-[#FAF6F2] transition-colors cursor-pointer flex items-center justify-center"
+                          title="Modificar esta cata"
+                          aria-label="Modificar cata"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-[#01374C]" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onEditCata(cata);
+                          setCataToDelete(cata);
                         }}
-                        className="p-1.5 rounded-lg border border-[#DDC1AB] hover:border-[#01374C] text-[#01374C] bg-[#FAF6F2] hover:bg-[#F2ECE4] transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
-                        title="Modificar esta cata"
-                        aria-label="Modificar cata"
+                        className="p-1.5 rounded-lg border border-transparent hover:border-red-200 text-[#889DA7] hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer flex items-center justify-center"
+                        title="Eliminar esta cata"
+                        aria-label="Eliminar cata"
                       >
-                        <Edit3 className="w-3.5 h-3.5 text-[#01374C]" />
-                        <span className="hidden sm:inline">Modificar</span>
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCataToDelete(cata);
-                      }}
-                      className="p-1.5 rounded-lg border border-transparent hover:border-red-200 text-[#889DA7] hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      title="Eliminar esta cata"
-                      aria-label="Eliminar cata"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Radar and Flavors Summary */}
-                <div className="mt-4 flex items-center gap-4 bg-white p-3.5 rounded-xl border border-[#E8EDF1]">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
-                    <RadarChart
-                      primaryProfile={cata.spiderProfile}
-                      size={105}
-                      showLabels={false}
-                    />
+                    </div>
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs font-bold text-[#4A5D68] uppercase tracking-wide block mb-1.5">
-                      Sabores Percibidos:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {cata.selectedFlavors.slice(0, 4).map((f) => (
-                        <span
-                          key={f.descriptorId}
-                          className="text-xs font-semibold bg-white text-[#01374C] px-2.5 py-0.5 rounded-full border border-[#DDC1AB]"
-                        >
-                          {f.name} ({f.intensity})
+                  {/* 2. Nombre del Café: 100% de ancho sin cortes de palabras */}
+                  <div className="pt-3">
+                    <h3 className="text-lg sm:text-xl font-black text-[#01374C] leading-snug break-words">
+                      {cata.coffeeName}
+                    </h3>
+
+                    {/* Ficha técnica: Método, Varietal, Beneficio y Fecha (con puntos indivisibles) */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-[#4A5D68] mt-1.5 font-medium">
+                      <span className="inline-flex items-center gap-1.5 font-bold text-[#01374C] bg-[#FAF6F2] px-2 py-0.5 rounded-md border border-[#DDC1AB]/50">
+                        <BrewMethodIcon type={cata.brewMethod} className="w-3.5 h-3.5 text-[#00D9B4]" />
+                        <span>{getMethodName(cata.brewMethod)}</span>
+                      </span>
+                      {cata.variety ? (
+                        <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                          <span>{cata.variety}</span>
                         </span>
-                      ))}
-                      {cata.selectedFlavors.length > 4 && (
-                        <span className="text-xs font-bold text-[#01374C] bg-[#E8EDF1] px-2 py-0.5 rounded-full">
-                          +{cata.selectedFlavors.length - 4} más
+                      ) : null}
+                      {cata.process ? (
+                        <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                          <span>{cata.process}</span>
                         </span>
-                      )}
+                      ) : null}
+                      <span className="inline-flex items-center gap-1 text-[#889DA7] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                        <span>{formatDate(cata.createdAt)}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 3. Radar y Resumen de Sabores */}
+                  <div className="mt-3.5 flex items-center gap-3.5 bg-[#FAF6F2]/40 p-3 sm:p-3.5 rounded-xl border border-[#E8EDF1]">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
+                      <RadarChart
+                        primaryProfile={cata.spiderProfile}
+                        size={105}
+                        showLabels={false}
+                      />
                     </div>
 
-                    <div className="mt-2 text-xs sm:text-sm text-[#4A5D68]">
-                      <span>Cuerpo: </span>
-                      <strong className="text-[#01374C] font-bold">
-                        {cata.bodyLevel === 1 ? "Ligero" : cata.bodyLevel === 2 ? "Medio" : "Denso"}
-                      </strong>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[11px] sm:text-xs font-bold text-[#6A7B85] uppercase tracking-wider block mb-1.5">
+                        Sabores Percibidos:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {cata.selectedFlavors.slice(0, 4).map((f) => (
+                          <span
+                            key={f.descriptorId}
+                            className="text-xs font-semibold bg-white text-[#01374C] px-2.5 py-0.5 rounded-full border border-[#DDC1AB] shadow-2xs"
+                          >
+                            {f.name} ({f.intensity}★)
+                          </span>
+                        ))}
+                        {cata.selectedFlavors.length > 4 && (
+                          <span className="text-xs font-bold text-[#01374C] bg-[#E8EDF1] px-2 py-0.5 rounded-full">
+                            +{cata.selectedFlavors.length - 4} más
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-2 text-xs sm:text-sm text-[#4A5D68] flex items-center gap-1">
+                        <span>Cuerpo: </span>
+                        <strong className="text-[#01374C] font-bold">
+                          {cata.bodyLevel === 1 ? "Ligero" : cata.bodyLevel === 2 ? "Medio" : "Denso"}
+                        </strong>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -539,6 +548,28 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
               </div>
             );
           })}
+
+          {/* Tarjeta de invitación para registrar otra cata (cuando hay 1 o 2 catas) */}
+          {tastings.length > 0 && tastings.length <= 2 && (
+            <div
+              onClick={onStartNewCata}
+              className="rounded-2xl border-2 border-dashed border-[#DDC1AB] hover:border-[#01374C] bg-[#FAF6F2]/40 hover:bg-[#FAF6F2] p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-[220px] group shadow-2xs"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[#DDC1AB] flex items-center justify-center text-[#01374C] group-hover:bg-[#01374C] group-hover:text-white transition-all shadow-xs mb-3">
+                <Plus className="w-6 h-6 text-[#00D9B4]" />
+              </div>
+              <h4 className="text-base font-black text-[#01374C]">
+                Registrar otra Cata
+              </h4>
+              <p className="text-xs sm:text-sm text-[#6A7B85] mt-1.5 max-w-xs leading-relaxed">
+                Catando 2 o más cafés o métodos desbloquearás la comparación sensorial lado a lado.
+              </p>
+              <span className="mt-4 px-4 py-2 rounded-xl bg-white text-[#01374C] text-xs font-bold border border-[#DDC1AB] group-hover:bg-[#01374C] group-hover:text-white transition-all inline-flex items-center gap-1.5 shadow-2xs">
+                <span>Nueva cata</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#00D9B4]" />
+              </span>
+            </div>
+          )}
         </div>
       )}
 
