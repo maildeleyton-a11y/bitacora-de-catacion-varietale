@@ -10,7 +10,7 @@
  * - Pie de marca oficial.
  */
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   BookOpen,
@@ -18,10 +18,12 @@ import {
   ExternalLink,
   User,
   Smartphone,
+  ArrowRight,
 } from "lucide-react";
 import { TastingRecord, UserProfile, CoffeeInfo, BrewMethod } from "../types";
 import { VarietaleLogoHorizontal, VarietaleBrandIcon } from "./VarietaleLogo";
 import { BrandFooter } from "./BrandFooter";
+import { checkIsAppInstalled } from "./InstallPwaModal";
 
 interface HomeScreenProps {
   /** Historial de cataciones del usuario activo */
@@ -53,11 +55,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenAuth,
   onOpenInstall,
 }) => {
-  // Asegurar que la pantalla de inicio siempre cargue en la parte superior
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  // Asegurar que la pantalla de inicio siempre cargue en la parte superior y verificar instalación
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+    setIsInstalled(checkIsAppInstalled());
   }, []);
 
   const totalCatas = tastings.length;
@@ -114,20 +119,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {totalCatas}
             </span>
           </button>
-
-          {/* Botón PWA / Instalar en Celular */}
-          {onOpenInstall && (
-            <button
-              onClick={onOpenInstall}
-              className="min-h-[44px] flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-full bg-[#EBFBFA] border border-[#00D9B4]/60 text-xs font-bold text-[#00897B] shadow-2xs hover:bg-[#d6f7f4] active:scale-95 transition-all cursor-pointer"
-              title="Instalar App o Compartir"
-            >
-              <Smartphone className="w-4 h-4 text-[#00897B]" />
-              <span className="hidden md:inline">Instalar App</span>
-            </button>
-          )}
         </div>
       </div>
+
+      {/* Franja horizontal para instalar la App en el dispositivo */}
+      {onOpenInstall && !isInstalled && (
+        <button
+          onClick={onOpenInstall}
+          className="w-full mb-5 py-3 sm:py-3.5 px-4 sm:px-5 rounded-2xl bg-[#01374C] hover:bg-[#002636] text-white flex items-center justify-between shadow-md border border-[#00D9B4]/40 active:scale-[0.99] transition-all cursor-pointer group"
+        >
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#00D9B4]/20 flex items-center justify-center shrink-0 text-[#00D9B4] border border-[#00D9B4]/30">
+              <Smartphone className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+            </div>
+            <span className="text-xs sm:text-sm md:text-base font-black tracking-wider uppercase text-left truncate text-white">
+              INSTALA LA APP EN TU DISPOSITIVO
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 text-[#00D9B4] text-xs sm:text-sm font-bold pl-2">
+            <span className="hidden xs:inline">Instalar</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </button>
+      )}
 
       {/* Hero Welcome Section: Responsive 2-Column on LG/XL */}
       <div className="bg-gradient-to-b from-[#FAF6F2] to-white rounded-3xl p-5 sm:p-7 md:p-8 border border-[#DDC1AB]/80 shadow-sm mb-6 relative overflow-hidden">
