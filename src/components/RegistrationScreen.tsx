@@ -730,7 +730,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
         </p>
 
         {/* 11 Method Grid: 2 columns on small phones, 3 on tablets, 4 on desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3.5">
           {BREW_METHODS.map((method) => {
             const isSelected = selectedMethod === method.id;
             return (
@@ -738,27 +738,46 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                 key={method.id}
                 id={`method-btn-${method.id}`}
                 onClick={() => onMethodChange(method.id)}
-                className={`p-3 min-h-[96px] rounded-xl border flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                className={`p-3.5 sm:p-4 min-h-[135px] sm:min-h-[145px] rounded-2xl border flex flex-col items-center justify-between text-center transition-all duration-200 cursor-pointer active:scale-[0.97] relative ${
                   isSelected
-                    ? "bg-[#01374C] text-white border-[#01374C] shadow-sm scale-[1.02]"
-                    : "bg-white text-[#01374C] border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/30"
+                    ? "bg-[#01374C] text-white border-[#01374C] shadow-md ring-2 ring-[#00D9B4]/60"
+                    : "bg-white text-[#01374C] border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/30 shadow-2xs"
                 }`}
               >
+                {/* Cápsula icónica agrandada y destacada */}
                 <div
-                  className={`p-1.5 rounded-lg mb-1.5 transition-colors shrink-0 ${
-                    isSelected ? "text-[#00D9B4] bg-white/10" : "text-[#01374C] bg-[#FAF6F2]"
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-2 transition-all duration-200 shrink-0 ${
+                    isSelected
+                      ? "bg-[#00D9B4] text-[#01374C] shadow-sm shadow-[#00D9B4]/30"
+                      : "bg-[#FAF6F2] text-[#01374C] border border-[#E8DCD4]"
                   }`}
                 >
-                  <BrewMethodIcon type={method.id} className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <BrewMethodIcon
+                    type={method.id}
+                    className="w-9 h-9 sm:w-10 sm:h-10 transition-transform"
+                  />
                 </div>
-                <span className="text-xs sm:text-sm font-bold leading-tight block break-words">
-                  {method.name}
-                </span>
-                <span className={`text-[10px] sm:text-xs block leading-tight mt-1 whitespace-normal break-words ${
-                  isSelected ? "text-white/85" : "text-[#6A7B85]"
-                }`}>
-                  {method.shortDesc}
-                </span>
+
+                {/* Textos del Método */}
+                <div className="w-full flex-1 flex flex-col justify-center">
+                  <span className="text-sm sm:text-base font-black leading-tight block break-words">
+                    {method.name}
+                  </span>
+                  <span
+                    className={`text-[11px] sm:text-xs block leading-tight mt-1 whitespace-normal break-words font-medium ${
+                      isSelected ? "text-white/85" : "text-[#6A7B85]"
+                    }`}
+                  >
+                    {method.shortDesc}
+                  </span>
+                </div>
+
+                {/* Check badge discreto si está seleccionado */}
+                {isSelected && (
+                  <div className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-[#00D9B4] text-[#01374C] flex items-center justify-center shadow-xs">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#01374C]" />
+                  </div>
+                )}
               </button>
             );
           })}
@@ -771,23 +790,23 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
           );
           if (!currentMethod) return null;
           return (
-            <div className="mt-4 p-4 rounded-xl bg-[#FAF6F2] border border-[#DDC1AB] space-y-3">
-              <div className="flex items-center justify-between border-b border-[#DDC1AB]/60 pb-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-[#01374C] text-[#00D9B4]">
-                    <BrewMethodIcon type={currentMethod.id} className="w-5 h-5" />
+            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] space-y-3.5">
+              <div className="flex items-center justify-between border-b border-[#DDC1AB]/60 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-[#01374C] text-[#00D9B4] flex items-center justify-center shrink-0 shadow-xs">
+                    <BrewMethodIcon type={currentMethod.id} className="w-8 h-8" />
                   </div>
                   <div>
-                    <strong className="text-sm sm:text-base font-black text-[#01374C] block leading-tight">
+                    <strong className="text-base sm:text-lg font-black text-[#01374C] block leading-tight">
                       {currentMethod.name}
                     </strong>
-                    <span className="text-xs font-bold text-[#00897B] block mt-0.5">
+                    <span className="text-xs sm:text-sm font-bold text-[#00897B] block mt-0.5">
                       {currentMethod.shortDesc}
                     </span>
                   </div>
                 </div>
                 {currentMethod.time && (
-                  <span className="text-xs font-bold text-[#01374C] bg-white px-3 py-1 rounded-md border border-[#DDC1AB]">
+                  <span className="text-xs sm:text-sm font-bold text-[#01374C] bg-white px-3 py-1.5 rounded-lg border border-[#DDC1AB] shadow-2xs shrink-0">
                     ⏱️ Tiempo: {currentMethod.time.split("(")[0].trim()}
                   </span>
                 )}
