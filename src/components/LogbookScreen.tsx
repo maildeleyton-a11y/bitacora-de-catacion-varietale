@@ -66,6 +66,18 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   const [compCataAId, setCompCataAId] = useState<string>(tastings[0]?.id || "");
   const [compCataBId, setCompCataBId] = useState<string>(tastings[1]?.id || tastings[0]?.id || "");
 
+  // Sincronizar identificadores de comparación si cambia la lista de catas
+  useEffect(() => {
+    if (tastings.length > 0) {
+      if (!tastings.some((t) => t.id === compCataAId)) {
+        setCompCataAId(tastings[0].id);
+      }
+      if (!tastings.some((t) => t.id === compCataBId)) {
+        setCompCataBId(tastings[1]?.id || tastings[0].id);
+      }
+    }
+  }, [tastings, compCataAId, compCataBId]);
+
   // Detect candidates for comparison (e.g. same coffee with different methods)
   const sameCoffeeMultiMethods = useMemo(() => {
     const coffeeGroups: Record<string, TastingRecord[]> = {};
@@ -219,8 +231,39 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
     return catalogOptions[0];
   }, [explorationProfile]);
 
-  const cataA = tastings.find((t) => t.id === compCataAId) || tastings[0];
-  const cataB = tastings.find((t) => t.id === compCataBId) || tastings[1] || tastings[0];
+  const cataA = useMemo(() => {
+    if (tastings.length === 0) return null;
+    return tastings.find((t) => t.id === compCataAId) || tastings[0];
+  }, [tastings, compCataAId]);
+
+  const cataB = useMemo(() => {
+    if (tastings.length === 0) return null;
+    return tastings.find((t) => t.id === compCataBId) || (tastings.length > 1 ? tastings[1] : tastings[0]);
+  }, [tastings, compCataBId]);
+
+  const profileA = useMemo(() => {
+    if (!cataA) return undefined;
+    if (
+      cataA.spiderProfile &&
+      typeof cataA.spiderProfile.dulce === "number" &&
+      typeof cataA.spiderProfile.frutal === "number"
+    ) {
+      return cataA.spiderProfile;
+    }
+    return computeSensorySpiderProfile(cataA.selectedFlavors || [], cataA.bodyLevel || 2);
+  }, [cataA]);
+
+  const profileB = useMemo(() => {
+    if (!cataB) return undefined;
+    if (
+      cataB.spiderProfile &&
+      typeof cataB.spiderProfile.dulce === "number" &&
+      typeof cataB.spiderProfile.frutal === "number"
+    ) {
+      return cataB.spiderProfile;
+    }
+    return computeSensorySpiderProfile(cataB.selectedFlavors || [], cataB.bodyLevel || 2);
+  }, [cataB]);
 
   const formatDate = (isoString: string) => {
     try {
@@ -618,122 +661,151 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
             Compara cómo un mismo grano (o dos orígenes distintos) expresan acidez, dulzura y cuerpo según el método de extracción.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-            {/* Columna Izquierda: Selectores y Radar Superpuesto */}
-            <div className="lg:col-span-6 flex flex-col gap-4">
-              {/* Selectors for Cata A and Cata B */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-[#FAF6F2]/80 p-3 rounded-2xl border border-[#DDC1AB]/60">
-                  <label className="text-xs font-black uppercase text-[#01374C] block mb-1.5 tracking-wider">
-                    ● Cata A (Azul Primario)
-                  </label>
-                  <select
-                    value={compCataAId}
-                    onChange={(e) => setCompCataAId(e.target.value)}
-                    className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
-                  >
-                    {tastings.map((t) => (
-                      <option key={`opt-a-${t.id}`} value={t.id}>
-                        {t.coffeeName} ({getMethodName(t.brewMethod)})
-                      </option>
-                    ))}
-                  </select>
+          {tastings.length < 2 || !cataA || !cataB ? (
+            <div className="rounded-2xl border-2 border-dashed border-[#DDC1AB] bg-[#FAF6F2]/50 p-8 sm:p-12 text-center max-w-xl mx-auto my-4">
+              <div className="w-16 h-16 rounded-2xl bg-white border border-[#DDC1AB] flex items-center justify-center mx-auto mb-4 text-[#01374C] shadow-xs">
+                <GitCompare className="w-8 h-8 text-[#00D9B4]" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-[#01374C]">
+                {tastings.length === 0
+                  ? "Aún no tienes catas para comparar"
+                  : "Necesitas al menos 2 catas"}
+              </h3>
+              <p className="text-sm sm:text-base text-[#4A5D68] mt-2 leading-relaxed">
+                {tastings.length === 0
+                  ? "Registra al menos dos catas en tu bitácora para contrastar sus notas aromáticas, acidez, dulzura y cuerpo en el radar comparativo."
+                  : `Tienes 1 cata registrada ("${tastings[0]?.coffeeName || "Cata"}"). Registra una segunda cata para poder compararlas lado a lado.`}
+              </p>
+              <button
+                onClick={onStartNewCata}
+                className="mt-6 px-6 py-3.5 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-md transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
+              >
+                <Plus className="w-5 h-5 text-[#00D9B4]" />
+                <span>
+                  {tastings.length === 0
+                    ? "Iniciar mi primera cata"
+                    : "Registrar segunda cata"}
+                </span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+              {/* Columna Izquierda: Selectores y Radar Superpuesto */}
+              <div className="lg:col-span-6 flex flex-col gap-4">
+                {/* Selectors for Cata A and Cata B */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-[#FAF6F2]/80 p-3 rounded-2xl border border-[#DDC1AB]/60">
+                    <label className="text-xs font-black uppercase text-[#01374C] block mb-1.5 tracking-wider">
+                      ● Cata A (Azul Primario)
+                    </label>
+                    <select
+                      value={compCataAId}
+                      onChange={(e) => setCompCataAId(e.target.value)}
+                      className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                    >
+                      {tastings.map((t) => (
+                        <option key={`opt-a-${t.id}`} value={t.id}>
+                          {t.coffeeName} ({getMethodName(t.brewMethod)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="bg-[#EBFBFA]/80 p-3 rounded-2xl border border-[#00D9B4]/40">
+                    <label className="text-xs font-black uppercase text-[#00897B] block mb-1.5 tracking-wider">
+                      ● Cata B (Acento Menta)
+                    </label>
+                    <select
+                      value={compCataBId}
+                      onChange={(e) => setCompCataBId(e.target.value)}
+                      className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                    >
+                      {tastings.map((t) => (
+                        <option key={`opt-b-${t.id}`} value={t.id}>
+                          {t.coffeeName} ({getMethodName(t.brewMethod)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="bg-[#EBFBFA]/80 p-3 rounded-2xl border border-[#00D9B4]/40">
-                  <label className="text-xs font-black uppercase text-[#00897B] block mb-1.5 tracking-wider">
-                    ● Cata B (Acento Menta)
-                  </label>
-                  <select
-                    value={compCataBId}
-                    onChange={(e) => setCompCataBId(e.target.value)}
-                    className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
-                  >
-                    {tastings.map((t) => (
-                      <option key={`opt-b-${t.id}`} value={t.id}>
-                        {t.coffeeName} ({getMethodName(t.brewMethod)})
-                      </option>
-                    ))}
-                  </select>
+                {/* Overlaid Radar Chart */}
+                <div className="flex justify-center bg-white p-4 sm:p-6 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                  <div className="w-full max-w-[min(92vw,380px)] sm:max-w-[440px] md:max-w-[500px] aspect-square flex items-center justify-center mx-auto">
+                    <RadarChart
+                      primaryProfile={profileA}
+                      primaryLabel={`${cataA.coffeeName} (${getMethodName(cataA.brewMethod)})`}
+                      secondaryProfile={profileB}
+                      secondaryLabel={`${cataB.coffeeName} (${getMethodName(cataB.brewMethod)})`}
+                      responsive={true}
+                      className="w-full h-full"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Overlaid Radar Chart */}
-              <div className="flex justify-center bg-white p-4 sm:p-6 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-full max-w-[min(92vw,380px)] sm:max-w-[440px] md:max-w-[500px] aspect-square flex items-center justify-center mx-auto">
-                  <RadarChart
-                    primaryProfile={cataA.spiderProfile}
-                    primaryLabel={`${cataA.coffeeName} (${getMethodName(cataA.brewMethod)})`}
-                    secondaryProfile={cataB.spiderProfile}
-                    secondaryLabel={`${cataB.coffeeName} (${getMethodName(cataB.brewMethod)})`}
-                    responsive={true}
-                    className="w-full h-full"
-                  />
+              {/* Columna Derecha: Tarjetas de detalles sensoriales de Cata A y Cata B */}
+              <div className="lg:col-span-6 flex flex-col gap-4">
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF6F2]/80 border-2 border-[#01374C]/30 shadow-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs sm:text-sm font-black text-[#01374C] uppercase tracking-wider">
+                      ● Cata A: {cataA.coffeeName}
+                    </span>
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#01374C] text-white">
+                      {getMethodName(cataA.brewMethod)}
+                    </span>
+                  </div>
+                  <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
+                    Cuerpo: <strong className="text-[#01374C]">{cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
+                  </p>
+                  <div className="mt-3 pt-3 border-t border-[#DDC1AB]/60">
+                    <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(cataA.selectedFlavors || []).map((f) => (
+                        <span key={`comp-a-flv-${f.descriptorId}`} className="text-xs sm:text-sm font-semibold bg-white text-[#01374C] px-3 py-1 rounded-full border border-[#DDC1AB] shadow-2xs">
+                          {f.name} ({f.intensity}★)
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {cataA.userNotes && (
+                    <p className="text-xs sm:text-sm text-[#52646E] italic mt-3 pt-2.5 border-t border-[#DDC1AB]/40">
+                      "{cataA.userNotes}"
+                    </p>
+                  )}
+                </div>
+
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#EBFBFA]/80 border-2 border-[#00D9B4]/60 shadow-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs sm:text-sm font-black text-[#00897B] uppercase tracking-wider">
+                      ● Cata B: {cataB.coffeeName}
+                    </span>
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C]">
+                      {getMethodName(cataB.brewMethod)}
+                    </span>
+                  </div>
+                  <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
+                    Cuerpo: <strong className="text-[#01374C]">{cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
+                  </p>
+                  <div className="mt-3 pt-3 border-t border-[#00D9B4]/30">
+                    <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(cataB.selectedFlavors || []).map((f) => (
+                        <span key={`comp-b-flv-${f.descriptorId}`} className="text-xs sm:text-sm font-semibold bg-white text-[#01374C] px-3 py-1 rounded-full border border-[#00D9B4]/50 shadow-2xs">
+                          {f.name} ({f.intensity}★)
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {cataB.userNotes && (
+                    <p className="text-xs sm:text-sm text-[#52646E] italic mt-3 pt-2.5 border-t border-[#00D9B4]/20">
+                      "{cataB.userNotes}"
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* Columna Derecha: Tarjetas de detalles sensoriales de Cata A y Cata B */}
-            <div className="lg:col-span-6 flex flex-col gap-4">
-              <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF6F2]/80 border-2 border-[#01374C]/30 shadow-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs sm:text-sm font-black text-[#01374C] uppercase tracking-wider">
-                    ● Cata A: {cataA.coffeeName}
-                  </span>
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#01374C] text-white">
-                    {getMethodName(cataA.brewMethod)}
-                  </span>
-                </div>
-                <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
-                  Cuerpo: <strong className="text-[#01374C]">{cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
-                </p>
-                <div className="mt-3 pt-3 border-t border-[#DDC1AB]/60">
-                  <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cataA.selectedFlavors.map((f) => (
-                      <span key={`comp-a-flv-${f.descriptorId}`} className="text-xs sm:text-sm font-semibold bg-white text-[#01374C] px-3 py-1 rounded-full border border-[#DDC1AB] shadow-2xs">
-                        {f.name} ({f.intensity}★)
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {cataA.userNotes && (
-                  <p className="text-xs sm:text-sm text-[#52646E] italic mt-3 pt-2.5 border-t border-[#DDC1AB]/40">
-                    "{cataA.userNotes}"
-                  </p>
-                )}
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl bg-[#EBFBFA]/80 border-2 border-[#00D9B4]/60 shadow-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs sm:text-sm font-black text-[#00897B] uppercase tracking-wider">
-                    ● Cata B: {cataB.coffeeName}
-                  </span>
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C]">
-                    {getMethodName(cataB.brewMethod)}
-                  </span>
-                </div>
-                <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
-                  Cuerpo: <strong className="text-[#01374C]">{cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
-                </p>
-                <div className="mt-3 pt-3 border-t border-[#00D9B4]/30">
-                  <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cataB.selectedFlavors.map((f) => (
-                      <span key={`comp-b-flv-${f.descriptorId}`} className="text-xs sm:text-sm font-semibold bg-white text-[#01374C] px-3 py-1 rounded-full border border-[#00D9B4]/50 shadow-2xs">
-                        {f.name} ({f.intensity}★)
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {cataB.userNotes && (
-                  <p className="text-xs sm:text-sm text-[#52646E] italic mt-3 pt-2.5 border-t border-[#00D9B4]/20">
-                    "{cataB.userNotes}"
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
 

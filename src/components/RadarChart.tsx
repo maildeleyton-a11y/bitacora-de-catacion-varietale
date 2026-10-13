@@ -13,7 +13,7 @@ import { SensorySpiderProfile } from "../types";
 
 interface RadarChartProps {
   /** Perfil sensorial principal a graficar */
-  primaryProfile: SensorySpiderProfile;
+  primaryProfile?: SensorySpiderProfile;
   /** Etiqueta descriptiva del perfil principal */
   primaryLabel?: string;
   /** Perfil sensorial secundario para modo comparativo superpuesto */
@@ -67,11 +67,12 @@ export const RadarChart: React.FC<RadarChartProps> = ({
 
   // Helper to get value from profile (handling both 9-category keys and legacy fallbacks)
   const getProfileValue = (
-    profile: SensorySpiderProfile,
+    profile: SensorySpiderProfile | undefined | null,
     axisKey: keyof SensorySpiderProfile
   ): number => {
+    if (!profile) return 0;
     const val = profile[axisKey];
-    if (val !== undefined && val !== null) return val;
+    if (val !== undefined && val !== null && !isNaN(val)) return val;
     return 0;
   };
 
@@ -103,15 +104,17 @@ export const RadarChart: React.FC<RadarChartProps> = ({
   // Concentric levels (25, 50, 75, 100)
   const levels = [25, 50, 75, 100];
 
-  const hasPrimaryData = RADAR_AXES.some(
-    (axis) => getProfileValue(primaryProfile, axis.key) > 0
-  );
+  const hasPrimaryData = primaryProfile
+    ? RADAR_AXES.some((axis) => getProfileValue(primaryProfile, axis.key) > 0)
+    : false;
 
-  const primaryPoints = RADAR_AXES.map((axis, i) => {
-    const val = getProfileValue(primaryProfile, axis.key);
-    const { x, y } = getCoordinates(val, i);
-    return `${x},${y}`;
-  }).join(" ");
+  const primaryPoints = primaryProfile && hasPrimaryData
+    ? RADAR_AXES.map((axis, i) => {
+        const val = getProfileValue(primaryProfile, axis.key);
+        const { x, y } = getCoordinates(val, i);
+        return `${x},${y}`;
+      }).join(" ")
+    : "";
 
   const hasSecondaryData = secondaryProfile
     ? RADAR_AXES.some((axis) => getProfileValue(secondaryProfile, axis.key) > 0)
