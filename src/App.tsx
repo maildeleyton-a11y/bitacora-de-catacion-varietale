@@ -10,7 +10,7 @@
  * - Barra de navegación táctil móvil y modales de celebración/guía.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Coffee, BookOpen, Plus, User, Compass } from "lucide-react";
 import {
   TastingRecord,
@@ -99,20 +99,13 @@ export default function App() {
   // --------------------------------------------------------------------------
   // A. Secuencia de Inicio / Bienvenida Líquida
   // --------------------------------------------------------------------------
-  const [showLaunchSequence, setShowLaunchSequence] = useState<boolean>(() => {
-    try {
-      const lastSeen = localStorage.getItem(LAST_SPLASH_KEY);
-      if (lastSeen) {
-        const timeElapsed = Date.now() - Number(lastSeen);
-        if (timeElapsed >= 0 && timeElapsed < TWO_HOURS_MS) {
-          return false; // Menos de 2 horas desde la última visita: omitir splash
-        }
-      }
-    } catch {
-      return true;
-    }
-    return true;
-  });
+  const [showLaunchSequence, setShowLaunchSequence] = useState<boolean>(true);
+  const [launchSequenceKey, setLaunchSequenceKey] = useState<number>(0);
+
+  const triggerLaunchSequence = () => {
+    setLaunchSequenceKey((prev) => prev + 1);
+    setShowLaunchSequence(true);
+  };
 
   const handleCompleteLaunchSequence = () => {
     setShowLaunchSequence(false);
@@ -172,6 +165,15 @@ export default function App() {
       document.body.scrollTop = 0;
     }, 30);
     return () => clearTimeout(timer);
+  }, [currentScreen]);
+
+  // Ejecuta la animación de bienvenida cada vez que se llega a la página de login o registro
+  const prevScreenRef = useRef<string>(currentScreen);
+  useEffect(() => {
+    if (currentScreen === "auth" && prevScreenRef.current !== "auth") {
+      triggerLaunchSequence();
+    }
+    prevScreenRef.current = currentScreen;
   }, [currentScreen]);
 
   // Modal lateral/flotante de información de perfil
@@ -390,6 +392,7 @@ export default function App() {
     setDraftNotes("");
     setDraftPhoto(null);
     setCurrentScreen("registration");
+    triggerLaunchSequence();
   };
 
   /**
@@ -700,7 +703,10 @@ export default function App() {
 
       {/* Secuencia de Lanzamiento Líquida Inicial */}
       {showLaunchSequence && (
-        <LaunchSequence onComplete={handleCompleteLaunchSequence} />
+        <LaunchSequence
+          key={launchSequenceKey}
+          onComplete={handleCompleteLaunchSequence}
+        />
       )}
     </div>
   );

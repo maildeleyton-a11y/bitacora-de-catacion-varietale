@@ -16,27 +16,7 @@ interface LaunchSequenceProps {
   onComplete: () => void;
 }
 
-const TWO_HOURS_MS = 7200000; // 2 horas en milisegundos
-const LAST_SPLASH_KEY = "last_splash_seen";
-
 export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) => {
-  // Validación de sesión con localStorage (last_splash_seen)
-  // Si han pasado menos de 2 horas desde la última visualización, se omite inmediatamente la animación.
-  const [shouldSkip] = useState<boolean>(() => {
-    try {
-      const lastSeen = localStorage.getItem(LAST_SPLASH_KEY);
-      if (lastSeen) {
-        const timeElapsed = Date.now() - Number(lastSeen);
-        if (timeElapsed >= 0 && timeElapsed < TWO_HOURS_MS) {
-          return true; // Menos de 2 horas transcurridas: omitir animación
-        }
-      }
-    } catch (e) {
-      console.warn("Error leyendo last_splash_seen de localStorage:", e);
-    }
-    return false;
-  });
-
   // Phase state driven by a strict 5.0s timer
   // 0: 0.0s - 0.5s (Aparecen el Key Visual y la firma inferior)
   // 1: 0.5s - 3.0s (Sube el fondo azul: efecto líquido/máscara suave de 2.5s)
@@ -47,18 +27,6 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
   const [fillHeight, setFillHeight] = useState<number>(0); // 0% a 100%
 
   useEffect(() => {
-    if (shouldSkip) {
-      onComplete();
-      return;
-    }
-
-    // Actualizar timestamp en localStorage para la nueva sesión
-    try {
-      localStorage.setItem(LAST_SPLASH_KEY, Date.now().toString());
-    } catch (e) {
-      console.warn("Error guardando last_splash_seen en localStorage:", e);
-    }
-
     // (0.0s - 0.5s): Aparecen el Key Visual y la firma inferior
     const t0 = setTimeout(() => {
       setPhase(0);
@@ -93,11 +61,7 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
       clearTimeout(t3);
       clearTimeout(t4);
     };
-  }, [shouldSkip, onComplete]);
-
-  if (shouldSkip) {
-    return null;
-  }
+  }, [onComplete]);
 
   // Key visual SVG in color
   const SvgKeyVisualColor = () => (
@@ -313,7 +277,11 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
       {/* Botón sutil para omitir inmediatamente si el usuario lo desea */}
       <button
         onClick={onComplete}
-        className="absolute top-4 right-4 z-50 text-white/60 hover:text-white text-xs font-medium px-3 py-1.5 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-xs transition-colors cursor-pointer"
+        className={`absolute top-4 right-4 z-50 text-xs font-bold px-3.5 py-1.5 rounded-full transition-all cursor-pointer backdrop-blur-xs ${
+          phase >= 1
+            ? "text-white/85 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20"
+            : "text-[#01374C] hover:text-[#01374C] bg-[#01374C]/10 hover:bg-[#01374C]/15 border border-[#01374C]/20"
+        }`}
         aria-label="Omitir introducción"
       >
         Omitir
