@@ -77,7 +77,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
 
   // Compartir mediante Web Share API nativa o fallback a WhatsApp
   const handleShareApp = async () => {
-    const shareUrl = window.location.origin || "https://varietale.com";
+    const shareUrl = window.location.href || window.location.origin || "https://varietale.com";
     const shareTitle = "Bitácora Varietale";
     const shareText = `¡Te comparto la *Bitácora de Catación Varietale*! ☕✨\n\nAprende a catar café de especialidad con métodos de filtrado y rueda sensorial SCA:\n${shareUrl}`;
 
@@ -99,7 +99,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
   };
 
   const handleCopyLink = () => {
-    const shareUrl = window.location.origin || "https://varietale.com";
+    const shareUrl = window.location.href || window.location.origin || "https://varietale.com";
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);

@@ -3,9 +3,10 @@
  * SERVICE WORKER - BITÁCORA DE CATACIÓN VARIETALE (PWA)
  * ============================================================================
  * Proporciona soporte offline, caché de recursos estáticos y experiencia nativa.
+ * Versión v3: Forzado inmediato de limpieza de cachés y activación sin espera.
  */
 
-const CACHE_NAME = 'varietale-pwa-v1';
+const CACHE_NAME = 'varietale-pwa-v3';
 
 // Recursos críticos para navegación inicial y funcionamiento sin conexión
 const STATIC_ASSETS = [
@@ -22,8 +23,9 @@ const STATIC_ASSETS = [
   './og-image.png'
 ];
 
-// 1. INSTALACIÓN: Precarga el shell básico de la aplicación
+// 1. INSTALACIÓN: Precarga inmediata y skipWaiting forzado
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS).catch((err) => {
@@ -31,24 +33,42 @@ self.addEventListener('install', (event) => {
       });
     })
   );
-  self.skipWaiting();
 });
 
-// 2. ACTIVACIÓN: Limpia cachés de versiones anteriores
+// 2. ACTIVACIÓN: Destrucción forzada de todas las versiones anteriores de caché
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
+          }
+        })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
 });
 
-// 3. ESTRATEGIA DE INTERCEPTACIÓN DE PETICIONES (FETCH)
+// 3. MENSAJES: Permite a la aplicación solicitar skipWaiting o purga forzada
+self.addEventListener('message', (event) => {
+  if (event.data) {
+    if (event.data.type === 'SKIP_WAITING') {
+      self.skipWaiting();
+    }
+    if (event.data.type === 'PURGE_CACHES') {
+      event.waitUntil(
+        caches.keys().then((names) => {
+          return Promise.all(names.map((n) => caches.delete(n)));
+        })
+      );
+    }
+  }
+});
+
+// 4. ESTRATEGIA DE INTERCEPTACIÓN DE PETICIONES (FETCH)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -72,9 +92,9 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cached = await caches.match(request);
           if (cached) return cached;
-          const fallback = await caches.match('/index.html');
+          const fallback = await caches.match('./index.html');
           if (fallback) return fallback;
-          return caches.match('/');
+          return caches.match('./');
         })
     );
     return;
@@ -96,23 +116,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // C. Recursos estáticos (JS, CSS, imágenes, fuentes): Stale-While-Revalidate
+  // C. Recursos estáticos (JS, CSS, imágenes, fuentes): Network First para evitar assets rotos
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      const fetchPromise = fetch(request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Ignorar fallo de red si estamos offline y ya se entregó caché
-        });
-
-      // Retorna el recurso de caché de inmediato si existe, de lo contrario espera la red
-      return cachedResponse || fetchPromise;
-    })
+    fetch(request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(request);
+      })
   );
 });
