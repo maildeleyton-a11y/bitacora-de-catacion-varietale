@@ -10,7 +10,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Smartphone,
   Share,
   PlusSquare,
   X,
@@ -21,6 +20,38 @@ import {
   Check,
   Sparkles,
 } from "lucide-react";
+
+/**
+ * Logotipo oficial vectorial de Apple (Silueta de la manzana mordida)
+ */
+export const AppleLogo: React.FC<{ className?: string }> = ({
+  className = "w-4 h-4",
+}) => (
+  <svg
+    viewBox="0 0 170 170"
+    fill="currentColor"
+    className={className}
+    aria-label="Apple"
+  >
+    <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.08-7.73-7.94-12.14-14.57-6.08-9.16-10.88-20.09-14.41-32.8-3.52-12.7-5.28-24.81-5.28-36.33 0-14.7 3.59-26.68 10.76-35.94 7.18-9.26 16.27-13.99 27.28-14.19 4.8 0 10.22 1.3 16.28 3.89 6.06 2.6 9.87 3.94 11.45 4.04 1.95-.1 5.92-1.49 11.91-4.14 5.99-2.65 11.36-3.9 16.11-3.75 12.08.64 21.64 5.16 28.67 13.56-10.42 6.32-15.51 15.11-15.27 26.36.24 8.78 3.57 16.26 10 22.44 6.43 6.18 14.19 9.68 23.27 10.5-2.07 6.46-4.66 13.06-7.77 19.8M119.22 31.84c0-7.22 2.65-13.9 7.95-20.04 5.3-6.14 11.83-9.97 19.59-11.48.24 1.13.36 2.22.36 3.28 0 7.33-2.73 14.15-8.19 20.46-5.46 6.31-12.04 10.08-19.71 11.31-.24-1.03-.36-2.12-.36-3.28z" />
+  </svg>
+);
+
+/**
+ * Logotipo oficial vectorial de Android (Bugdroid)
+ */
+export const AndroidLogo: React.FC<{ className?: string }> = ({
+  className = "w-4 h-4",
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    aria-label="Android"
+  >
+    <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993 0 .5511-.4483.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4111 13.8533 8.083 12 8.083c-1.8534 0-3.5902.328-5.1367.8667L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396" />
+  </svg>
+);
 
 interface InstallPwaModalProps {
   isOpen: boolean;
@@ -125,7 +156,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           </button>
 
           <div className="flex items-center gap-3.5 pr-8">
-            <div className="w-12 h-12 rounded-2xl bg-[#002636] p-1.5 shadow-md shrink-0 flex items-center justify-center border border-white/20">
+            <div className="w-13 h-13 rounded-2xl bg-[#002636] p-1.5 shadow-md shrink-0 flex items-center justify-center border border-white/20">
               <img
                 src="/icon-192.png"
                 alt="Bitácora Varietale"
@@ -136,103 +167,113 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
               <h3 className="text-base sm:text-lg font-bold leading-tight text-white">
                 Cómo agregar a tu pantalla de inicio
               </h3>
-              <p className="text-xs text-white/80 mt-0.5">
+              <p className="text-xs sm:text-sm text-white/90 mt-0.5">
                 Sigue estos 3 sencillos pasos:
               </p>
             </div>
           </div>
         </div>
 
-        {/* Selector de Plataforma: iOS vs Android */}
+        {/* Selector de Plataforma: Logotipos oficiales de Apple y Android */}
         <div className="p-2.5 bg-[#FAF6F2] border-b border-[#E8EDF1] flex gap-2">
           <button
             onClick={() => setPlatform("ios")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               platform === "ios"
                 ? "bg-[#01374C] text-white shadow-xs"
                 : "bg-white text-[#4A5D68] hover:text-[#01374C] border border-[#E8EDF1]"
             }`}
           >
-            <span>🍏 iPhone / iPad (iOS)</span>
+            <AppleLogo
+              className={`w-4 h-4 shrink-0 ${
+                platform === "ios" ? "text-white" : "text-[#01374C]"
+              }`}
+            />
+            <span>iPhone / iPad (iOS)</span>
           </button>
           <button
             onClick={() => setPlatform("android")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               platform === "android"
                 ? "bg-[#01374C] text-white shadow-xs"
                 : "bg-white text-[#4A5D68] hover:text-[#01374C] border border-[#E8EDF1]"
             }`}
           >
-            <span>🤖 Android / Chrome</span>
+            <AndroidLogo
+              className={`w-4 h-4 shrink-0 ${
+                platform === "android" ? "text-[#00D9B4]" : "text-[#3DDC84]"
+              }`}
+            />
+            <span>Android / Chrome</span>
           </button>
         </div>
 
-        {/* Contenido Desplazable con los Pasos Visuales */}
-        <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs sm:text-sm text-[#3B2212] flex-1">
+        {/* Contenido Desplazable con los Pasos Visuales Cómodos de Leer */}
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-sm text-[#24333C] flex-1">
           {isStandalone ? (
-            <div className="p-3.5 bg-[#EBFBFA] border border-[#00D9B4]/60 rounded-2xl text-center space-y-1.5">
-              <CheckCircle2 className="w-8 h-8 text-[#00897B] mx-auto" />
-              <strong className="block text-sm font-black text-[#01374C]">
+            <div className="p-4 bg-[#EBFBFA] border border-[#00D9B4]/60 rounded-2xl text-center space-y-2">
+              <CheckCircle2 className="w-9 h-9 text-[#00897B] mx-auto" />
+              <strong className="block text-base font-black text-[#01374C]">
                 ¡Ya estás usando la App instalada!
               </strong>
-              <p className="text-xs text-[#52646E]">
+              <p className="text-xs sm:text-sm text-[#52646E] leading-relaxed">
                 Tienes acceso directo a pantalla completa sin barras de navegador.
               </p>
             </div>
           ) : platform === "ios" ? (
             /* GUÍA PARA IOS (SAFARI) */
             <div className="space-y-3">
-              <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#DDC1AB]/60 text-xs text-[#01374C]">
+              <div className="p-3 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB]/70 text-xs sm:text-sm text-[#01374C] leading-relaxed font-medium">
                 Abre este enlace en el navegador <strong>Safari</strong> para poder agregarla a tu pantalla de inicio:
               </div>
 
               {/* Paso 1 */}
-              <div className="flex items-start gap-3 bg-white p-3 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              <div className="flex items-start gap-3.5 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 mt-0.5 shadow-2xs">
                   1
                 </div>
                 <div>
-                  <strong className="text-[#01374C] block font-bold text-xs sm:text-sm">
+                  <strong className="text-sm sm:text-base font-bold text-[#01374C] block">
                     Toca Compartir
                   </strong>
-                  <span className="text-[#52646E] block mt-0.5 leading-relaxed text-xs">
+                  <span className="text-xs sm:text-sm text-[#475A65] block mt-1 leading-relaxed">
                     En la barra inferior de Safari, presiona el botón <strong>Compartir</strong>{" "}
-                    <span className="inline-flex items-center align-middle px-1.5 py-0.5 rounded bg-gray-100 border border-gray-300 text-blue-600 font-bold text-[11px]">
-                      <Share className="w-3 h-3 inline mr-1" /> Compartir
+                    <span className="inline-flex items-center align-middle px-2 py-0.5 rounded-md bg-gray-100 border border-gray-300 text-blue-600 font-bold text-xs">
+                      <Share className="w-3.5 h-3.5 inline mr-1" /> Compartir
                     </span>
                   </span>
                 </div>
               </div>
 
               {/* Paso 2 */}
-              <div className="flex items-start gap-3 bg-white p-3 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              <div className="flex items-start gap-3.5 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 mt-0.5 shadow-2xs">
                   2
                 </div>
                 <div>
-                  <strong className="text-[#01374C] block font-bold text-xs sm:text-sm">
+                  <strong className="text-sm sm:text-base font-bold text-[#01374C] block">
                     Elige "Agregar a inicio"
                   </strong>
-                  <span className="text-[#52646E] block mt-0.5 leading-relaxed text-xs">
+                  <span className="text-xs sm:text-sm text-[#475A65] block mt-1 leading-relaxed">
                     Desliza las opciones y selecciona{" "}
-                    <span className="inline-flex items-center align-middle px-1.5 py-0.5 rounded bg-gray-100 border border-gray-300 text-gray-800 font-bold text-[11px]">
-                      <PlusSquare className="w-3 h-3 inline mr-1 text-[#01374C]" /> Agregar a pantalla de inicio
+                    <span className="inline-flex items-center align-middle px-2 py-0.5 rounded-md bg-gray-100 border border-gray-300 text-gray-800 font-bold text-xs">
+                      <PlusSquare className="w-3.5 h-3.5 inline mr-1 text-[#01374C]" /> Agregar a pantalla de inicio
                     </span>
                   </span>
                 </div>
               </div>
 
               {/* Paso 3 */}
-              <div className="flex items-start gap-3 bg-white p-3 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              <div className="flex items-start gap-3.5 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 mt-0.5 shadow-2xs">
                   3
                 </div>
                 <div>
-                  <strong className="text-[#01374C] block font-bold text-xs sm:text-sm">
+                  <strong className="text-sm sm:text-base font-bold text-[#01374C] block">
                     Confirma tocando "Agregar"
                   </strong>
-                  <span className="text-[#52646E] block mt-0.5 leading-relaxed text-xs">
-                    Toca <strong>Agregar</strong> arriba a la derecha. El ícono oficial aparecerá junto a tus otras apps.
+                  <span className="text-xs sm:text-sm text-[#475A65] block mt-1 leading-relaxed">
+                    Toca <strong>Agregar</strong> arriba a la derecha. El ícono oficial de Varietale aparecerá junto a tus otras aplicaciones.
                   </span>
                 </div>
               </div>
@@ -244,57 +285,57 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
                 <div className="text-center space-y-2 py-1">
                   <button
                     onClick={handleNativeInstall}
-                    className="w-full py-2.5 px-4 rounded-xl bg-[#00897B] hover:bg-[#007064] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                    className="w-full py-3 px-4 rounded-xl bg-[#00897B] hover:bg-[#007064] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     <span>Instalar Aplicación Ahora</span>
                   </button>
-                  <p className="text-[11px] text-[#889DA7]">
+                  <p className="text-xs text-[#889DA7]">
                     O si prefieres, sigue los pasos manuales de Chrome:
                   </p>
                 </div>
               ) : null}
 
               {/* Paso 1 Android */}
-              <div className="flex items-start gap-3 bg-white p-3 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              <div className="flex items-start gap-3.5 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 mt-0.5 shadow-2xs">
                   1
                 </div>
                 <div>
-                  <strong className="text-[#01374C] block font-bold text-xs sm:text-sm">
+                  <strong className="text-sm sm:text-base font-bold text-[#01374C] block">
                     Abre el menú
                   </strong>
-                  <span className="text-[#52646E] block mt-0.5 leading-relaxed text-xs">
+                  <span className="text-xs sm:text-sm text-[#475A65] block mt-1 leading-relaxed">
                     Toca los tres puntos (<strong>⋮</strong>) en la esquina superior de Chrome.
                   </span>
                 </div>
               </div>
 
               {/* Paso 2 Android */}
-              <div className="flex items-start gap-3 bg-white p-3 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              <div className="flex items-start gap-3.5 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 mt-0.5 shadow-2xs">
                   2
                 </div>
                 <div>
-                  <strong className="text-[#01374C] block font-bold text-xs sm:text-sm">
+                  <strong className="text-sm sm:text-base font-bold text-[#01374C] block">
                     Instalar aplicación
                   </strong>
-                  <span className="text-[#52646E] block mt-0.5 leading-relaxed text-xs">
+                  <span className="text-xs sm:text-sm text-[#475A65] block mt-1 leading-relaxed">
                     Selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.
                   </span>
                 </div>
               </div>
 
               {/* Paso 3 Android */}
-              <div className="flex items-start gap-3 bg-white p-3 rounded-2xl border border-[#E8EDF1] shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              <div className="flex items-start gap-3.5 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] shadow-2xs">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01374C] text-[#00D9B4] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 mt-0.5 shadow-2xs">
                   3
                 </div>
                 <div>
-                  <strong className="text-[#01374C] block font-bold text-xs sm:text-sm">
+                  <strong className="text-sm sm:text-base font-bold text-[#01374C] block">
                     Confirmar
                   </strong>
-                  <span className="text-[#52646E] block mt-0.5 leading-relaxed text-xs">
+                  <span className="text-xs sm:text-sm text-[#475A65] block mt-1 leading-relaxed">
                     Presiona <strong>Instalar</strong> para integrarla en tu teléfono como app nativa.
                   </span>
                 </div>
@@ -304,31 +345,31 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
 
           {/* Sección de Compartir Aplicación */}
           <div className="pt-3 border-t border-[#E8EDF1] space-y-2">
-            <span className="text-[11px] font-bold text-[#889DA7] uppercase block text-center">
+            <span className="text-xs sm:text-sm font-bold text-[#6D8390] uppercase tracking-wide block text-center mb-1">
               ¿Quieres compartir la Bitácora?
             </span>
             <div className="flex gap-2">
               <button
                 onClick={handleShareApp}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                className="flex-1 py-3 px-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 fill-white" />
                 <span>Compartir aplicación</span>
               </button>
               <button
                 onClick={handleCopyLink}
-                className="py-2.5 px-3 rounded-xl bg-[#FAF6F2] hover:bg-[#F2ECE4] border border-[#DDC1AB] text-[#01374C] font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="py-3 px-3.5 rounded-xl bg-[#FAF6F2] hover:bg-[#F2ECE4] border border-[#DDC1AB] text-[#01374C] font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Copiar enlace"
               >
                 {copiedLink ? (
                   <>
                     <Check className="w-4 h-4 text-[#00897B]" />
-                    <span className="text-[11px] text-[#00897B] font-bold">¡Copiado!</span>
+                    <span className="text-xs text-[#00897B] font-bold">¡Copiado!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4 text-[#01374C]" />
-                    <span className="text-[11px]">Copiar</span>
+                    <span className="text-xs">Copiar</span>
                   </>
                 )}
               </button>
@@ -340,7 +381,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
         <div className="p-3 bg-[#FAF6F2] border-t border-[#E8EDF1] flex justify-end">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2 rounded-xl bg-[#01374C] text-white text-xs sm:text-sm font-bold shadow-xs hover:bg-[#002636] transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-7 py-2.5 rounded-xl bg-[#01374C] text-white text-xs sm:text-sm font-bold shadow-xs hover:bg-[#002636] transition-colors cursor-pointer"
           >
             Entendido
           </button>
