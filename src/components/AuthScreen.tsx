@@ -595,19 +595,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </span>
                 </button>
               </div>
-
-              {/* Hipervínculo pequeño de acceso a usuario de prueba */}
-              <div className="text-center pt-2 border-t border-[#E8EDF1]/80 mt-1">
-                <button
-                  id="test-user-login-link-form"
-                  type="button"
-                  onClick={handleTestUserLogin}
-                  className="min-h-[44px] text-xs text-[#52646E] hover:text-[#01374C] underline decoration-dotted underline-offset-3 transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg hover:bg-[#FAF6F2]"
-                >
-                  <FlaskConical className="w-4 h-4 text-[#00897B]" />
-                  <span>Acceso a usuario de prueba para testear</span>
-                </button>
-              </div>
             </form>
           )}
 
@@ -804,8 +791,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           )}
         </div>
 
-        {/* Guided Tour & Test User Options */}
-        <div className="text-center mt-4 flex flex-col items-center gap-2">
+        {/* Guided Tour & Discreet Test User Icon */}
+        <div className="text-center mt-4 flex flex-col items-center justify-center gap-1.5">
           <button
             id="continue-as-guest-btn"
             type="button"
@@ -816,15 +803,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             <ChevronRight className="w-4 h-4 text-[#00D9B4]" />
           </button>
 
-          {/* Hipervínculo pequeño en la parte inferior */}
+          {/* Acceso discreto a usuario de prueba (ubicado debajo, solo ícono con baja opacidad) */}
           <button
             id="test-user-footer-btn"
             type="button"
             onClick={handleTestUserLogin}
-            className="min-h-[44px] text-xs text-[#889DA7] hover:text-[#01374C] underline decoration-dotted underline-offset-3 py-2 px-3 rounded-md hover:bg-black/5 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+            title="Perfil de pruebas"
+            aria-label="Acceso a perfil de pruebas"
+            className="w-8 h-8 rounded-full flex items-center justify-center opacity-25 hover:opacity-100 text-[#00897B] hover:bg-black/5 transition-all cursor-pointer"
           >
-            <FlaskConical className="w-3.5 h-3.5 text-[#00897B]" />
-            <span>Acceso a usuario de prueba (test)</span>
+            <FlaskConical className="w-3.5 h-3.5" />
           </button>
         </div>
       </main>

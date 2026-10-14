@@ -24,6 +24,7 @@ import { TastingRecord, UserProfile, CoffeeInfo, BrewMethod } from "../types";
 import { VarietaleLogoHorizontal, VarietaleBrandIcon } from "./VarietaleLogo";
 import { BrandFooter } from "./BrandFooter";
 import { checkIsAppInstalled } from "./InstallPwaModal";
+import { WelcomeGiftCard } from "./WelcomeGiftCard";
 
 interface HomeScreenProps {
   /** Historial de cataciones del usuario activo */
@@ -157,13 +158,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <span className="text-xs sm:text-sm uppercase font-extrabold tracking-wider text-[#01374C] bg-[#EBFBFA] px-4 py-1.5 rounded-full border border-[#00D9B4]/30 inline-block mb-3.5">
                 {currentUser ? `¡Hola, ${currentUser.name}! 👋` : "Guía Sensorial Varietale"}
               </span>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#01374C] leading-tight mb-3 tracking-tight">
-                Bienvenido a Tu Bitácora de Catación
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#01374C] leading-[1.08] mb-4 tracking-tight">
+                <span className="block">Bienvenido a tu</span>
+                <span className="block">Bitácora de Catación</span>
               </h1>
-              <p className="text-sm sm:text-base md:text-[17px] text-[#4A5D68] leading-relaxed max-w-xl">
-                {currentUser
-                  ? "Explora y reconoce cada taza con la rueda de sabor. Tus notas se guardan en tu perfil de catación para comparar cafés y métodos."
-                  : "Tu bitácora para aprender a reconocer lo que tus sentidos ya perciben: notas frutales, dulzura acaramelada y acidez viva de los mejores cafés de Colombia."}
+              <p className="text-base sm:text-lg md:text-xl font-bold text-[#01374C]/90 leading-snug sm:leading-relaxed max-w-xl">
+                Explora y reconoce cada taza con la rueda de sabor. Tus notas se guardan en tu perfil de catación para tenerlas a la mano, comparar visualmente los cafés que has probado y los métodos de filtrado que has utilizado.
               </p>
             </div>
 
@@ -207,6 +207,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Compass className="w-4.5 h-4.5 text-[#00D9B4]" />
                 <span>¿Primera vez? Haz una Visita Guiada</span>
               </button>
+
+              {totalCatas === 0 && (
+                <WelcomeGiftCard className="mt-4" />
+              )}
             </div>
           </div>
 
@@ -290,6 +294,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <Compass className="w-4.5 h-4.5 text-[#00D9B4]" />
                 <span>¿Primera vez? Haz una Visita Guiada</span>
               </button>
+
+              {totalCatas === 0 && (
+                <WelcomeGiftCard className="mt-4" />
+              )}
             </div>
           </div>
         </div>

@@ -289,16 +289,13 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between pb-3.5 border-b border-[#E8EDF1]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#01374C] flex items-center justify-center text-white font-black text-sm shadow-xs">
-                V
+              <div className="w-9 h-9 rounded-xl bg-[#01374C] flex items-center justify-center shadow-xs border border-[#00D9B4]/30 shrink-0">
+                <User className="w-5 h-5 text-[#00D9B4] stroke-[2.5]" />
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-black text-[#01374C] leading-none">
                   {currentUser ? "Perfil de Catador" : "Registro & Acceso"}
                 </h2>
-                <span className="text-xs sm:text-sm text-[#52646E] font-medium block mt-0.5">
-                  Comunidad de Especialidad Varietale
-                </span>
               </div>
             </div>
             <button

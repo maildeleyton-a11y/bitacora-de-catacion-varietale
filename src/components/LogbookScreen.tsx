@@ -24,9 +24,6 @@ import {
   ChevronDown,
   ChevronUp,
   Edit3,
-  Tag,
-  Copy,
-  Check,
   Sparkles,
 } from "lucide-react";
 import { TastingRecord, SensorySpiderProfile } from "../types";
@@ -34,6 +31,7 @@ import { RadarChart, RADAR_AXES } from "./RadarChart";
 import { BrewMethodIcon } from "./BrewMethodIcons";
 import { BREW_METHODS, computeSensorySpiderProfile } from "../data/coffeeData";
 import { BrandFooter } from "./BrandFooter";
+import { WelcomeGiftCard } from "./WelcomeGiftCard";
 
 interface LogbookScreenProps {
   /** Lista de catas del usuario activo */
@@ -65,17 +63,6 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   }, [activeTab]);
   const [expandedCataId, setExpandedCataId] = useState<string | null>(null);
   const [cataToDelete, setCataToDelete] = useState<TastingRecord | null>(null);
-  const [copiedPromoCode, setCopiedPromoCode] = useState<boolean>(false);
-
-  const handleCopyPromoCode = () => {
-    try {
-      navigator.clipboard.writeText("Experienciafiltrados");
-      setCopiedPromoCode(true);
-      setTimeout(() => setCopiedPromoCode(false), 2500);
-    } catch {
-      // Fallback si no hay permisos de portapapeles
-    }
-  };
 
   // Comparison State
   const [compCataAId, setCompCataAId] = useState<string>(tastings[0]?.id || "");
@@ -392,24 +379,31 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
           {/* Empty state when user has 0 catas */}
           {tastings.length === 0 && (
-            <div className="col-span-full bg-white rounded-2xl p-8 sm:p-12 border border-[#E8EDF1] text-center shadow-xs">
-              <div className="w-16 h-16 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] flex items-center justify-center mx-auto mb-4 text-[#01374C]">
-                <BookOpen className="w-8 h-8 text-[#00D9B4]" />
+            <>
+              <div className="col-span-full bg-white rounded-2xl p-8 sm:p-12 border border-[#E8EDF1] text-center shadow-xs">
+                <div className="w-16 h-16 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] flex items-center justify-center mx-auto mb-4 text-[#01374C]">
+                  <BookOpen className="w-8 h-8 text-[#00D9B4]" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-[#01374C]">
+                  Aún no tienes catas registradas
+                </h3>
+                <p className="text-sm sm:text-base text-[#4A5D68] mt-2 max-w-sm mx-auto leading-relaxed">
+                  Cada cata que realices con tus notas y rueda de sabores se guardará aquí en tu historial personal.
+                </p>
+                <button
+                  onClick={() => onStartNewCata()}
+                  className="mt-5 px-6 py-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-xs transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
+                >
+                  <Plus className="w-5 h-5 text-[#00D9B4]" />
+                  <span>Iniciar mi primera cata</span>
+                </button>
               </div>
-              <h3 className="text-lg sm:text-xl font-black text-[#01374C]">
-                Aún no tienes catas registradas
-              </h3>
-              <p className="text-sm sm:text-base text-[#4A5D68] mt-2 max-w-sm mx-auto leading-relaxed">
-                Cada cata que realices con tus notas y rueda de sabores se guardará aquí en tu historial personal.
-              </p>
-              <button
-                onClick={() => onStartNewCata()}
-                className="mt-5 px-6 py-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-xs transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
-              >
-                <Plus className="w-5 h-5 text-[#00D9B4]" />
-                <span>Iniciar mi primera cata</span>
-              </button>
-            </div>
+
+              {/* Ficha Obsequio de Bienvenida en Historial */}
+              <div className="col-span-full">
+                <WelcomeGiftCard />
+              </div>
+            </>
           )}
 
           {/* Quick Notice about Same Coffee Comparison if exists */}
@@ -695,31 +689,36 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
           </p>
 
           {tastings.length < 2 || !cataA || !cataB ? (
-            <div className="rounded-2xl border-2 border-dashed border-[#DDC1AB] bg-[#FAF6F2]/50 p-8 sm:p-12 text-center max-w-xl mx-auto my-4">
-              <div className="w-16 h-16 rounded-2xl bg-white border border-[#DDC1AB] flex items-center justify-center mx-auto mb-4 text-[#01374C] shadow-xs">
-                <GitCompare className="w-8 h-8 text-[#00D9B4]" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-black text-[#01374C]">
-                {tastings.length === 0
-                  ? "Aún no tienes catas para comparar"
-                  : "Necesitas al menos 2 catas"}
-              </h3>
-              <p className="text-sm sm:text-base text-[#4A5D68] mt-2 leading-relaxed">
-                {tastings.length === 0
-                  ? "Registra al menos dos catas en tu bitácora para contrastar sus notas aromáticas, acidez, dulzura y cuerpo en el radar comparativo."
-                  : `Tienes 1 cata registrada ("${tastings[0]?.coffeeName || "Cata"}"). Registra una segunda cata para poder compararlas lado a lado.`}
-              </p>
-              <button
-                onClick={() => onStartNewCata()}
-                className="mt-6 px-6 py-3.5 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-md transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
-              >
-                <Plus className="w-5 h-5 text-[#00D9B4]" />
-                <span>
+            <div className="flex flex-col gap-6 max-w-xl mx-auto my-4 w-full">
+              <div className="rounded-2xl border-2 border-dashed border-[#DDC1AB] bg-[#FAF6F2]/50 p-8 sm:p-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-white border border-[#DDC1AB] flex items-center justify-center mx-auto mb-4 text-[#01374C] shadow-xs">
+                  <GitCompare className="w-8 h-8 text-[#00D9B4]" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-[#01374C]">
                   {tastings.length === 0
-                    ? "Iniciar mi primera cata"
-                    : "Registrar segunda cata"}
-                </span>
-              </button>
+                    ? "Aún no tienes catas para comparar"
+                    : "Necesitas al menos 2 catas"}
+                </h3>
+                <p className="text-sm sm:text-base text-[#4A5D68] mt-2 leading-relaxed">
+                  {tastings.length === 0
+                    ? "Registra al menos dos catas en tu bitácora para contrastar sus notas aromáticas, acidez, dulzura y cuerpo en el radar comparativo."
+                    : `Tienes 1 cata registrada ("${tastings[0]?.coffeeName || "Cata"}"). Registra una segunda cata para poder compararlas lado a lado.`}
+                </p>
+                <button
+                  onClick={() => onStartNewCata()}
+                  className="mt-6 px-6 py-3.5 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-md transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
+                >
+                  <Plus className="w-5 h-5 text-[#00D9B4]" />
+                  <span>
+                    {tastings.length === 0
+                      ? "Iniciar mi primera cata"
+                      : "Registrar segunda cata"}
+                  </span>
+                </button>
+              </div>
+
+              {/* Ficha Obsequio de Bienvenida en Comparador (solo si tiene 0 catas) */}
+              {tastings.length === 0 && <WelcomeGiftCard />}
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -942,74 +941,10 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
           </div>
 
           {/* CTA DE RECOMPRA PERSONALIZADA / CORTESÍA TIENDA ONLINE */}
-          <div className="lg:col-span-5 bg-[#01374C] text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden flex flex-col justify-between">
-            {tastings.length === 0 ? (
-              <div>
-                <div className="flex items-start gap-3.5 mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0 shadow-md">
-                    <Sparkles className="w-6 h-6 text-[#01374C]" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
-                      Bienvenida Varietale • 10% OFF
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-black text-white leading-snug mt-1">
-                      Comienza tu viaje sensorial
-                    </h3>
-                  </div>
-                </div>
-
-                <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-4">
-                  Te invitamos a probar todas nuestras opciones de{" "}
-                  <strong className="text-[#00D9B4]">Cafés Especiales</strong>,{" "}
-                  <strong className="text-[#00D9B4]">Cafés de Edición Limitada</strong> y{" "}
-                  <strong className="text-[#00D9B4]">Cafés Exóticos</strong> visitando{" "}
-                  <span className="font-semibold text-[#00D9B4]">www.varietale.com</span>.
-                </p>
-
-                {/* Tarjeta de Cortesía del 10% */}
-                <div className="bg-[#002636]/90 border border-[#00D9B4]/40 rounded-2xl p-3.5 sm:p-4 mb-5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs text-[#00D9B4] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
-                      <Tag className="w-3.5 h-3.5" />
-                      Cortesía Especial 10%
-                    </span>
-                    <span className="text-2xs font-bold bg-[#00D9B4] text-[#01374C] px-2 py-0.5 rounded-full">
-                      Primer café
-                    </span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/85 leading-relaxed mb-3">
-                    Disfruta de una cortesía del <strong>10% por la compra de tu primer café</strong> desde la App Mi Bitácora.
-                  </p>
-                  <div className="flex items-center justify-between gap-2 bg-[#01374C] border border-[#00D9B4]/30 rounded-xl px-3 py-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-2xs text-white/60 uppercase font-bold">Cupón:</span>
-                      <code className="text-xs sm:text-sm font-black text-[#00D9B4] tracking-wide select-all">
-                        Experienciafiltrados
-                      </code>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleCopyPromoCode}
-                      className="text-xs font-bold text-white hover:text-[#00D9B4] transition-colors flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg hover:bg-white/10 cursor-pointer"
-                      title="Copiar código de descuento"
-                    >
-                      {copiedPromoCode ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-[#00D9B4]" />
-                          <span className="text-[#00D9B4] text-2xs">¡Copiado!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span className="text-2xs">Copiar</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
+          {tastings.length === 0 ? (
+            <WelcomeGiftCard className="lg:col-span-5" />
+          ) : (
+            <div className="lg:col-span-5 bg-[#01374C] text-white rounded-3xl p-5 sm:p-7 md:p-8 shadow-xl relative overflow-hidden flex flex-col justify-between border border-[#01374C]/20">
               <div>
                 <div className="flex items-start gap-3.5 mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0">
@@ -1030,27 +965,19 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                   <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
                 </p>
               </div>
-            )}
 
-            <a
-              id="cta-recompra-link"
-              href={
-                tastings.length === 0
-                  ? "https://varietale.com/discount/Experienciafiltrados?redirect=%2Fcollections%2Fcafes"
-                  : recommendation.url
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] text-[#01374C] font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] min-h-[50px] cursor-pointer"
-            >
-              <span>
-                {tastings.length === 0
-                  ? "Comprar en varietale.com con 10% OFF"
-                  : recommendation.ctaText}
-              </span>
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
+              <a
+                id="cta-recompra-link"
+                href={recommendation.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full mt-4 py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] active:scale-[0.98] text-[#01374C] font-black text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all shadow-lg min-h-[52px] cursor-pointer"
+              >
+                <span>{recommendation.ctaText}</span>
+                <ArrowRight className="w-5 h-5 text-[#01374C] stroke-[2.5]" />
+              </a>
+            </div>
+          )}
         </div>
       )}
 

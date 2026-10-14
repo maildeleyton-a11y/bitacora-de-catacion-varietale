@@ -606,6 +606,7 @@ export default function App() {
             }}
             liveCoffees={liveCoffees}
             isEditing={Boolean(editingCataId)}
+            hasZeroTastings={tastings.length === 0}
           />
         )}
 

@@ -24,6 +24,7 @@ import {
   ListFilter,
   Edit3,
   Coffee,
+  X,
 } from "lucide-react";
 import {
   BrewMethod,
@@ -36,6 +37,7 @@ import {
 } from "../data/coffeeData";
 import { BrewMethodIcon } from "./BrewMethodIcons";
 import { BrandFooter } from "./BrandFooter";
+import { WelcomeGiftCard } from "./WelcomeGiftCard";
 
 interface RegistrationScreenProps {
   /** Información técnica del café a evaluar */
@@ -62,6 +64,8 @@ interface RegistrationScreenProps {
   liveCoffees?: CoffeeInfo[];
   /** Indica si se está editando una cata existente */
   isEditing?: boolean;
+  /** Indica si el usuario aún no tiene catas en la bitácora */
+  hasZeroTastings?: boolean;
 }
 
 export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
@@ -77,7 +81,11 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
   onCancel,
   liveCoffees: propLiveCoffees,
   isEditing = false,
+  hasZeroTastings = false,
 }) => {
+  const [showGiftModal, setShowGiftModal] = useState<boolean>(
+    Boolean(hasZeroTastings && !isEditing)
+  );
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -277,6 +285,44 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full safe-pb">
+      {/* Pop-up Obsequio de Bienvenida en Paso 1/2 si no hay catas registradas */}
+      {showGiftModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs overflow-y-auto animate-in fade-in"
+          onClick={() => setShowGiftModal(false)}
+        >
+          <div
+            className="relative max-w-lg w-full my-auto py-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Botón flotante para cerrar el modal */}
+            <button
+              type="button"
+              onClick={() => setShowGiftModal(false)}
+              className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 z-20 w-9 h-9 rounded-full bg-[#00D9B4] text-[#01374C] hover:bg-[#00c4a3] active:scale-90 flex items-center justify-center font-black shadow-lg transition-all cursor-pointer border-2 border-[#01374C]"
+              aria-label="Cerrar ventana de obsequio"
+              title="Cerrar y continuar cata"
+            >
+              <X className="w-5 h-5 stroke-[3]" />
+            </button>
+
+            {/* Ficha de Obsequio */}
+            <WelcomeGiftCard />
+
+            {/* Botón inferior para continuar con la cata */}
+            <div className="mt-3 text-center">
+              <button
+                type="button"
+                onClick={() => setShowGiftModal(false)}
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white/90 hover:text-white underline decoration-white/40 hover:decoration-white transition-all py-1 px-3 rounded-lg cursor-pointer"
+              >
+                <span>Continuar llenando el Paso 1/2 de mi cata →</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-[#E8EDF1]">
         <button
@@ -860,7 +906,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
 
       {/* SECCIÓN 3: CONSEJOS DE PREPARACIÓN */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2.5">
           <div className="flex items-center gap-2">
             <Droplets className="w-4 h-4 sm:w-5 sm:h-5 text-[#00D9B4]" />
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#01374C] flex items-baseline">
@@ -868,9 +914,11 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
               <span>Consejos de preparación:</span>
             </h2>
           </div>
-          <span className="text-xs sm:text-sm font-bold text-[#01374C] bg-[#EBFBFA] px-3.5 py-1 rounded-full border border-[#00D9B4]/30">
-            Buenas Prácticas
-          </span>
+          <div className="mt-2">
+            <span className="text-xs sm:text-sm font-bold text-[#01374C] bg-[#EBFBFA] px-3.5 py-1 rounded-full border border-[#00D9B4]/30 inline-block">
+              Buenas Prácticas
+            </span>
+          </div>
         </div>
         <p className="text-sm sm:text-base text-[#4A5D68] mb-3.5 leading-relaxed">
           Toma en cuenta estos tres útiles consejos para mejorar tu preparación y el sabor de tu café.
