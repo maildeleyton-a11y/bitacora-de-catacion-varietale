@@ -24,6 +24,10 @@ import {
   ChevronDown,
   ChevronUp,
   Edit3,
+  Tag,
+  Copy,
+  Check,
+  Sparkles,
 } from "lucide-react";
 import { TastingRecord, SensorySpiderProfile } from "../types";
 import { RadarChart, RADAR_AXES } from "./RadarChart";
@@ -61,6 +65,17 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   }, [activeTab]);
   const [expandedCataId, setExpandedCataId] = useState<string | null>(null);
   const [cataToDelete, setCataToDelete] = useState<TastingRecord | null>(null);
+  const [copiedPromoCode, setCopiedPromoCode] = useState<boolean>(false);
+
+  const handleCopyPromoCode = () => {
+    try {
+      navigator.clipboard.writeText("Experienciafiltrados");
+      setCopiedPromoCode(true);
+      setTimeout(() => setCopiedPromoCode(false), 2500);
+    } catch {
+      // Fallback si no hay permisos de portapapeles
+    }
+  };
 
   // Comparison State
   const [compCataAId, setCompCataAId] = useState<string>(tastings[0]?.id || "");
@@ -174,9 +189,21 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
   // Dynamic Rebuy CTA recommendation
   const recommendation = useMemo(() => {
+    if (tastings.length === 0) {
+      return {
+        isWelcomePromo: true,
+        val: 0,
+        title: "Prueba nuestros Cafés Especiales, Edición Limitada y Exóticos",
+        coffee: "Catálogo Oficial Varietale",
+        url: "https://varietale.com/discount/Experienciafiltrados?redirect=%2Fcollections%2Fcafes",
+        ctaText: "Ir a la tienda online con 10% de descuento",
+      };
+    }
+
     const { floral, frutal, tostado, dulce, nueces, especias, acido } = explorationProfile;
     const catalogOptions = [
       {
+        isWelcomePromo: false,
         val: floral,
         title: "Te falta explorar cafés con perfil Floral",
         coffee: "La Argelia",
@@ -184,6 +211,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         ctaText: "Ver La Argelia en varietale.com",
       },
       {
+        isWelcomePromo: false,
         val: frutal,
         title: "Te falta explorar cafés con perfil Frutal y Tropical",
         coffee: "Bourbon Papayo",
@@ -191,6 +219,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         ctaText: "Ver Bourbon Papayo en varietale.com",
       },
       {
+        isWelcomePromo: false,
         val: tostado,
         title: "Te falta explorar cafés con perfil Tostado y Especiado",
         coffee: "Las Hortensias (Orgánico)",
@@ -198,6 +227,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         ctaText: "Ver Las Hortensias en varietale.com",
       },
       {
+        isWelcomePromo: false,
         val: dulce,
         title: "Te falta explorar cafés con perfil Dulce y Achocolatado",
         coffee: "San Antonio",
@@ -205,6 +235,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         ctaText: "Ver San Antonio en varietale.com",
       },
       {
+        isWelcomePromo: false,
         val: nueces ?? 0,
         title: "Te falta explorar cafés con notas de Cacao y Frutos Secos",
         coffee: "Café Especial Varietale",
@@ -212,6 +243,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         ctaText: "Explorar cafés en varietale.com",
       },
       {
+        isWelcomePromo: false,
         val: especias ?? 0,
         title: "Te falta explorar cafés con notas Especiadas y Cálidas",
         coffee: "Las Hortensias (Orgánico)",
@@ -219,6 +251,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         ctaText: "Ver Las Hortensias en varietale.com",
       },
       {
+        isWelcomePromo: false,
         val: acido ?? 0,
         title: "Te falta explorar cafés con perfil Ácido y Cítrico",
         coffee: "Bourbon Papayo",
@@ -229,7 +262,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
     catalogOptions.sort((a, b) => a.val - b.val);
     return catalogOptions[0];
-  }, [explorationProfile]);
+  }, [explorationProfile, tastings.length]);
 
   const cataA = useMemo(() => {
     if (tastings.length === 0) return null;
@@ -908,37 +941,113 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
             </div>
           </div>
 
-          {/* CTA DE RECOMPRA PERSONALIZADA */}
+          {/* CTA DE RECOMPRA PERSONALIZADA / CORTESÍA TIENDA ONLINE */}
           <div className="lg:col-span-5 bg-[#01374C] text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden flex flex-col justify-between">
-            <div>
-              <div className="flex items-start gap-3.5 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0">
-                  <ShoppingBag className="w-6 h-6 text-[#01374C]" />
+            {tastings.length === 0 ? (
+              <div>
+                <div className="flex items-start gap-3.5 mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0 shadow-md">
+                    <Sparkles className="w-6 h-6 text-[#01374C]" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
+                      Bienvenida Varietale • 10% OFF
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-black text-white leading-snug mt-1">
+                      Comienza tu viaje sensorial
+                    </h3>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
-                    Recomendación Varietale
-                  </span>
-                  <h3 className="text-lg sm:text-xl font-black text-white leading-snug mt-1">
-                    {recommendation.title}
-                  </h3>
+
+                <p className="text-sm sm:text-base text-white/95 leading-relaxed mb-4">
+                  Te invitamos a probar todas nuestras opciones de{" "}
+                  <strong className="text-[#00D9B4]">Cafés Especiales</strong>,{" "}
+                  <strong className="text-[#00D9B4]">Cafés de Edición Limitada</strong> y{" "}
+                  <strong className="text-[#00D9B4]">Cafés Exóticos</strong> visitando{" "}
+                  <span className="font-semibold text-[#00D9B4]">www.varietale.com</span>.
+                </p>
+
+                {/* Tarjeta de Cortesía del 10% */}
+                <div className="bg-[#002636]/90 border border-[#00D9B4]/40 rounded-2xl p-3.5 sm:p-4 mb-5">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs text-[#00D9B4] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5" />
+                      Cortesía Especial 10%
+                    </span>
+                    <span className="text-2xs font-bold bg-[#00D9B4] text-[#01374C] px-2 py-0.5 rounded-full">
+                      Primer café
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-white/85 leading-relaxed mb-3">
+                    Disfruta de una cortesía del <strong>10% por la compra de tu primer café</strong> desde la App Mi Bitácora.
+                  </p>
+                  <div className="flex items-center justify-between gap-2 bg-[#01374C] border border-[#00D9B4]/30 rounded-xl px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-2xs text-white/60 uppercase font-bold">Cupón:</span>
+                      <code className="text-xs sm:text-sm font-black text-[#00D9B4] tracking-wide select-all">
+                        Experienciafiltrados
+                      </code>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyPromoCode}
+                      className="text-xs font-bold text-white hover:text-[#00D9B4] transition-colors flex items-center gap-1 shrink-0 px-2 py-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                      title="Copiar código de descuento"
+                    >
+                      {copiedPromoCode ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-[#00D9B4]" />
+                          <span className="text-[#00D9B4] text-2xs">¡Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span className="text-2xs">Copiar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <div>
+                <div className="flex items-start gap-3.5 mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#00D9B4] text-[#01374C] flex items-center justify-center font-black shrink-0">
+                    <ShoppingBag className="w-6 h-6 text-[#01374C]" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-[#00D9B4] block">
+                      Recomendación Varietale
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-black text-white leading-snug mt-1">
+                      {recommendation.title}
+                    </h3>
+                  </div>
+                </div>
 
-              <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-6">
-                Según tu mapa de exploración, expande tu paladar descubriendo nuestro café de especialidad{" "}
-                <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
-              </p>
-            </div>
+                <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-6">
+                  Según tu mapa de exploración, expande tu paladar descubriendo nuestro café de especialidad{" "}
+                  <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
+                </p>
+              </div>
+            )}
 
             <a
               id="cta-recompra-link"
-              href={recommendation.url}
+              href={
+                tastings.length === 0
+                  ? "https://varietale.com/discount/Experienciafiltrados?redirect=%2Fcollections%2Fcafes"
+                  : recommendation.url
+              }
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] text-[#01374C] font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] min-h-[50px]"
+              className="w-full py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] text-[#01374C] font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] min-h-[50px] cursor-pointer"
             >
-              <span>{recommendation.ctaText}</span>
+              <span>
+                {tastings.length === 0
+                  ? "Comprar en varietale.com con 10% OFF"
+                  : recommendation.ctaText}
+              </span>
               <ExternalLink className="w-4 h-4" />
             </a>
           </div>
