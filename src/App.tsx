@@ -423,12 +423,25 @@ export default function App() {
   /**
    * Inicia una nueva cata limpia con valores por defecto y sin datos ficticios.
    */
-  const handleStartNewCata = (presetCoffee?: CoffeeInfo, presetMethod?: BrewMethod) => {
+  const handleStartNewCata = (presetCoffee?: CoffeeInfo | unknown, presetMethod?: BrewMethod | unknown) => {
     setEditingCataId(null);
     setEditingCataCreatedAt(null);
-    const sample = presetCoffee ? { ...presetCoffee } : { ...EMPTY_COFFEE };
+
+    // Valida estrictamente que presetCoffee sea un objeto de información de café y no un evento del click (MouseEvent / SyntheticEvent)
+    const isValidCoffee =
+      presetCoffee &&
+      typeof presetCoffee === "object" &&
+      "coffeeName" in (presetCoffee as object) &&
+      typeof (presetCoffee as { coffeeName?: unknown }).coffeeName === "string" &&
+      !("nativeEvent" in (presetCoffee as object));
+
+    const sample: CoffeeInfo = isValidCoffee
+      ? { ...(presetCoffee as CoffeeInfo) }
+      : { ...EMPTY_COFFEE };
+
     setDraftCoffee(sample);
-    setDraftMethod(presetMethod || "v60");
+    const validMethod = typeof presetMethod === "string" ? (presetMethod as BrewMethod) : "v60";
+    setDraftMethod(validMethod);
     setDraftQuality({
       waterFiltered: true,
       grindCorrect: true,

@@ -594,7 +594,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
               <input
                 id="coffee-name-input"
                 type="text"
-                value={coffeeInfo.coffeeName}
+                value={coffeeInfo?.coffeeName || ""}
                 onChange={(e) =>
                   onCoffeeInfoChange({ ...coffeeInfo, coffeeName: e.target.value })
                 }
@@ -611,7 +611,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                 <input
                   id="coffee-origin-input"
                   type="text"
-                  value={coffeeInfo.origin}
+                  value={coffeeInfo?.origin || ""}
                   onChange={(e) =>
                     onCoffeeInfoChange({ ...coffeeInfo, origin: e.target.value })
                   }
@@ -626,7 +626,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                 <input
                   id="coffee-variety-input"
                   type="text"
-                  value={coffeeInfo.variety}
+                  value={coffeeInfo?.variety || ""}
                   onChange={(e) =>
                     onCoffeeInfoChange({ ...coffeeInfo, variety: e.target.value })
                   }
@@ -644,7 +644,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                 <input
                   id="coffee-process-input"
                   type="text"
-                  value={coffeeInfo.process}
+                  value={coffeeInfo?.process || ""}
                   onChange={(e) =>
                     onCoffeeInfoChange({ ...coffeeInfo, process: e.target.value })
                   }
@@ -972,15 +972,15 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
           <button
             id="proceed-to-wheel-btn"
             onClick={onProceedToWheel}
-            disabled={!coffeeInfo.coffeeName.trim()}
+            disabled={!(coffeeInfo?.coffeeName || "").trim()}
             className={`w-full min-h-[52px] py-4 px-5 rounded-xl font-black text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] ${
-              coffeeInfo.coffeeName.trim()
+              (coffeeInfo?.coffeeName || "").trim()
                 ? "bg-[#01374C] text-white hover:bg-[#002636] cursor-pointer"
                 : "bg-[#E8EDF1] text-[#93A3AB] cursor-not-allowed"
             }`}
           >
             <span>
-              {coffeeInfo.coffeeName.trim()
+              {(coffeeInfo?.coffeeName || "").trim()
                 ? "Continuar a la Rueda Sensorial"
                 : "Identifica o ingresa un café para continuar"}
             </span>

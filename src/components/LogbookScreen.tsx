@@ -297,7 +297,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
         <button
           id="new-cata-from-logbook-btn"
-          onClick={onStartNewCata}
+          onClick={() => onStartNewCata()}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#01374C] text-white text-xs sm:text-sm font-bold shadow-xs hover:bg-[#002636] transition-colors min-h-[44px]"
         >
           <Plus className="w-4 h-4 text-[#00D9B4]" />
@@ -370,7 +370,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 Cada cata que realices con tus notas y rueda de sabores se guardará aquí en tu historial personal.
               </p>
               <button
-                onClick={onStartNewCata}
+                onClick={() => onStartNewCata()}
                 className="mt-5 px-6 py-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-xs transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
               >
                 <Plus className="w-5 h-5 text-[#00D9B4]" />
@@ -627,7 +627,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
           {/* Tarjeta de invitación para registrar otra cata (cuando hay 1 o 2 catas) */}
           {tastings.length > 0 && tastings.length <= 2 && (
             <div
-              onClick={onStartNewCata}
+              onClick={() => onStartNewCata()}
               className="rounded-2xl border-2 border-dashed border-[#DDC1AB] hover:border-[#01374C] bg-[#FAF6F2]/40 hover:bg-[#FAF6F2] p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-[220px] group shadow-2xs"
             >
               <div className="w-12 h-12 rounded-2xl bg-white border border-[#DDC1AB] flex items-center justify-center text-[#01374C] group-hover:bg-[#01374C] group-hover:text-white transition-all shadow-xs mb-3">
@@ -677,7 +677,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                   : `Tienes 1 cata registrada ("${tastings[0]?.coffeeName || "Cata"}"). Registra una segunda cata para poder compararlas lado a lado.`}
               </p>
               <button
-                onClick={onStartNewCata}
+                onClick={() => onStartNewCata()}
                 className="mt-6 px-6 py-3.5 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-sm sm:text-base font-bold shadow-md transition-all inline-flex items-center gap-2.5 cursor-pointer min-h-[48px]"
               >
                 <Plus className="w-5 h-5 text-[#00D9B4]" />
