@@ -196,9 +196,19 @@ export interface UserProfile {
 export interface CoffeeInfo {
   /** Nombre comercial o nombre de lote del café */
   coffeeName: string;
-  /** Origen geográfico (municipio, departamento, finca) */
+  /** Marca del café (por defecto "VARIETALE", o editable) */
+  brand?: string;
+  /** Nombre de la finca o hacienda */
+  farmName?: string;
+  /** Nombre del caficultor o productor */
+  farmerName?: string;
+  /** País de origen */
+  country?: string;
+  /** Departamento o región de origen */
+  department?: string;
+  /** Origen geográfico completo (municipio, departamento, país, finca) */
   origin: string;
-  /** Variedad botánica (ej: Geisha, Borbón Papayo, Caturra) */
+  /** Variedad botánica (ej: Geisha, Borbón Papayo, Caturra, o combinaciones) */
   variety: string;
   /** Método de beneficio (ej: Lavado, Honey, Natural) */
   process: string;
@@ -234,6 +244,16 @@ export interface TastingRecord {
   createdAt: string;
   /** Nombre del café evaluado */
   coffeeName: string;
+  /** Marca del café (ej: "VARIETALE", u otra marca) */
+  brand?: string;
+  /** Nombre de la finca */
+  farmName?: string;
+  /** Nombre del caficultor / productor */
+  farmerName?: string;
+  /** País de origen */
+  country?: string;
+  /** Departamento o región de origen */
+  department?: string;
   /** Origen del café */
   origin: string;
   /** Variedad botánica */

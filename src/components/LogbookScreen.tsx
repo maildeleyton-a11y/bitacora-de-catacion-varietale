@@ -32,6 +32,7 @@ import { BrewMethodIcon } from "./BrewMethodIcons";
 import { BREW_METHODS, computeSensorySpiderProfile } from "../data/coffeeData";
 import { BrandFooter } from "./BrandFooter";
 import { WelcomeGiftCard } from "./WelcomeGiftCard";
+import { VarietaleBrandIcon } from "./VarietaleLogo";
 
 interface LogbookScreenProps {
   /** Lista de catas del usuario activo */
@@ -497,32 +498,61 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                     </div>
                   </div>
 
-                  {/* 2. Nombre del Café: 100% de ancho sin cortes de palabras */}
-                  <div className="pt-3">
-                    <h3 className="text-lg sm:text-xl font-black text-[#01374C] leading-snug break-words">
-                      {cata.coffeeName}
-                    </h3>
+                  {/* 2. Nombre del Café y Foto de la Bolsa / Ícono */}
+                  <div className="pt-3 flex items-start gap-3">
+                    {cata.photoUrl ? (
+                      <img
+                        src={cata.photoUrl}
+                        alt={cata.coffeeName}
+                        className="w-13 h-13 sm:w-15 sm:h-15 object-cover rounded-xl border border-[#DDC1AB] shrink-0 bg-[#FAF6F2]"
+                      />
+                    ) : (
+                      <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-xl bg-[#01374C] p-2.5 flex items-center justify-center shrink-0">
+                        <VarietaleBrandIcon className="w-full h-full text-[#00D9B4]" color="#00D9B4" />
+                      </div>
+                    )}
 
-                    {/* Ficha técnica: Método, Varietal, Beneficio y Fecha (con puntos indivisibles) */}
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-[#4A5D68] mt-1.5 font-medium">
-                      <span className="inline-flex items-center gap-1.5 font-bold text-[#01374C] bg-[#FAF6F2] px-2 py-0.5 rounded-md border border-[#DDC1AB]/50">
-                        <BrewMethodIcon type={cata.brewMethod} className="w-3.5 h-3.5 text-[#00D9B4]" />
-                        <span>{getMethodName(cata.brewMethod)}</span>
-                      </span>
-                      {cata.variety ? (
-                        <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
-                          <span>{cata.variety}</span>
+                    <div className="flex-1 min-w-0">
+                      {cata.brand && (
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#00897B] bg-[#EBFBFA] px-2 py-0.5 rounded-md border border-[#00D9B4]/30 inline-block mb-1">
+                          {cata.brand}
                         </span>
-                      ) : null}
-                      {cata.process ? (
-                        <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
-                          <span>{cata.process}</span>
-                        </span>
-                      ) : null}
-                      <span className="inline-flex items-center gap-1 text-[#889DA7] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
-                        <span>{formatDate(cata.createdAt)}</span>
-                      </span>
+                      )}
+                      <h3 className="text-base sm:text-lg font-black text-[#01374C] leading-snug break-words">
+                        {cata.coffeeName}
+                      </h3>
+                      {cata.farmName && (
+                        <p className="text-xs text-[#6A7B85] font-semibold truncate mt-0.5">
+                          Finca: {cata.farmName} {cata.farmerName ? `(${cata.farmerName})` : ""}
+                        </p>
+                      )}
                     </div>
+                  </div>
+
+                  {/* Ficha técnica: Método, Varietal, Beneficio y Fecha (con puntos indivisibles) */}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-[#4A5D68] mt-2 font-medium">
+                    <span className="inline-flex items-center gap-1.5 font-bold text-[#01374C] bg-[#FAF6F2] px-2 py-0.5 rounded-md border border-[#DDC1AB]/50">
+                      <BrewMethodIcon type={cata.brewMethod} className="w-3.5 h-3.5 text-[#00D9B4]" />
+                      <span>{getMethodName(cata.brewMethod)}</span>
+                    </span>
+                    {cata.variety ? (
+                      <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                        <span>{cata.variety}</span>
+                      </span>
+                    ) : null}
+                    {cata.process ? (
+                      <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                        <span>{cata.process}</span>
+                      </span>
+                    ) : null}
+                    {cata.altitude ? (
+                      <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                        <span>{cata.altitude}</span>
+                      </span>
+                    ) : null}
+                    <span className="inline-flex items-center gap-1 text-[#889DA7] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
+                      <span>{formatDate(cata.createdAt)}</span>
+                    </span>
                   </div>
 
                   {/* 3. Radar y Resumen de Sabores */}

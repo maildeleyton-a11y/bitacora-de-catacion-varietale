@@ -464,6 +464,11 @@ export default function App() {
     setEditingCataCreatedAt(record.createdAt);
     setDraftCoffee({
       coffeeName: record.coffeeName,
+      brand: record.brand || "VARIETALE",
+      farmName: record.farmName || "",
+      farmerName: record.farmerName || "",
+      country: record.country || "Colombia",
+      department: record.department || "",
       origin: record.origin,
       variety: record.variety,
       process: record.process,
@@ -492,10 +497,17 @@ export default function App() {
     const recordId = editingCataId || `cata-${Date.now()}`;
     const createdAt = editingCataCreatedAt || new Date().toISOString();
 
+    const finalPhoto = draftPhoto || draftCoffee.imageUrl || "/icon-192.png";
+
     const savedRecord: TastingRecord = {
       id: recordId,
       createdAt,
-      coffeeName: draftCoffee.coffeeName.trim(),
+      coffeeName: draftCoffee.coffeeName.trim() || `Café ${(draftCoffee.brand || "VARIETALE").trim()}`,
+      brand: draftCoffee.brand?.trim() || "VARIETALE",
+      farmName: draftCoffee.farmName?.trim() || undefined,
+      farmerName: draftCoffee.farmerName?.trim() || undefined,
+      country: draftCoffee.country?.trim() || undefined,
+      department: draftCoffee.department?.trim() || undefined,
       origin: draftCoffee.origin?.trim() || "",
       variety: draftCoffee.variety?.trim() || "",
       process: draftCoffee.process?.trim() || "",
@@ -507,7 +519,7 @@ export default function App() {
       spiderProfile,
       rating: draftRating,
       userNotes: draftNotes.trim(),
-      photoUrl: draftPhoto || draftCoffee.imageUrl || undefined,
+      photoUrl: finalPhoto,
     };
 
     let updated: TastingRecord[];

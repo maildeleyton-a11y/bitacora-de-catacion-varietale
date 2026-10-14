@@ -596,12 +596,88 @@ export const VARIETALE_SAMPLE_COFFEES: CoffeeInfo[] = [
 
 export const EMPTY_COFFEE: CoffeeInfo = {
   coffeeName: "",
+  brand: "VARIETALE",
+  farmName: "",
+  farmerName: "",
+  country: "Colombia",
+  department: "",
   origin: "",
   variety: "",
   process: "",
   altitude: "",
   description: "",
 };
+
+// ============================================================================
+// 5.1 LISTAS MAESTRAS ASISTIDAS PARA REGISTRO MANUAL O DE OTRAS MARCAS
+// ============================================================================
+
+export const COFFEE_PRODUCING_COUNTRIES = [
+  "Colombia",
+  "Etiopía",
+  "Kenia",
+  "Guatemala",
+  "Costa Rica",
+  "Panamá",
+  "Brasil",
+  "Perú",
+  "Honduras",
+  "México",
+  "El Salvador",
+  "Ecuador",
+  "Ruanda",
+  "Indonesia",
+];
+
+export const COLOMBIAN_DEPARTMENTS = [
+  "Huila",
+  "Cauca",
+  "Nariño",
+  "Tolima",
+  "Antioquia",
+  "Quindío",
+  "Caldas",
+  "Risaralda",
+  "Santander",
+  "Cundinamarca",
+  "Valle del Cauca",
+  "Sierra Nevada / Magdalena",
+  "Cesar",
+  "Boyacá",
+  "Meta",
+  "Casanare",
+  "Norte de Santander",
+];
+
+export const COFFEE_MAIN_VARIETIES = [
+  "Castillo",
+  "Caturra",
+  "Borbón (Bourbon)",
+  "Borbón Rosado (Pink Bourbon)",
+  "Geisha",
+  "Typica",
+  "Tabi",
+  "Chiroso",
+  "Maragogipe",
+  "Cenicafé 1",
+  "Colombia",
+  "Pacamara",
+  "SL28",
+  "Wush Wush",
+  "Catuaí",
+];
+
+export const COFFEE_MAIN_PROCESSES = [
+  "Lavado",
+  "Natural",
+  "Honey",
+  "Semilavado",
+  "Anaeróbico",
+  "Fermentación Extendida",
+  "Maceración Carbónica",
+  "Koji",
+  "Descafeinado (EA Sugar Cane)",
+];
 
 // Every new user starts with 0 tastings (no fake or pre-seeded tastings)
 export const INITIAL_TASTINGS: TastingRecord[] = [];
