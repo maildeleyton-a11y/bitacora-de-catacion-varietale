@@ -195,7 +195,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                       onClick={() => handleSelectExisting(acc)}
                       className="p-3 sm:p-3.5 rounded-2xl border border-[#DDC1AB] hover:border-[#00897B] bg-white hover:bg-[#FAF6F2] flex items-center justify-between cursor-pointer transition-all shadow-xs group"
                     >
-                      <div className="flex items-center gap-3 truncate">
+                      <div data-cms-locked="true" className="flex items-center gap-3 truncate">
                         <div className="w-9 h-9 rounded-full bg-[#EA4335] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs">
                           {acc.name.charAt(0).toUpperCase()}
                         </div>

@@ -90,8 +90,27 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
   hasZeroTastings = false,
 }) => {
   const [showGiftModal, setShowGiftModal] = useState<boolean>(
-    Boolean(hasZeroTastings && !isEditing)
+    Boolean(
+      hasZeroTastings &&
+        !isEditing &&
+        (typeof window === "undefined" ||
+          window.sessionStorage?.getItem("varietale_visual_edit_mode") !== "1")
+    )
   );
+
+  useEffect(() => {
+    const handleCmsSubmodal = (ev: Event) => {
+      const modalId = (ev as CustomEvent<{ modalId?: string }>).detail?.modalId;
+      if (modalId === "welcome_gift") {
+        setShowGiftModal(true);
+      } else if (modalId === "close_all") {
+        setShowGiftModal(false);
+      }
+    };
+    window.addEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+    return () =>
+      window.removeEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+  }, []);
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -689,8 +708,8 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
               })}
             </div>
 
-            {/* Listado interactivo de cafés */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-1">
+            {/* Listado interactivo de cafés sincronizados desde varietale.com (Datos de catálogo bloqueados de edición de UI) */}
+            <div data-cms-locked="true" className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-1">
               {filteredCatalog.map((sample) => {
                 const isSelected = coffeeInfo.coffeeName === sample.coffeeName;
                 return (
@@ -1087,12 +1106,20 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
               )}
               <div className="min-w-0">
                 <span className="text-[10px] sm:text-xs uppercase font-extrabold text-[#00897B] block">
-                  {coffeeInfo.brand || "VARIETALE"} • Café listo para catar:
+                  <span data-cms-locked="true">{coffeeInfo.brand || "VARIETALE"}</span>{" "}
+                  <span>•</span>{" "}
+                  <span>Café listo para catar:</span>
                 </span>
-                <strong className="text-sm sm:text-base text-[#01374C] block font-black break-words leading-snug">
+                <strong
+                  data-cms-locked="true"
+                  className="text-sm sm:text-base text-[#01374C] block font-black break-words leading-snug"
+                >
                   {coffeeInfo.coffeeName || `Café ${coffeeInfo.brand || ""}`}
                 </strong>
-                <span className="text-xs sm:text-sm text-[#4A5D68] block break-words mt-0.5">
+                <span
+                  data-cms-locked="true"
+                  className="text-xs sm:text-sm text-[#4A5D68] block break-words mt-0.5"
+                >
                   {[
                     coffeeInfo.origin,
                     coffeeInfo.variety,

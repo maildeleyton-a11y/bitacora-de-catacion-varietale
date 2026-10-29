@@ -101,6 +101,20 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
   const [activeDescriptorForIntensity, setActiveDescriptorForIntensity] =
     useState<FlavorDescriptor | null>(null);
 
+  useEffect(() => {
+    const handleCmsSubmodal = (ev: Event) => {
+      const modalId = (ev as CustomEvent<{ modalId?: string }>).detail?.modalId;
+      if (modalId === "flavor_intensity") {
+        setActiveDescriptorForIntensity(FLAVOR_DESCRIPTORS[0] || null);
+      } else if (modalId === "close_all") {
+        setActiveDescriptorForIntensity(null);
+      }
+    };
+    window.addEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+    return () =>
+      window.removeEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+  }, []);
+
   // Filter descriptors by active macro (normalizing family names)
   const currentDescriptors = useMemo(() => {
     const target = normalizeMacro(activeMacro);
@@ -221,7 +235,8 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
           onClick={onBack}
           className="min-h-[44px] px-4 py-2 rounded-full text-xs sm:text-sm font-bold text-[#01374C] bg-white border border-[#DDC1AB] shadow-xs hover:bg-[#FAF6F2] transition-colors cursor-pointer flex items-center gap-1"
         >
-          <span>← {isEditing ? "Modificar Datos del Grano" : "Cambiar Método / Café"}</span>
+          <span aria-hidden="true">←</span>
+          <span>{isEditing ? "Modificar Datos del Grano" : "Cambiar Método / Café"}</span>
         </button>
         <div className="flex items-center gap-2">
           {isEditing && (
@@ -259,18 +274,24 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
             )}
             <div className="min-w-0 flex-1">
               {origin && origin.trim() ? (
-                <span className="text-xs sm:text-sm font-black text-[#00D9B4] uppercase tracking-wider block truncate mb-0.5">
+                <span
+                  data-cms-locked="true"
+                  className="text-xs sm:text-sm font-black text-[#00D9B4] uppercase tracking-wider block truncate mb-0.5"
+                >
                   {origin}
                 </span>
               ) : null}
-              <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug break-words">
+              <h1
+                data-cms-locked="true"
+                className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug break-words"
+              >
                 {coffeeName}
               </h1>
               <p className="text-sm sm:text-base text-[#D1DFE6] mt-1 flex items-center gap-2 flex-wrap">
                 <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#00D9B4] shrink-0 shadow-xs" />
                 <span>
-                  Método:{" "}
-                  <strong className="text-white font-bold">
+                  <span>Método: </span>
+                  <strong data-cms-locked="true" className="text-white font-bold">
                     {brewMethodName}
                   </strong>
                 </span>
@@ -511,7 +532,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                             textAnchor="middle"
                             dominantBaseline="central"
                             transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-                            className="select-none pointer-events-none"
+                            className="select-none"
                           >
                             {slice.lines[0]}
                           </text>
@@ -525,7 +546,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                             textAnchor="middle"
                             dominantBaseline="central"
                             transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-                            className="select-none pointer-events-none"
+                            className="select-none"
                           >
                             <tspan x={textX} dy="-5">{slice.lines[0]}</tspan>
                             <tspan x={textX} dy="10.5">{slice.lines[1]}</tspan>
@@ -539,11 +560,14 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
 
             {/* STATIC Center Hub (NEVER ROTATES - stays always perfectly upright and clean in the center) */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-10">
-              <div className="w-[37%] h-[37%] rounded-full bg-white border-[3px] border-[#DDC1AB] shadow-lg flex flex-col items-center justify-center p-1.5 text-center">
+              <div className="w-[37%] h-[37%] rounded-full bg-white border-[3px] border-[#DDC1AB] shadow-lg flex flex-col items-center justify-center p-1.5 text-center pointer-events-auto">
                 <span className="text-xs sm:text-sm md:text-base uppercase font-extrabold text-[#6A7B85] tracking-tight text-center px-1 truncate max-w-full leading-tight">
                   {macroSlices.find((s) => normalizeMacro(s.macro) === normalizeMacro(activeMacro))?.shortLabel || activeMacro}
                 </span>
-                <span className="text-2xl sm:text-3xl md:text-4xl font-black text-[#01374C] leading-none my-0.5">
+                <span
+                  data-cms-locked="true"
+                  className="text-2xl sm:text-3xl md:text-4xl font-black text-[#01374C] leading-none my-0.5 tabular-nums"
+                >
                   {selectedFlavors.length}
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-[#00D9B4] leading-tight">
@@ -558,7 +582,8 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
         {selectedFlavors.length > 0 && (
           <div className="w-full max-w-4xl mx-auto mt-4 pt-3.5 border-t border-[#E8EDF1]">
             <span className="text-sm sm:text-base font-bold text-[#01374C] block mb-2.5 text-center sm:text-left">
-              Sabores percibidos ({selectedFlavors.length}):
+              <span>Sabores percibidos</span>{" "}
+              <span data-cms-locked="true" className="tabular-nums">({selectedFlavors.length}):</span>
             </span>
             <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
               {selectedFlavors.map((f) => {
@@ -735,19 +760,19 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
           <div className="max-w-2xl mx-auto w-full grid grid-cols-3 gap-2.5 sm:gap-4 mt-4 pt-5 border-t border-[#E8EDF1] text-center text-xs sm:text-sm">
             <div className="p-3 sm:p-4 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]/70 transition-colors">
               <span className="text-xs sm:text-sm text-[#4A5D68] block font-semibold mb-0.5">Acidez</span>
-              <strong className="text-[#01374C] font-black text-lg sm:text-2xl">
+              <strong data-cms-locked="true" className="text-[#01374C] font-black text-lg sm:text-2xl">
                 {liveSpiderProfile.acidez}%
               </strong>
             </div>
             <div className="p-3 sm:p-4 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]/70 transition-colors">
               <span className="text-xs sm:text-sm text-[#4A5D68] block font-semibold mb-0.5">Cuerpo</span>
-              <strong className="text-[#01374C] font-black text-lg sm:text-2xl">
+              <strong data-cms-locked="true" className="text-[#01374C] font-black text-lg sm:text-2xl">
                 {liveSpiderProfile.cuerpo}%
               </strong>
             </div>
             <div className="p-3 sm:p-4 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]/70 transition-colors">
               <span className="text-xs sm:text-sm text-[#4A5D68] block font-semibold mb-0.5">Balance</span>
-              <strong className="text-[#01374C] font-black text-lg sm:text-2xl">
+              <strong data-cms-locked="true" className="text-[#01374C] font-black text-lg sm:text-2xl">
                 {liveSpiderProfile.balance}%
               </strong>
             </div>
@@ -827,9 +852,12 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
             }`}
           >
             <Check className="w-5 h-5 text-[#00D9B4] stroke-[2.5]" />
-            {isEditing
-              ? `Actualizar Cata en Mi Bitácora (${selectedFlavors.length} notas)`
-              : `Guardar Cata en Mi Bitácora (${selectedFlavors.length} notas)`}
+            <span>
+              {isEditing
+                ? "Actualizar Cata en Mi Bitácora"
+                : "Guardar Cata en Mi Bitácora"}
+            </span>
+            <span data-cms-locked="true">({selectedFlavors.length} notas)</span>
           </button>
         </div>
       </div>
@@ -873,7 +901,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                       className="w-5 h-5 rounded-full shrink-0 shadow-xs border-2 border-white ring-1 ring-black/10"
                       style={{ backgroundColor: themeColor }}
                     />
-                    <div className="min-w-0">
+                    <div data-cms-locked="true" className="min-w-0">
                       <span className="text-xs sm:text-sm font-bold text-[#4A5D68] uppercase tracking-wider block">
                         {activeDescriptorForIntensity.macro} • {activeDescriptorForIntensity.subcategory}
                       </span>
@@ -905,19 +933,19 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                       style={{ backgroundColor: themeColor }}
                     />
                     <span className="text-[#4A5D68]">Referencia sensorial:</span>
-                    <strong className="text-[#01374C]">{display.primary}</strong>
+                    <strong data-cms-locked="true" className="text-[#01374C]">{display.primary}</strong>
                   </span>
                   {display.secondary && (
                     <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#01374C] bg-[#FAF6F2] border border-[#DDC1AB] px-3.5 py-1.5 rounded-lg">
                       <span className="text-[#4A5D68]">Descriptor SCA:</span>
-                      <strong className="text-[#01374C]">{display.secondary}</strong>
+                      <strong data-cms-locked="true" className="text-[#01374C]">{display.secondary}</strong>
                     </span>
                   )}
                 </div>
 
                 {/* Hint/Description */}
                 {activeDescriptorForIntensity.hint && (
-                  <div className="bg-[#FAF6F2]/80 rounded-xl p-3.5 sm:p-4 border border-[#E8DCD4] mb-4">
+                  <div data-cms-locked="true" className="bg-[#FAF6F2]/80 rounded-xl p-3.5 sm:p-4 border border-[#E8DCD4] mb-4">
                     <p className="text-sm sm:text-base text-[#3B2212] leading-relaxed italic">
                       "{activeDescriptorForIntensity.hint}"
                     </p>
@@ -932,6 +960,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
                       <span>Calificar Intensidad (1 - 5):</span>
                     </label>
                     <span
+                      data-cms-locked="true"
                       className="text-xs sm:text-sm font-black px-3.5 py-1 rounded-full text-white shadow-2xs"
                       style={{ backgroundColor: themeColor }}
                     >

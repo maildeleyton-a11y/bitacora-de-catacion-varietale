@@ -33,6 +33,7 @@ import { BREW_METHODS, computeSensorySpiderProfile } from "../data/coffeeData";
 import { BrandFooter } from "./BrandFooter";
 import { WelcomeGiftCard } from "./WelcomeGiftCard";
 import { VarietaleBrandIcon } from "./VarietaleLogo";
+import { recordVarietaleRedirect } from "../data/adminStore";
 
 interface LogbookScreenProps {
   /** Lista de catas del usuario activo */
@@ -64,6 +65,50 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   }, [activeTab]);
   const [expandedCataId, setExpandedCataId] = useState<string | null>(null);
   const [cataToDelete, setCataToDelete] = useState<TastingRecord | null>(null);
+
+  useEffect(() => {
+    const handleCmsSubmodal = (ev: Event) => {
+      const modalId = (ev as CustomEvent<{ modalId?: string }>).detail?.modalId;
+      if (modalId === "delete_cata") {
+        setCataToDelete(
+          tastings[0] || {
+            id: "preview-delete-cata",
+            createdAt: new Date().toISOString(),
+            coffeeName: "Geisha Reserva Especial (Vista Previa)",
+            brand: "VARIETALE",
+            origin: "Huila, Colombia",
+            variety: "Geisha",
+            process: "Lavado",
+            altitude: "1850 msnm",
+            brewMethod: "v60",
+            qualityChecklist: {
+              waterFiltered: true,
+              grindCorrect: true,
+              waterNotBoiling: true,
+            },
+            bodyLevel: 2,
+            selectedFlavors: [],
+            spiderProfile: {
+              frutal: 80,
+              dulce: 75,
+              tostado: 30,
+              floral: 90,
+              cuerpo: 65,
+              acidez: 85,
+              balance: 85,
+            },
+            rating: 5,
+            userNotes: "",
+          }
+        );
+      } else if (modalId === "close_all") {
+        setCataToDelete(null);
+      }
+    };
+    window.addEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+    return () =>
+      window.removeEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+  }, [tastings]);
 
   // Comparison State
   const [compCataAId, setCompCataAId] = useState<string>(tastings[0]?.id || "");
@@ -331,7 +376,8 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
           Mi Bitácora de Catación
         </h1>
         <p className="text-sm sm:text-base text-[#6A7B85] mt-1">
-          {tastings.length} {tastings.length === 1 ? "cata registrada" : "catas registradas"} con perfil sensorial y rueda de sabores.
+          <span data-cms-locked="true">{tastings.length}</span>{" "}
+          <span>{tastings.length === 1 ? "cata registrada" : "catas registradas"} con perfil sensorial y rueda de sabores.</span>
         </p>
       </div>
 
@@ -347,7 +393,8 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
           }`}
         >
           <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>Historial ({tastings.length})</span>
+          <span>Historial</span>
+          <span data-cms-locked="true">({tastings.length})</span>
         </button>
         <button
           id="tab-comparador-btn"
@@ -414,7 +461,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 <span className="text-xs sm:text-sm font-extrabold text-[#01374C] uppercase tracking-wider block">
                   Modo Comparativo Disponible
                 </span>
-                <p className="text-sm sm:text-base text-[#01374C] font-semibold mt-0.5">
+                <p data-cms-locked="true" className="text-sm sm:text-base text-[#01374C] font-semibold mt-0.5">
                   Cataste "{sameCoffeeMultiMethods[0].coffeeName}" con diferentes métodos.
                 </p>
               </div>
@@ -439,8 +486,8 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 id={`cata-card-${cata.id}`}
                 className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs transition-all hover:border-[#DDC1AB] flex flex-col justify-between"
               >
-                {/* Contenido principal de la tarjeta */}
-                <div>
+                {/* Contenido principal de la tarjeta (Datos de base de datos bloqueados de edición de UI) */}
+                <div data-cms-locked="true">
                   {/* 1. Barra Superior: Origen / Distintivo + Calificación y Acciones Rápidas */}
                   <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#E8EDF1]">
                     {/* Origen Tag en Azul Corporativo Varietale #01374C con punto menta #00D9B4 */}
@@ -598,13 +645,16 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 {/* Expand / Collapse Details */}
                 {isExpanded && (
                   <div className="mt-3.5 pt-3.5 border-t border-[#E8EDF1] space-y-3.5">
-                    {/* User Notes */}
+                    {/* User Notes (Reseñas / Comentarios de base de datos bloqueados) */}
                     {cata.userNotes && (
                       <div className="bg-white p-3.5 rounded-xl border border-[#DDC1AB]">
                         <span className="text-xs sm:text-sm font-bold text-[#4A5D68] uppercase block mb-1">
                           Tus Apuntes Sensoriales:
                         </span>
-                        <p className="text-sm sm:text-base text-[#01374C] italic leading-relaxed">
+                        <p
+                          data-cms-locked="true"
+                          className="text-sm sm:text-base text-[#01374C] italic leading-relaxed"
+                        >
                           "{cata.userNotes}"
                         </p>
                       </div>
@@ -615,7 +665,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                       <span className="text-xs sm:text-sm font-bold text-[#4A5D68] uppercase block mb-2">
                         Todos los descriptores y dominancia:
                       </span>
-                      <div className="flex flex-wrap gap-2">
+                      <div data-cms-locked="true" className="flex flex-wrap gap-2">
                         {cata.selectedFlavors.map((f) => (
                           <span
                             key={`full-${f.descriptorId}`}
@@ -761,6 +811,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                       ● Cata A (Azul Primario)
                     </label>
                     <select
+                      data-cms-locked="true"
                       value={compCataAId}
                       onChange={(e) => setCompCataAId(e.target.value)}
                       className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
@@ -778,6 +829,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                       ● Cata B (Acento Menta)
                     </label>
                     <select
+                      data-cms-locked="true"
                       value={compCataBId}
                       onChange={(e) => setCompCataBId(e.target.value)}
                       className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
@@ -806,8 +858,8 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 </div>
               </div>
 
-              {/* Columna Derecha: Tarjetas de detalles sensoriales de Cata A y Cata B */}
-              <div className="lg:col-span-6 flex flex-col gap-4">
+              {/* Columna Derecha: Tarjetas de detalles sensoriales de Cata A y Cata B (Datos de BD bloqueados) */}
+              <div data-cms-locked="true" className="lg:col-span-6 flex flex-col gap-4">
                 <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF6F2]/80 border-2 border-[#01374C]/30 shadow-xs">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs sm:text-sm font-black text-[#01374C] uppercase tracking-wider">
@@ -884,7 +936,8 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 </h2>
               </div>
               <span className="text-xs font-bold text-[#01374C] bg-[#EBFBFA] px-3.5 py-1 rounded-full border border-[#00D9B4]/30">
-                Acumulado ({tastings.length} catas)
+                <span>Acumulado </span>
+                <span data-cms-locked="true">({tastings.length} catas)</span>
               </span>
             </div>
             <p className="text-sm sm:text-base text-[#4A5D68] mb-4 leading-relaxed">
@@ -938,7 +991,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                           {axis.label}
                         </span>
                       </div>
-                      <strong className="text-base sm:text-lg font-black text-[#01374C] mt-0.5">
+                      <strong data-cms-locked="true" className="text-base sm:text-lg font-black text-[#01374C] mt-0.5">
                         {val}%
                       </strong>
                     </div>
@@ -950,19 +1003,19 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
               <div className="grid grid-cols-3 gap-2 sm:gap-2.5 mt-3 pt-3 border-t border-[#E8EDF1]/80 text-center text-xs">
                 <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]">
                   <span className="text-xs text-[#6A7B85] block font-semibold mb-0.5">Acidez</span>
-                  <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  <strong data-cms-locked="true" className="text-sm sm:text-base font-black text-[#01374C]">
                     {explorationProfile.acidez}%
                   </strong>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]">
                   <span className="text-xs text-[#6A7B85] block font-semibold mb-0.5">Cuerpo</span>
-                  <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  <strong data-cms-locked="true" className="text-sm sm:text-base font-black text-[#01374C]">
                     {explorationProfile.cuerpo}%
                   </strong>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#F0E6DD]">
                   <span className="text-xs text-[#6A7B85] block font-semibold mb-0.5">Balance</span>
-                  <strong className="text-sm sm:text-base font-black text-[#01374C]">
+                  <strong data-cms-locked="true" className="text-sm sm:text-base font-black text-[#01374C]">
                     {explorationProfile.balance}%
                   </strong>
                 </div>
@@ -991,8 +1044,8 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 </div>
 
                 <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-6">
-                  Según tu mapa de exploración, expande tu paladar descubriendo nuestro café de especialidad{" "}
-                  <strong className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
+                  <span>Según tu mapa de exploración, expande tu paladar descubriendo nuestro café de especialidad </span>
+                  <strong data-cms-locked="true" className="text-[#00D9B4] font-black">{recommendation.coffee}</strong>.
                 </p>
               </div>
 
@@ -1001,6 +1054,15 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 href={recommendation.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() =>
+                  recordVarietaleRedirect(
+                    recommendation.isWelcomePromo
+                      ? "welcome_coupon_btn"
+                      : "rebuy_recommendation",
+                    recommendation.url,
+                    recommendation.coffee
+                  )
+                }
                 className="w-full mt-4 py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] active:scale-[0.98] text-[#01374C] font-black text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all shadow-lg min-h-[52px] cursor-pointer"
               >
                 <span>{recommendation.ctaText}</span>
@@ -1022,9 +1084,9 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
               ¿Eliminar esta cata?
             </h3>
             <p className="text-xs sm:text-sm text-[#4A5D68] mb-4 leading-relaxed">
-              Esta acción borrará de forma permanente el registro de{" "}
-              <strong className="text-[#01374C] font-extrabold">{cataToDelete.coffeeName}</strong>{" "}
-              de tu historial de catación.
+              <span>Esta acción borrará de forma permanente el registro de </span>
+              <strong data-cms-locked="true" className="text-[#01374C] font-extrabold">{cataToDelete.coffeeName}</strong>{" "}
+              <span>de tu historial de catación.</span>
             </p>
             <div className="flex gap-2">
               <button

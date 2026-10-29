@@ -68,21 +68,26 @@ export const CataCelebrationModal: React.FC<CataCelebrationModalProps> = ({
           <span className="text-xs font-extrabold uppercase tracking-widest text-[#01374C] bg-[#EBFBFA] px-3 py-1 rounded-full inline-block mb-1.5 border border-[#00D9B4]/30">
             Cata Guardada
           </span>
-          <h2 className="text-xl sm:text-2xl font-black text-[#01374C] leading-tight">
+          <h2
+            data-cms-locked="true"
+            className="text-xl sm:text-2xl font-black text-[#01374C] leading-tight"
+          >
             {cata.coffeeName}
           </h2>
           <p className="text-xs sm:text-sm text-[#6A7B85] mt-1 flex items-center justify-center gap-1.5 font-semibold">
             <BrewMethodIcon type={cata.brewMethod} className="w-4 h-4 text-[#00D9B4]" />
-            <span>Método: {cata.brewMethod.toUpperCase()}</span>
+            <span>Método:</span>
+            <span data-cms-locked="true">{cata.brewMethod.toUpperCase()}</span>
           </p>
         </div>
 
         {/* Perceived Flavors vs Radar Chart Preview */}
         <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E8EDF1] mb-4 shadow-xs">
           <span className="text-xs font-bold text-[#6A7B85] uppercase tracking-wide block mb-2">
-            Tus descriptores percibidos ({cata.selectedFlavors.length}):
+            <span>Tus descriptores percibidos </span>
+            <span data-cms-locked="true">({cata.selectedFlavors.length}):</span>
           </span>
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div data-cms-locked="true" className="flex flex-wrap gap-1.5 mb-3">
             {cata.selectedFlavors.map((f) => (
               <span
                 key={f.descriptorId}

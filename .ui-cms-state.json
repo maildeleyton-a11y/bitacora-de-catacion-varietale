@@ -1,0 +1,22 @@
+{
+  "textOverridesByOriginal": {
+    "amorporelcafe.admin": "admin",
+    "Ver cómo instalarla ahora - 100% Seguro": "Instalar Ahora - 100% Seguro",
+    "Te permitirá usar Tu Bitácora VARIETALE con carga instantánea y tus cataciones siempre a la mano.": "Te permitirá usar Tu Bitácora VARIETALE con carga instantánea y tus cataciones siempre a la mano con nuestra App.",
+    "¿Quieres instalar la Bitácora en tu celular?": "¿Quieres instalar la Bitácora Varietale en tu celular, tablet o computador?"
+  },
+  "discoveredItems": [
+    {
+      "id": "live_mvscns0h",
+      "section": "live_custom",
+      "sectionLabel": "Editados en Vivo",
+      "label": "Texto en pantalla (\"● En vivo\")",
+      "elementType": "caja",
+      "defaultText": "● En vivo"
+    }
+  ],
+  "flavorOverrides": {},
+  "macroOverrides": {},
+  "methodOverrides": {},
+  "updatedAt": "2026-10-28T19:30:49.845Z"
+}

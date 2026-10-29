@@ -25,6 +25,7 @@ import { VarietaleLogoHorizontal, VarietaleBrandIcon } from "./VarietaleLogo";
 import { BrandFooter } from "./BrandFooter";
 import { checkIsAppInstalled } from "./InstallPwaModal";
 import { WelcomeGiftCard } from "./WelcomeGiftCard";
+import { recordVarietaleRedirect } from "../data/adminStore";
 
 interface HomeScreenProps {
   /** Historial de cataciones del usuario activo */
@@ -91,7 +92,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             title={currentUser ? "Ver mi perfil de catador" : "Registrarse o Iniciar Sesión"}
           >
             {currentUser ? (
-              <>
+              <span data-cms-locked="true" className="inline-flex items-center gap-2">
                 <span className="w-5.5 h-5.5 rounded-full bg-[#01374C] text-white flex items-center justify-center text-xs font-black relative shrink-0">
                   {currentUser.name.charAt(0).toUpperCase()}
                   {currentUser.authProvider === "google" && (
@@ -99,7 +100,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   )}
                 </span>
                 <span className="max-w-[90px] sm:max-w-[140px] truncate">{currentUser.username ? `@${currentUser.username}` : currentUser.name}</span>
-              </>
+              </span>
             ) : (
               <>
                 <User className="w-4 h-4 text-[#00D9B4]" />
@@ -116,7 +117,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <BookOpen className="w-4 h-4 text-[#01374C]" />
             <span className="hidden sm:inline">Bitácora</span>
-            <span className="w-5 h-5 rounded-full bg-[#01374C] text-white text-xs flex items-center justify-center font-black">
+            <span
+              data-cms-locked="true"
+              className="w-5 h-5 rounded-full bg-[#01374C] text-white text-xs flex items-center justify-center font-black"
+            >
               {totalCatas}
             </span>
           </button>
@@ -156,7 +160,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <div className="lg:col-span-7 flex flex-col justify-between">
             <div>
               <span className="text-xs sm:text-sm uppercase font-extrabold tracking-wider text-[#01374C] bg-[#EBFBFA] px-4 py-1.5 rounded-full border border-[#00D9B4]/30 inline-block mb-3.5">
-                {currentUser ? `¡Hola, ${currentUser.name}! 👋` : "Guía Sensorial Varietale"}
+                {currentUser ? (
+                  <>
+                    <span>¡Hola, </span>
+                    <span data-cms-locked="true">{currentUser.name}</span>
+                    <span data-cms-locked="true">! 👋</span>
+                  </>
+                ) : (
+                  "Guía Sensorial Varietale"
+                )}
               </span>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#01374C] leading-[1.08] mb-4 tracking-tight">
                 <span className="block">Bienvenido a tu</span>
@@ -228,7 +240,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
                 <div className="bg-[#FAF6F2]/70 p-3 sm:p-3.5 rounded-xl border border-[#DDC1AB]/60">
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums text-[#01374C] block leading-none">
+                  <span
+                    data-cms-locked="true"
+                    className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums text-[#01374C] block leading-none"
+                  >
                     {totalCatas}
                   </span>
                   <span className="text-xs sm:text-sm text-[#4A5D68] font-semibold mt-1.5 block">
@@ -236,7 +251,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   </span>
                 </div>
                 <div className="bg-[#FAF6F2]/70 p-3 sm:p-3.5 rounded-xl border border-[#DDC1AB]/60">
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums text-[#01374C] block leading-none">
+                  <span
+                    data-cms-locked="true"
+                    className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums text-[#01374C] block leading-none"
+                  >
                     {uniqueCoffees}
                   </span>
                   <span className="text-xs sm:text-sm text-[#4A5D68] font-semibold mt-1.5 block">
@@ -244,7 +262,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   </span>
                 </div>
                 <div className="bg-[#FAF6F2]/70 p-3 sm:p-3.5 rounded-xl border border-[#DDC1AB]/60">
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums text-[#01374C] block leading-none">
+                  <span
+                    data-cms-locked="true"
+                    className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums text-[#01374C] block leading-none"
+                  >
                     {uniqueMethods}
                   </span>
                   <span className="text-xs sm:text-sm text-[#4A5D68] font-semibold mt-1.5 block">
@@ -256,8 +277,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {totalCatas > 0 ? (
                 <div className="mt-4 pt-3.5 border-t border-[#E8EDF1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <span className="text-xs sm:text-sm text-[#4A5D68] truncate max-w-full">
-                    Última cata:{" "}
-                    <strong className="text-[#01374C]">
+                    <span>Última cata: </span>
+                    <strong data-cms-locked="true" className="text-[#01374C]">
                       {tastings[0].coffeeName} ({tastings[0].brewMethod.toUpperCase()})
                     </strong>
                   </span>
@@ -309,6 +330,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           href="https://www.varietale.com"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() =>
+            recordVarietaleRedirect(
+              "home_store_btn",
+              "https://www.varietale.com",
+              "Tienda Oficial Inicio"
+            )
+          }
           className="min-h-[44px] inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-[#01374C] hover:text-[#00D9B4] transition-colors py-2 px-4 rounded-full hover:bg-white border border-transparent hover:border-[#E8EDF1]"
         >
           <span>Visita la tienda oficial www.varietale.com</span>

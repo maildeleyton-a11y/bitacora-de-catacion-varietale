@@ -8,6 +8,7 @@
 
 import React from "react";
 import { Copyright } from "lucide-react";
+import { recordVarietaleRedirect } from "../data/adminStore";
 
 interface BrandFooterProps {
   /** Clases CSS adicionales para espaciado y márgenes */
@@ -16,7 +17,7 @@ interface BrandFooterProps {
 
 export const BrandFooter: React.FC<BrandFooterProps> = ({ className = "" }) => {
   return (
-    <footer className={`text-center py-2.5 px-3 ${className}`}>
+    <footer data-cms-locked="true" className={`text-center py-2.5 px-3 ${className}`}>
       <p className="text-xs sm:text-sm text-[#52646E] leading-relaxed flex items-center justify-center flex-wrap gap-x-1.5 gap-y-1">
         <span>Ideado y Creado por</span>
         <a
@@ -35,6 +36,13 @@ export const BrandFooter: React.FC<BrandFooterProps> = ({ className = "" }) => {
           href="https://www.varietale.com"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() =>
+            recordVarietaleRedirect(
+              "footer_link",
+              "https://www.varietale.com",
+              "Footer VARIETALE®"
+            )
+          }
           className="font-extrabold text-[#01374C] hover:text-[#00D9B4] underline decoration-[#01374C]/30 underline-offset-2 transition-colors"
         >
           VARIETALE®

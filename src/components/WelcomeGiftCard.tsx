@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { Gift, Tag, Copy, Check, ArrowRight } from "lucide-react";
+import {
+  getWelcomeCouponConfig,
+  recordCouponCopy,
+  recordVarietaleRedirect,
+} from "../data/adminStore";
 
 interface WelcomeGiftCardProps {
   className?: string;
@@ -7,15 +12,21 @@ interface WelcomeGiftCardProps {
 
 export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = "" }) => {
   const [copied, setCopied] = useState<boolean>(false);
+  const couponConfig = getWelcomeCouponConfig();
+
+  if (!couponConfig.enabled) {
+    return null;
+  }
 
   const handleCopy = () => {
     try {
-      navigator.clipboard.writeText("Experienciafiltrados");
+      navigator.clipboard.writeText(couponConfig.couponCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
       // Fallback si no hay permisos de portapapeles
     }
+    recordCouponCopy(couponConfig.couponCode);
   };
 
   return (
@@ -30,7 +41,7 @@ export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = ""
           </div>
           <div>
             <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#00D9B4] block mb-1">
-              OBSEQUIO DE BIENVENIDA
+              {couponConfig.badgeText}
             </span>
             <h3 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight">
               Disfrútalo antes de iniciar, solo por hoy y por una única vez
@@ -57,10 +68,10 @@ export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = ""
               </div>
               <div className="min-w-0">
                 <h4 className="text-lg sm:text-xl md:text-2xl font-black text-[#00D9B4] tracking-tight leading-none uppercase">
-                  10% de Cortesía
+                  {couponConfig.discountTitle}
                 </h4>
                 <span className="text-xs sm:text-sm text-white/85 font-medium block mt-1 leading-tight">
-                  En la compra de tu primer café desde la App
+                  {couponConfig.subtitle}
                 </span>
               </div>
             </div>
@@ -79,8 +90,11 @@ export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = ""
               <span className="text-[10px] sm:text-xs text-[#00D9B4] uppercase font-bold tracking-wider mb-0.5">
                 Código del cupón:
               </span>
-              <code className="text-sm xs:text-[15px] sm:text-base md:text-lg font-black text-white tracking-tight sm:tracking-normal font-mono select-all whitespace-nowrap">
-                Experienciafiltrados
+              <code
+                data-cms-locked="true"
+                className="text-sm xs:text-[15px] sm:text-base md:text-lg font-black text-white tracking-tight sm:tracking-normal font-mono select-all whitespace-nowrap"
+              >
+                {couponConfig.couponCode}
               </code>
             </div>
 
@@ -108,12 +122,19 @@ export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = ""
 
       <a
         id="cta-welcome-gift-link"
-        href="https://varietale.com/discount/Experienciafiltrados?redirect=%2Fcollections%2Fcafes"
+        href={couponConfig.targetUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() =>
+          recordVarietaleRedirect(
+            "welcome_coupon_btn",
+            couponConfig.targetUrl,
+            `Cupón: ${couponConfig.couponCode}`
+          )
+        }
         className="w-full mt-4 py-4 px-5 rounded-2xl bg-[#00D9B4] hover:bg-[#00c4a3] active:scale-[0.98] text-[#01374C] font-black text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all shadow-lg min-h-[52px] cursor-pointer"
       >
-        <span>Ir a la Tienda con 10% OFF</span>
+        <span>{couponConfig.buttonText}</span>
         <ArrowRight className="w-5 h-5 text-[#01374C] stroke-[2.5]" />
       </a>
 
@@ -126,6 +147,13 @@ export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = ""
             href="https://varietale.com/policies/terms-of-service"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              recordVarietaleRedirect(
+                "terms_link",
+                "https://varietale.com/policies/terms-of-service",
+                "Términos y condiciones"
+              )
+            }
             className="text-[#00D9B4] hover:text-white underline underline-offset-2 decoration-[#00D9B4]/50 hover:decoration-white font-bold transition-colors"
           >
             VARIETALE.com

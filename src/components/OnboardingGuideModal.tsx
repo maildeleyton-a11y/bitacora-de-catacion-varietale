@@ -108,25 +108,25 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
   const stepsMetadata = [
     {
       num: "1",
-      title: "1. Selecciona tu café y el método de filtrado.",
+      title: "1. Selecciona tu café y el método de filtrado",
       icon: Coffee,
       badge: "Paso 1 de 4",
     },
     {
       num: "2",
-      title: "2. Cata con la rueda de sabores.",
+      title: "2. Cata con la rueda de sabores",
       icon: Disc3,
       badge: "Paso 2 de 4",
     },
     {
       num: "3",
-      title: "3. Asigna la intensidad por sabor.",
+      title: "3. Asigna la intensidad por sabor",
       icon: Sliders,
       badge: "Paso 3 de 4",
     },
     {
       num: "4",
-      title: "4. Visualiza el perfil y guardalo en tu bitácora.",
+      title: "4. Visualiza el perfil y guárdalo en tu bitácora",
       icon: Activity,
       badge: "Paso 4 de 4",
     },
@@ -160,7 +160,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm font-bold text-[#01374C] bg-[#FAF6F2] border border-[#DDC1AB] px-3 py-1 rounded-full">
+            <span data-cms-locked="true" className="text-xs sm:text-sm font-bold text-[#01374C] bg-[#FAF6F2] border border-[#DDC1AB] px-3 py-1 rounded-full">
               {currentStep + 1} / {totalSteps}
             </span>
             <button
@@ -207,7 +207,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                     <span>Primer paso: Tu café y tu método</span>
                   </div>
                   <p>
-                    Comienza eligiendo tu café favorito de Varietale, escaneando el empaque con tu cámara o escribiendo sus datos de origen. Luego, indica el método de filtrado que vas a preparar para que tu receta quede lista antes de empezar a degustar.
+                    Comienza seleccionando tu café del catálogo Varietale, subiendo una foto de tu bolsa y escribiendo los datos de origen de cualquier marca o finca. Luego, elige el método de preparación para que tu receta quede lista antes de degustar.
                   </p>
                 </div>
 
@@ -251,7 +251,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                   {/* 2. Método de filtrado preparado */}
                   <div>
                     <span className="text-[11px] font-extrabold text-[#01374C] uppercase tracking-wider block mb-1.5">
-                      Método de Preparación.
+                      Método de Preparación
                     </span>
                     <div className="grid grid-cols-4 gap-1.5">
                       <div className="p-2 sm:p-2.5 rounded-xl text-center border bg-[#01374C] text-white border-[#01374C] shadow-sm">
@@ -285,7 +285,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                     </div>
                     <div className="flex items-center gap-1 font-bold">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#00D9B4]" />
-                      <span>Cata a ciegas</span>
+                      <span>Agua sin hervir (~92°C)</span>
                     </div>
                   </div>
                 </div>
@@ -427,7 +427,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                       Ejemplo:
                     </span>
                     <span className="text-[10px] font-bold text-[#52646E] bg-[#FAF6F2] px-2 py-0.5 rounded-full border border-[#E8EDF1]">
-                      Sabores y Sensación.
+                      Sabores y Sensación
                     </span>
                   </div>
 
@@ -481,7 +481,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                   {/* Sensación táctil de Cuerpo */}
                   <div className="pt-2 border-t border-[#E8EDF1]">
                     <span className="text-[10px] font-bold text-[#4A5D68] uppercase tracking-wider block mb-1.5">
-                      Sensación táctil de Cuerpo (Paso 1 del examen táctil):
+                      Cuerpo en boca (Sensación táctil):
                     </span>
                     <div className="grid grid-cols-3 gap-1.5">
                       <div className="py-1.5 px-1 rounded-xl text-center text-xs font-bold border bg-[#FAF6F2] text-[#01374C] border-[#E8EDF1] opacity-60">
@@ -536,7 +536,7 @@ export const OnboardingGuideModal: React.FC<OnboardingGuideModalProps> = ({
                       Ejemplo:
                     </span>
                     <span className="text-[10px] font-bold text-[#52646E] bg-[#FAF6F2] px-2 py-0.5 rounded-full border border-[#E8EDF1]">
-                      Gráfica de Perfil y Bitácora.
+                      Gráfica de Perfil y Bitácora
                     </span>
                   </div>
 

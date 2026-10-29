@@ -289,7 +289,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                 dominantBaseline="central"
                 fontSize={responsive ? "15" : size > 300 ? "13" : "11"}
                 fontWeight="800"
-                className="select-none pointer-events-none"
+                className="select-none"
                 style={{ fontFamily: "inherit" }}
               >
                 <tspan fill={axis.color}>
@@ -297,6 +297,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                 </tspan>
                 {val > 0 && (
                   <tspan
+                    data-cms-locked="true"
                     dx="4"
                     fontWeight="800"
                     fill={axis.color}
@@ -312,7 +313,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
 
       {/* Legend if comparison active */}
       {secondaryProfile && (
-        <div className="mt-3 flex items-center justify-center gap-5 text-xs sm:text-sm">
+        <div data-cms-locked="true" className="mt-3 flex items-center justify-center gap-5 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
             <span className="w-3.5 h-3.5 rounded-full bg-[#01374C]" />
             <span className="font-bold text-[#01374C]">{primaryLabel}</span>

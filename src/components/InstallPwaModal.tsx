@@ -20,6 +20,7 @@ import {
   Check,
   Sparkles,
 } from "lucide-react";
+import { recordAppShare } from "../data/adminStore";
 
 interface InstallPwaModalProps {
   isOpen: boolean;
@@ -87,6 +88,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           title: shareTitle,
           text: shareText,
         });
+        recordAppShare("native_share");
         return;
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
@@ -94,12 +96,14 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
     }
 
     // Fallback universal a WhatsApp
+    recordAppShare("whatsapp");
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     window.open(whatsappUrl, "_blank");
   };
 
   const handleCopyLink = () => {
     const shareUrl = window.location.href || window.location.origin || "https://varietale.com";
+    recordAppShare("copy_link");
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);

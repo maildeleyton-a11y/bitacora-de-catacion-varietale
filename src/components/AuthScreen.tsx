@@ -28,7 +28,6 @@ import {
   ShieldCheck,
   Mail,
   RotateCcw,
-  FlaskConical,
 } from "lucide-react";
 import { UserProfile } from "../types";
 import { VarietaleLogoHorizontal } from "./VarietaleLogo";
@@ -44,8 +43,15 @@ import {
   setLastRememberedIdentifier,
   getStoredAccounts,
   StoredAccount,
-  loginAsTestUser,
 } from "../data/accountStore";
+import {
+  verifyAdminLogin,
+  verifyAdminMasterPin,
+  getAdminCredentials,
+  saveAdminCredentials,
+  setAdminSessionActive,
+  triggerWebhookInBackground,
+} from "../data/adminStore";
 
 interface AuthScreenProps {
   /** Callback al completar exitosamente el inicio de sesión o registro */
@@ -54,12 +60,15 @@ interface AuthScreenProps {
   onContinueAsGuest: () => void;
   /** Inicia una visita guiada interactiva */
   onStartTour?: () => void;
+  /** Abre el Área del Administrador tras autenticarse */
+  onAdminLoginSuccess?: () => void;
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({
   onLoginSuccess,
   onContinueAsGuest,
   onStartTour,
+  onAdminLoginSuccess,
 }) => {
   const [authMode, setAuthMode] = useState<"login" | "register">(() => {
     const remembered = getLastRememberedIdentifier();
@@ -92,6 +101,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [googleModalMode, setGoogleModalMode] = useState<"login" | "register">("login");
+
+  // Admin Login & Recovery Modal State
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminModalStep, setAdminModalStep] = useState<"login" | "recover">("login");
+  const [adminUserInput, setAdminUserInput] = useState("");
+  const [adminPassInput, setAdminPassInput] = useState("");
+  const [showAdminPass, setShowAdminPass] = useState(false);
+  const [adminMasterPinInput, setAdminMasterPinInput] = useState("");
+  const [isAdminPinVerified, setIsAdminPinVerified] = useState(false);
+  const [adminNewPassword, setAdminNewPassword] = useState("");
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [adminSuccessMsg, setAdminSuccessMsg] = useState<string | null>(null);
 
   // Forgot Username State
   const [forgotUserEmail, setForgotUserEmail] = useState("");
@@ -128,11 +149,58 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
   }, []);
 
-  // Acceso directo a usuario de prueba para testing
-  const handleTestUserLogin = () => {
-    const testUser = loginAsTestUser();
-    onLoginSuccess(testUser);
-  };
+  // Permitir al Modo Edición Visual en Vivo abrir cualquier sub-modal de Auth en 1 clic
+  useEffect(() => {
+    const handleCmsSubmodal = (ev: Event) => {
+      const modalId = (ev as CustomEvent<{ modalId?: string }>).detail?.modalId;
+      if (!modalId) return;
+
+      const closeAllAuthModals = () => {
+        setShowAdminModal(false);
+        setShowGoogleModal(false);
+        setShowForgotUserModal(false);
+        setShowResetPasswordModal(false);
+      };
+
+      if (modalId === "close_all") {
+        closeAllAuthModals();
+      } else if (modalId === "admin_login") {
+        closeAllAuthModals();
+        setAdminError(null);
+        setAdminSuccessMsg(null);
+        setIsAdminPinVerified(false);
+        setAdminModalStep("login");
+        setShowAdminModal(true);
+      } else if (modalId === "admin_recover") {
+        closeAllAuthModals();
+        setAdminError(null);
+        setAdminSuccessMsg(null);
+        setIsAdminPinVerified(false);
+        setAdminModalStep("recover");
+        setShowAdminModal(true);
+      } else if (modalId === "google_chooser") {
+        closeAllAuthModals();
+        setGoogleModalMode("login");
+        setShowGoogleModal(true);
+      } else if (modalId === "forgot_user") {
+        closeAllAuthModals();
+        setForgotUserError(null);
+        setFoundUsername(null);
+        setShowForgotUserModal(true);
+      } else if (modalId === "reset_password") {
+        closeAllAuthModals();
+        setResetError(null);
+        setResetSuccessMessage(null);
+        setTargetAccount(null);
+        setIsIdentityVerified(false);
+        setShowResetPasswordModal(true);
+      }
+    };
+
+    window.addEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+    return () =>
+      window.removeEventListener("varietale-cms-open-submodal", handleCmsSubmodal);
+  }, []);
 
   // Handle Login
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -226,8 +294,61 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     };
 
     saveAccount(newAccount);
+    triggerWebhookInBackground("new_user", newAccount);
     setLastRememberedIdentifier(newAccount.email || newAccount.username);
     onLoginSuccess(accountToUserProfile(newAccount));
+  };
+
+  // Admin Login Handler
+  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    if (!adminUserInput.trim() || !adminPassInput.trim()) {
+      setAdminError("Ingresa tu usuario y contraseña de Administrador.");
+      return;
+    }
+
+    if (verifyAdminLogin(adminUserInput, adminPassInput)) {
+      setAdminSessionActive(true);
+      setShowAdminModal(false);
+      if (onAdminLoginSuccess) onAdminLoginSuccess();
+    } else {
+      setAdminError("Credenciales de Administrador incorrectas.");
+    }
+  };
+
+  // Admin Verify Master PIN
+  const handleVerifyAdminPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    if (!adminMasterPinInput.trim()) {
+      setAdminError("Ingresa tu PIN Maestro de Recuperación.");
+      return;
+    }
+    if (verifyAdminMasterPin(adminMasterPinInput)) {
+      setIsAdminPinVerified(true);
+      setAdminError(null);
+    } else {
+      setAdminError("PIN Maestro incorrecto.");
+    }
+  };
+
+  // Admin Reset Password via Master PIN
+  const handleAdminResetPasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    if (!adminNewPassword.trim() || adminNewPassword.trim().length < 4) {
+      setAdminError("La nueva contraseña debe tener al menos 4 caracteres.");
+      return;
+    }
+    saveAdminCredentials({ password: adminNewPassword.trim() });
+    setAdminSessionActive(true);
+    setAdminSuccessMsg("¡Contraseña actualizada! Entrando al panel...");
+    setTimeout(() => {
+      setShowAdminModal(false);
+      setAdminSuccessMsg(null);
+      if (onAdminLoginSuccess) onAdminLoginSuccess();
+    }, 900);
   };
 
   // Search Username Handler
@@ -435,7 +556,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               {/* Quick Reminder Pill if account is remembered */}
               {rememberedUser && (
                 <div className="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#DDC1AB]/60 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 truncate">
+                  <div data-cms-locked="true" className="flex items-center gap-2 truncate">
                     <div className="w-5 h-5 rounded-full bg-[#01374C] text-white flex items-center justify-center text-[10px] font-black shrink-0">
                       {rememberedUser.name.charAt(0)}
                     </div>
@@ -791,7 +912,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           )}
         </div>
 
-        {/* Guided Tour & Discreet Test User Icon */}
+        {/* Guided Tour & Discreet Test User + Admin Icons */}
         <div className="text-center mt-4 flex flex-col items-center justify-center gap-1.5">
           <button
             id="continue-as-guest-btn"
@@ -803,17 +924,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             <ChevronRight className="w-4 h-4 text-[#00D9B4]" />
           </button>
 
-          {/* Acceso discreto a usuario de prueba (ubicado debajo, solo ícono con baja opacidad) */}
-          <button
-            id="test-user-footer-btn"
-            type="button"
-            onClick={handleTestUserLogin}
-            title="Perfil de pruebas"
-            aria-label="Acceso a perfil de pruebas"
-            className="w-8 h-8 rounded-full flex items-center justify-center opacity-25 hover:opacity-100 text-[#00897B] hover:bg-black/5 transition-all cursor-pointer"
-          >
-            <FlaskConical className="w-3.5 h-3.5" />
-          </button>
+          {/* Acceso discreto: Área del Administrador */}
+          <div className="flex items-center justify-center">
+            <button
+              id="admin-access-footer-btn"
+              type="button"
+              onClick={() => {
+                setAdminModalStep("login");
+                setAdminError(null);
+                setAdminSuccessMsg(null);
+                setIsAdminPinVerified(false);
+                setAdminMasterPinInput("");
+                setAdminNewPassword("");
+                setShowAdminModal(true);
+              }}
+              title="Área del Administrador"
+              aria-label="Acceso Administrador"
+              className="w-8 h-8 rounded-full flex items-center justify-center opacity-25 hover:opacity-100 text-[#01374C] hover:bg-black/5 transition-all cursor-pointer"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </main>
 
@@ -893,11 +1024,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     <span className="text-[10px] font-black uppercase text-[#00897B] tracking-wider block">
                       ¡Cuenta Localizada!
                     </span>
-                    <div className="text-base font-black text-[#01374C]">
+                    <div data-cms-locked="true" className="text-base font-black text-[#01374C]">
                       @{foundUsername.username}
                     </div>
                     <div className="text-xs sm:text-sm text-[#52646E]">
-                      Nombre: <strong>{foundUsername.name}</strong>
+                      <span>Nombre:</span>{" "}
+                      <strong data-cms-locked="true">{foundUsername.name}</strong>
                     </div>
                     <button
                       type="button"
@@ -989,7 +1121,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       <form onSubmit={handleVerifyBackupSecurity} className="space-y-3">
                         <div className="p-2.5 bg-[#FAF6F2] rounded-xl border border-[#DDC1AB]/60 text-xs">
                           <span className="text-[#52646E] block text-[11px]">Cuenta a restablecer:</span>
-                          <span className="font-black text-[#01374C]">
+                          <span data-cms-locked="true" className="font-black text-[#01374C]">
                             {targetAccount.name} (@{targetAccount.username})
                           </span>
                         </div>
@@ -1085,6 +1217,205 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       </form>
                     )}
                   </>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL 4: ACCESO AL ÁREA DEL ADMINISTRADOR Y RECUPERACIÓN CON PIN MAESTRO */}
+      <AnimatePresence>
+        {showAdminModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-[#E8EDF1]"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-[#E8EDF1]">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-[#01374C] text-[#00D9B4] flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-[#01374C]">
+                      {adminModalStep === "login"
+                        ? "Acceso Administrador"
+                        : "Recuperar Acceso Admin"}
+                    </h3>
+                    <span className="text-[11px] text-[#6A7B85] block">
+                      Mi Bitácora Varietale
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdminModal(false)}
+                  className="p-1.5 rounded-full hover:bg-[#FAF6F2] text-[#889DA7] hover:text-[#01374C] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                {adminError && (
+                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                    <span>{adminError}</span>
+                  </div>
+                )}
+
+                {adminSuccessMsg && (
+                  <div className="p-3 rounded-xl bg-[#EBFBFA] border border-[#00D9B4] text-[#01374C] text-xs font-black text-center flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#00897B]" />
+                    <span>{adminSuccessMsg}</span>
+                  </div>
+                )}
+
+                {adminModalStep === "login" ? (
+                  <form onSubmit={handleAdminLoginSubmit} className="space-y-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-[#01374C] mb-1">
+                        Usuario de Administrador *
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-[#889DA7] absolute left-3.5 top-3" />
+                        <input
+                          type="text"
+                          value={adminUserInput}
+                          onChange={(e) => setAdminUserInput(e.target.value)}
+                          placeholder="amorporelcafe.admin"
+                          autoComplete="username"
+                          className="w-full pl-10 pr-3 py-2.5 bg-[#FAF6F2]/50 text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#01374C] mb-1">
+                        Contraseña *
+                      </label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 text-[#889DA7] absolute left-3.5 top-3" />
+                        <input
+                          type={showAdminPass ? "text" : "password"}
+                          value={adminPassInput}
+                          onChange={(e) => setAdminPassInput(e.target.value)}
+                          placeholder="••••••••••••"
+                          autoComplete="current-password"
+                          className="w-full pl-10 pr-10 py-2.5 bg-[#FAF6F2]/50 text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowAdminPass(!showAdminPass)}
+                          className="absolute right-3 top-2.5 text-[#889DA7] hover:text-[#01374C] cursor-pointer"
+                        >
+                          {showAdminPass ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 rounded-2xl bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#01374C]/25"
+                    >
+                      <span>Entrar al Panel de Administrador</span>
+                      <ArrowRight className="w-4 h-4 text-[#00D9B4]" />
+                    </button>
+
+                    <div className="text-center pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdminModalStep("recover");
+                          setAdminError(null);
+                          setIsAdminPinVerified(false);
+                        }}
+                        className="text-xs font-bold text-[#6A7B85] hover:text-[#01374C] underline cursor-pointer"
+                      >
+                        ¿Olvidaste tu usuario o contraseña?
+                      </button>
+                    </div>
+                  </form>
+                ) : !isAdminPinVerified ? (
+                  <form onSubmit={handleVerifyAdminPin} className="space-y-3.5">
+                    <p className="text-xs sm:text-sm text-[#4A5D68] leading-relaxed">
+                      Ingresa tu <strong>PIN Maestro de Recuperación</strong> para ver tu usuario actual y asignar una nueva contraseña:
+                    </p>
+                    <div>
+                      <label className="block text-xs font-bold text-[#01374C] mb-1">
+                        PIN Maestro *
+                      </label>
+                      <input
+                        type="password"
+                        maxLength={6}
+                        value={adminMasterPinInput}
+                        onChange={(e) =>
+                          setAdminMasterPinInput(e.target.value.replace(/\D/g, ""))
+                        }
+                        placeholder="••••"
+                        className="w-full py-2.5 text-center tracking-widest text-lg font-black bg-[#FAF6F2] border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdminModalStep("login");
+                          setAdminError(null);
+                        }}
+                        className="flex-1 py-2.5 rounded-xl bg-[#FAF6F2] text-[#01374C] font-bold text-xs border border-[#DDC1AB] cursor-pointer"
+                      >
+                        Volver
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 py-2.5 rounded-xl bg-[#01374C] text-white font-black text-xs cursor-pointer"
+                      >
+                        Verificar PIN
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleAdminResetPasswordSubmit} className="space-y-3.5">
+                    <div className="p-3 rounded-xl bg-[#EBFBFA] border border-[#00D9B4]/50 text-xs">
+                      <span className="text-[#52646E] block">Tu usuario actual de Administrador es:</span>
+                      <strong data-cms-locked="true" className="text-sm font-black text-[#01374C] select-all">
+                        {getAdminCredentials().username}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#01374C] mb-1">
+                        Escribe tu Nueva Contraseña de Administrador *
+                      </label>
+                      <input
+                        type="text"
+                        value={adminNewPassword}
+                        onChange={(e) => setAdminNewPassword(e.target.value)}
+                        placeholder="Escribe tu nueva contraseña"
+                        className="w-full px-3.5 py-2.5 bg-[#FAF6F2] border border-[#DDC1AB] rounded-xl text-xs sm:text-sm font-bold text-[#01374C]"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 rounded-2xl bg-[#01374C] hover:bg-[#002636] text-white text-xs sm:text-sm font-black flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <RotateCcw className="w-4 h-4 text-[#00D9B4]" />
+                      <span>Guardar Contraseña y Entrar al Panel</span>
+                    </button>
+                  </form>
                 )}
               </div>
             </motion.div>

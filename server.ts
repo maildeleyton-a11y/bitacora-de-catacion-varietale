@@ -10,6 +10,7 @@
 
 import express, { Request, Response } from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -59,6 +60,85 @@ async function startServer(): Promise<void> {
   // --------------------------------------------------------------------------
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // --------------------------------------------------------------------------
+  // RUTA: Persistencia de Textos de Interfaz, Rueda SCA y Métodos (UI CMS)
+  // --------------------------------------------------------------------------
+  const uiCmsFilePath = path.join(process.cwd(), ".ui-cms-state.json");
+  let serverUiCmsState: Record<string, unknown> | null = null;
+  try {
+    if (fs.existsSync(uiCmsFilePath)) {
+      serverUiCmsState = JSON.parse(fs.readFileSync(uiCmsFilePath, "utf-8"));
+    }
+  } catch {}
+
+  app.get("/api/admin/ui-cms", (_req: Request, res: Response) => {
+    return res.json({
+      ok: true,
+      state: serverUiCmsState,
+    });
+  });
+
+  app.post("/api/admin/ui-cms", (req: Request, res: Response) => {
+    try {
+      if (req.body && typeof req.body === "object") {
+        serverUiCmsState = req.body;
+        try {
+          fs.writeFileSync(uiCmsFilePath, JSON.stringify(serverUiCmsState, null, 2), "utf-8");
+        } catch {}
+      }
+      return res.json({ ok: true });
+    } catch (err: any) {
+      return res.status(500).json({ ok: false, error: err?.message });
+    }
+  });
+
+  // --------------------------------------------------------------------------
+  // RUTA: Puente de Webhooks (Google Sheets / Notion) libre de restricciones CORS
+  // --------------------------------------------------------------------------
+  app.post("/api/admin/webhook-relay", async (req: Request, res: Response) => {
+    try {
+      const { targets, payload } = req.body as {
+        targets?: { name: string; url: string }[];
+        payload?: unknown;
+      };
+
+      if (!Array.isArray(targets) || targets.length === 0) {
+        return res.status(400).json({
+          ok: false,
+          details: "No se especificaron URLs de destino activas.",
+        });
+      }
+
+      const results: string[] = [];
+      for (const target of targets) {
+        if (!target.url || !target.url.startsWith("http")) continue;
+        try {
+          const response = await fetch(target.url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json, text/plain, */*",
+            },
+            body: JSON.stringify(payload || {}),
+          });
+          results.push(`${target.name}: HTTP ${response.status}`);
+        } catch (err: any) {
+          results.push(`${target.name}: Error (${err?.message || "Red"})`);
+        }
+      }
+
+      return res.json({
+        ok: results.length > 0,
+        details: results.join(" | ") || "Sin destinos válidos",
+      });
+    } catch (err: any) {
+      return res.status(500).json({
+        ok: false,
+        details: err?.message || "Error interno en puente de Webhook",
+      });
+    }
   });
 
   // --------------------------------------------------------------------------

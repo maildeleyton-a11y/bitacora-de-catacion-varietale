@@ -50,6 +50,8 @@ interface UserAuthModalProps {
   tastings: TastingRecord[];
   /** Acción para abrir el modal de instalación PWA */
   onOpenInstall?: () => void;
+  /** Regresa al panel de administración si está en sesión de prueba */
+  onReturnToAdmin?: () => void;
 }
 
 export const UserAuthModal: React.FC<UserAuthModalProps> = ({
@@ -60,6 +62,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
   onLogout,
   tastings,
   onOpenInstall,
+  onReturnToAdmin,
 }) => {
   const [activeTab, setActiveTab] = useState<
     "register" | "login" | "profile" | "resetPassword" | "quickReminder"
@@ -761,7 +764,10 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
             {/* TAB 5: PROFILE VIEW (WHEN LOGGED IN) */}
             {currentUser && (
               <div className="space-y-4">
-                <div className="p-4 bg-linear-to-br from-[#01374C] to-[#002636] rounded-2xl text-white shadow-md relative overflow-hidden">
+                <div
+                  data-cms-locked="true"
+                  className="p-4 bg-linear-to-br from-[#01374C] to-[#002636] rounded-2xl text-white shadow-md relative overflow-hidden"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center font-black text-xl border border-white/20">
                       {currentUser.name.charAt(0)}
@@ -778,11 +784,15 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="p-3 bg-[#FAF6F2] rounded-xl border border-[#DDC1AB]/60">
-                    <span className="text-lg font-black text-[#01374C] block">{totalCatas}</span>
+                    <span data-cms-locked="true" className="text-lg font-black text-[#01374C] block">
+                      {totalCatas}
+                    </span>
                     <span className="text-[11px] text-[#52646E]">Catas Registradas</span>
                   </div>
                   <div className="p-3 bg-[#FAF6F2] rounded-xl border border-[#DDC1AB]/60">
-                    <span className="text-lg font-black text-[#01374C] block">{methodsUsed}</span>
+                    <span data-cms-locked="true" className="text-lg font-black text-[#01374C] block">
+                      {methodsUsed}
+                    </span>
                     <span className="text-[11px] text-[#52646E]">Métodos Explorados</span>
                   </div>
                 </div>
@@ -799,6 +809,21 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                   >
                     <Smartphone className="w-4 h-4 text-[#00897B]" />
                     <span>Instalar App en el Celular (PWA)</span>
+                  </button>
+                )}
+
+                {/* Acceso para volver al Panel Admin desde el usuario de prueba */}
+                {currentUser?.username === "catador.prueba" && onReturnToAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onReturnToAdmin();
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white text-xs font-black flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#00D9B4]" />
+                    <span>Volver al Panel de Administración</span>
                   </button>
                 )}
 

@@ -14,19 +14,30 @@ import React, { useState, useEffect } from "react";
 interface LaunchSequenceProps {
   /** Callback disparado al finalizar la animación o al pulsar 'Omitir' */
   onComplete: () => void;
+  /** En Modo Edición Visual en Vivo mantiene la revelación final estática para editar sus textos sin autocerrarse */
+  freezePreview?: boolean;
 }
 
-export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) => {
+export const LaunchSequence: React.FC<LaunchSequenceProps> = ({
+  onComplete,
+  freezePreview = false,
+}) => {
   // Phase state driven by a strict 5.0s timer
   // 0: 0.0s - 0.5s (Aparecen el Key Visual y la firma inferior)
   // 1: 0.5s - 3.0s (Sube el fondo azul: efecto líquido/máscara suave de 2.5s)
   // 2: 3.0s - 3.5s (El Key Visual blanco hace fade-out)
   // 3: 3.5s - 5.0s (Aparece el logotipo de Varietale y el texto "Amor por el café")
   // 4: 5.0s (Finalizado)
-  const [phase, setPhase] = useState<number>(0);
-  const [fillHeight, setFillHeight] = useState<number>(0); // 0% a 100%
+  const [phase, setPhase] = useState<number>(freezePreview ? 3 : 0);
+  const [fillHeight, setFillHeight] = useState<number>(freezePreview ? 100 : 0); // 0% a 100%
 
   useEffect(() => {
+    if (freezePreview) {
+      setPhase(3);
+      setFillHeight(100);
+      return;
+    }
+
     // (0.0s - 0.5s): Aparecen el Key Visual y la firma inferior
     const t0 = setTimeout(() => {
       setPhase(0);
@@ -61,7 +72,7 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
       clearTimeout(t3);
       clearTimeout(t4);
     };
-  }, [onComplete]);
+  }, [onComplete, freezePreview]);
 
   // Key visual SVG in color
   const SvgKeyVisualColor = () => (
@@ -215,7 +226,10 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
             phase >= 0 ? "opacity-100" : "opacity-0"
           }`}
         >
-          <p className="text-xs sm:text-sm text-[#01374C] font-normal tracking-wide">
+          <p
+            data-cms-locked="true"
+            className="text-xs sm:text-sm text-[#01374C] font-normal tracking-wide"
+          >
             Ideado y Creado por <span className="font-bold">Mr. Bite®</span> Para{" "}
             <span className="font-bold">VARIETALE®</span>
           </p>
@@ -247,7 +261,10 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
 
           {/* Firma Inferior (Blanco) */}
           <div className="absolute bottom-6 left-0 right-0 text-center px-4">
-            <p className="text-xs sm:text-sm text-white font-normal tracking-wide">
+            <p
+              data-cms-locked="true"
+              className="text-xs sm:text-sm text-white font-normal tracking-wide"
+            >
               Ideado y Creado por <span className="font-bold">Mr. Bite®</span> Para{" "}
               <span className="font-bold">VARIETALE®</span>
             </p>
@@ -260,7 +277,9 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
           En el centro exacto: Logo VARIETALE en blanco + "Amor por el Café"
          ============================================================== */}
       <div
-        className={`absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-none transition-all duration-700 ease-out ${
+        className={`absolute inset-0 flex flex-col items-center justify-center p-6 ${
+          freezePreview ? "" : "pointer-events-none"
+        } transition-all duration-700 ease-out ${
           phase >= 3
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-90 translate-y-4"
@@ -277,7 +296,9 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({ onComplete }) =>
       {/* Botón sutil para omitir inmediatamente si el usuario lo desea */}
       <button
         onClick={onComplete}
-        className={`absolute top-4 right-4 z-50 text-xs font-bold px-3.5 py-1.5 rounded-full transition-all cursor-pointer backdrop-blur-xs ${
+        className={`absolute ${
+          freezePreview ? "top-28 sm:top-24" : "top-4"
+        } right-4 z-50 text-xs font-bold px-3.5 py-1.5 rounded-full transition-all cursor-pointer backdrop-blur-xs ${
           phase >= 1
             ? "text-white/85 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20"
             : "text-[#01374C] hover:text-[#01374C] bg-[#01374C]/10 hover:bg-[#01374C]/15 border border-[#01374C]/20"
