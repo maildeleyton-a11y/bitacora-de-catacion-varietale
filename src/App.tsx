@@ -356,7 +356,10 @@ export default function App() {
     } catch (e) {
       console.warn("Fallo al guardar sesión de usuario de prueba:", e);
     }
-    const userTastings = getTestUserTastings();
+    let userTastings = getTestUserTastings();
+    if (!userTastings || userTastings.length === 0) {
+      userTastings = seedTestUser20Tastings();
+    }
     setTastings(userTastings);
     setCurrentScreen("home");
   };

@@ -2439,7 +2439,7 @@ export const seedSimulatedAdminData = (): {
 
   // Reseñas de 1★ y 2★ (calificación baja para probar el filtro de 1, 2 y 3 estrellas)
   const lowRatingNotes = [
-    "El tueste de esta bolsa de otra marca estaba demasiado alto, predominaron notas ahumadas y amargas sobre la fruta.",
+    "En esta preparación la molienda me quedó demasiado fina y el agua muy caliente; predominaron notas amargas y secas.",
     "No me convenció este lote en particular; sentí una nota herbal y astringente al final. Prefiero los lavados de Varietale.",
     "Se me pasó el tiempo de extracción a más de 5 minutos con agua muy caliente y quedó sobre-extraído y seco en boca.",
     "Esperaba notas más dulces pero lo sentí plano y con poco aroma porque la bolsa ya llevaba abierta varias semanas.",
@@ -2509,23 +2509,23 @@ export const seedSimulatedAdminData = (): {
     const userTastings: TastingRecord[] = [];
     for (let c = 0; c < p.tastingsCount; c++) {
       const globalIndex = totalTastingsCreated;
-      // ~80% Varietale, ~20% otras marcas
-      const useCompetitor = (idx + c) % 5 === 3;
+      // 100% Cataciones de cafés oficiales de Varietale (tolerancia cero a marcas inventadas)
       const varietaleList = coffeePool.filter((cf) => cf.isVarietale);
-      const competitorList = coffeePool.filter((cf) => !cf.isVarietale);
+      const chosenCoffee = varietaleList[(idx * 3 + c) % varietaleList.length];
 
-      const chosenCoffee = useCompetitor
-        ? competitorList[(idx + c) % competitorList.length]
-        : varietaleList[(idx * 3 + c) % varietaleList.length];
-
-      // Distribución realista de estrellas (incluyendo 1★, 2★, 3★, 4★ y 5★)
+      // Distribución realista de estrellas (incluyendo 1★, 2★, 3★, 4★ y 5★ para auditar filtros)
       let rating = 5;
-      if (useCompetitor) {
-        const rRoll = (idx + c) % 4;
-        rating = rRoll === 0 ? 1 : rRoll === 1 ? 2 : rRoll === 2 ? 3 : 4;
+      const rRoll = (idx * 2 + c) % 10;
+      if (globalIndex === 2 || globalIndex === 17) {
+        rating = 1;
+      } else if (rRoll === 0) {
+        rating = 2;
+      } else if (rRoll === 1) {
+        rating = 3;
+      } else if (rRoll <= 4) {
+        rating = 4;
       } else {
-        const rRoll = (idx * 2 + c) % 10;
-        rating = rRoll === 0 ? 2 : rRoll === 1 ? 3 : rRoll <= 4 ? 4 : 5;
+        rating = 5;
       }
 
       const comboType = rating <= 2 ? 5 : (idx + c) % 5;

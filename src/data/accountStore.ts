@@ -233,12 +233,48 @@ export const TEST_USER_TASTINGS_STORAGE_KEY = "varietale_user_tastings_catador_p
 /**
  * Obtiene las cataciones del usuario de prueba.
  */
+const AUTHENTIC_VARIETALE_NAMES = new Set([
+  "palermo",
+  "las hortensias",
+  "bourbon papayo",
+  "borbon papayo",
+  "mezcla de la casa",
+  "san antonio",
+  "la laguna",
+  "san jose",
+  "san josé",
+  "mesetas",
+  "bruselas",
+  "la argelia",
+  "sans (descafeinado)",
+  "papayo enmielado",
+  "pitalito",
+]);
+
+/**
+ * Obtiene las cataciones del usuario de prueba.
+ * Auto-migra y purga automáticamente cualquier cata con cafés inventados o ficticios previos.
+ */
 export const getTestUserTastings = (): TastingRecord[] => {
   try {
     const raw = localStorage.getItem(TEST_USER_TASTINGS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Si detecta cafés inventados antiguos en la caché del navegador, purga y siembra los 20 de Varietale
+        const hasInventedCoffees = parsed.some((t) => {
+          const name = (t.coffeeName || "").toLowerCase().trim();
+          return (
+            !AUTHENTIC_VARIETALE_NAMES.has(name) ||
+            t.brand !== "VARIETALE" ||
+            (t.farmerName && !["Alejandro Ariza", "Jhohan Becerra", "Juan Pablo García", "Comunidad Indígena Nasa"].includes(t.farmerName))
+          );
+        });
+
+        if (hasInventedCoffees) {
+          return seedTestUser20Tastings();
+        }
+
         // Auto-migración retroactiva: asegura que toda cata previa tenga coffeeForm y grindSize válidos
         return parsed.map((t, idx) => {
           const isMolido = t.coffeeForm === "molido" || (!t.coffeeForm && idx % 3 === 1);
@@ -256,7 +292,7 @@ export const getTestUserTastings = (): TastingRecord[] => {
   } catch (e) {
     console.warn("Error leyendo catas del usuario de prueba:", e);
   }
-  return [];
+  return seedTestUser20Tastings();
 };
 
 /**
