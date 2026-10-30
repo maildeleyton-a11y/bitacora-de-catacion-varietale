@@ -26,10 +26,10 @@ import {
   Edit3,
   Sparkles,
 } from "lucide-react";
-import { TastingRecord, SensorySpiderProfile } from "../types";
+import { TastingRecord, SensorySpiderProfile, CoffeeInfo } from "../types";
 import { RadarChart, RADAR_AXES } from "./RadarChart";
 import { BrewMethodIcon } from "./BrewMethodIcons";
-import { BREW_METHODS, computeSensorySpiderProfile } from "../data/coffeeData";
+import { BREW_METHODS, VARIETALE_SAMPLE_COFFEES, computeSensorySpiderProfile } from "../data/coffeeData";
 import { BrandFooter } from "./BrandFooter";
 import { WelcomeGiftCard } from "./WelcomeGiftCard";
 import { VarietaleBrandIcon } from "./VarietaleLogo";
@@ -46,7 +46,50 @@ interface LogbookScreenProps {
   onDeleteCata: (id: string) => void;
   /** Regresa a la pantalla de inicio */
   onBackToHome: () => void;
+  /** Catálogo en vivo sincronizado con varietale.com para resolución dinámica */
+  liveCoffees?: CoffeeInfo[];
 }
+
+/**
+ * Componente de miniatura fotográfica que intenta mostrar la imagen del café
+ * y, si falla la carga de red o no existe imagen, muestra el isotipo oficial de Varietale.
+ */
+interface CoffeeThumbnailProps {
+  photoSrc?: string;
+  coffeeName: string;
+  className?: string;
+}
+
+const CoffeeThumbnail: React.FC<CoffeeThumbnailProps> = ({
+  photoSrc,
+  coffeeName,
+  className = "w-13 h-13 sm:w-15 sm:h-15 rounded-xl",
+}) => {
+  const [imgError, setImgError] = useState(false);
+
+  // Reiniciar estado de error si la fuente de la foto cambia dinámicamente
+  useEffect(() => {
+    setImgError(false);
+  }, [photoSrc]);
+
+  if (photoSrc && !imgError) {
+    return (
+      <img
+        src={photoSrc}
+        alt={coffeeName}
+        className={`${className} object-cover border border-[#DDC1AB] shrink-0 bg-[#FAF6F2]`}
+        loading="lazy"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={`${className} bg-[#01374C] p-2 flex items-center justify-center shrink-0`}>
+      <VarietaleBrandIcon className="w-full h-full text-[#00D9B4]" color="#00D9B4" />
+    </div>
+  );
+};
 
 export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   tastings,
@@ -54,8 +97,56 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   onEditCata,
   onDeleteCata,
   onBackToHome,
+  liveCoffees,
 }) => {
   const [activeTab, setActiveTab] = useState<"historial" | "comparador" | "exploracion">("historial");
+
+  // Normaliza nombres para comparación insensible a tildes, mayúsculas y espacios
+  const normalizeCoffeeKey = (str: string) =>
+    (str || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  // Resolución dinámica en tiempo de ejecución:
+  // 1. Si el usuario tomó una foto propia, tiene prioridad absoluta.
+  // 2. Si no hay foto propia, busca la foto oficial en el catálogo en vivo (o respaldo de Varietale).
+  // 3. Cero redundancia de fotos en localStorage.
+  const resolveCataPhoto = (cata: TastingRecord): string | undefined => {
+    if (cata.photoUrl && cata.photoUrl !== "/icon-192.png") {
+      return cata.photoUrl;
+    }
+    const catalog = liveCoffees && liveCoffees.length > 0 ? liveCoffees : VARIETALE_SAMPLE_COFFEES;
+    const target = normalizeCoffeeKey(cata.coffeeName || "");
+    if (!target) return undefined;
+
+    // Coincidencia exacta
+    const exact = catalog.find((c) => normalizeCoffeeKey(c.coffeeName) === target);
+    if (exact?.imageUrl) return exact.imageUrl;
+
+    // Coincidencia parcial
+    const partial = catalog.find((c) => {
+      const cName = normalizeCoffeeKey(c.coffeeName);
+      return cName.includes(target) || target.includes(cName);
+    });
+    if (partial?.imageUrl) return partial.imageUrl;
+
+    // Coincidencia por palabra clave distintiva
+    const keywords = target
+      .split(" ")
+      .filter((w) => w.length > 3 && !["cafe", "edicion", "especial", "varietale"].includes(w));
+    if (keywords.length > 0) {
+      const kwMatch = catalog.find((c) => {
+        const cName = normalizeCoffeeKey(c.coffeeName);
+        return keywords.some((k) => cName.includes(k));
+      });
+      if (kwMatch?.imageUrl) return kwMatch.imageUrl;
+    }
+
+    return undefined;
+  };
 
   // Asegurar que la bitácora siempre cargue en la parte superior y al cambiar de pestaña
   useEffect(() => {
@@ -547,17 +638,10 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
 
                   {/* 2. Nombre del Café y Foto de la Bolsa / Ícono */}
                   <div className="pt-3 flex items-start gap-3">
-                    {cata.photoUrl ? (
-                      <img
-                        src={cata.photoUrl}
-                        alt={cata.coffeeName}
-                        className="w-13 h-13 sm:w-15 sm:h-15 object-cover rounded-xl border border-[#DDC1AB] shrink-0 bg-[#FAF6F2]"
-                      />
-                    ) : (
-                      <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-xl bg-[#01374C] p-2.5 flex items-center justify-center shrink-0">
-                        <VarietaleBrandIcon className="w-full h-full text-[#00D9B4]" color="#00D9B4" />
-                      </div>
-                    )}
+                    <CoffeeThumbnail
+                      photoSrc={resolveCataPhoto(cata)}
+                      coffeeName={cata.coffeeName}
+                    />
 
                     <div className="flex-1 min-w-0">
                       {cata.brand && (
@@ -848,36 +932,50 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                     <label className="text-xs font-black uppercase text-[#01374C] block mb-1.5 tracking-wider">
                       ● Cata A (Azul Primario)
                     </label>
-                    <select
-                      data-cms-locked="true"
-                      value={compCataAId}
-                      onChange={(e) => setCompCataAId(e.target.value)}
-                      className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
-                    >
-                      {tastings.map((t) => (
-                        <option key={`opt-a-${t.id}`} value={t.id}>
-                          {t.coffeeName} ({getMethodName(t.brewMethod)})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-2.5">
+                      <CoffeeThumbnail
+                        photoSrc={resolveCataPhoto(cataA)}
+                        coffeeName={cataA.coffeeName}
+                        className="w-10 h-10 rounded-xl"
+                      />
+                      <select
+                        data-cms-locked="true"
+                        value={compCataAId}
+                        onChange={(e) => setCompCataAId(e.target.value)}
+                        className="flex-1 min-w-0 text-xs sm:text-sm font-semibold p-2 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      >
+                        {tastings.map((t) => (
+                          <option key={`opt-a-${t.id}`} value={t.id}>
+                            {t.coffeeName} ({getMethodName(t.brewMethod)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className="bg-[#EBFBFA]/80 p-3 rounded-2xl border border-[#00D9B4]/40">
                     <label className="text-xs font-black uppercase text-[#00897B] block mb-1.5 tracking-wider">
                       ● Cata B (Acento Menta)
                     </label>
-                    <select
-                      data-cms-locked="true"
-                      value={compCataBId}
-                      onChange={(e) => setCompCataBId(e.target.value)}
-                      className="w-full text-xs sm:text-sm font-semibold p-2.5 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
-                    >
-                      {tastings.map((t) => (
-                        <option key={`opt-b-${t.id}`} value={t.id}>
-                          {t.coffeeName} ({getMethodName(t.brewMethod)})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-2.5">
+                      <CoffeeThumbnail
+                        photoSrc={resolveCataPhoto(cataB)}
+                        coffeeName={cataB.coffeeName}
+                        className="w-10 h-10 rounded-xl"
+                      />
+                      <select
+                        data-cms-locked="true"
+                        value={compCataBId}
+                        onChange={(e) => setCompCataBId(e.target.value)}
+                        className="flex-1 min-w-0 text-xs sm:text-sm font-semibold p-2 rounded-xl border border-[#DDC1AB] bg-white text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
+                      >
+                        {tastings.map((t) => (
+                          <option key={`opt-b-${t.id}`} value={t.id}>
+                            {t.coffeeName} ({getMethodName(t.brewMethod)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -899,13 +997,32 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
               {/* Columna Derecha: Tarjetas de detalles sensoriales de Cata A y Cata B (Datos de BD bloqueados) */}
               <div data-cms-locked="true" className="lg:col-span-6 flex flex-col gap-4">
                 <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF6F2]/80 border-2 border-[#01374C]/30 shadow-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-black text-[#01374C] uppercase tracking-wider">
-                      ● Cata A: {cataA.coffeeName}
-                    </span>
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#01374C] text-white">
-                      {getMethodName(cataA.brewMethod)}
-                    </span>
+                  <div className="flex items-start gap-3.5 mb-3">
+                    <CoffeeThumbnail
+                      photoSrc={resolveCataPhoto(cataA)}
+                      coffeeName={cataA.coffeeName}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs sm:text-sm font-black text-[#01374C] uppercase tracking-wider truncate">
+                          ● Cata A: {cataA.coffeeName}
+                        </span>
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#01374C] text-white shrink-0">
+                          {getMethodName(cataA.brewMethod)}
+                        </span>
+                      </div>
+                      {(cataA.farmName || cataA.farmerName || cataA.origin) && (
+                        <p className="text-xs text-[#6A7B85] font-semibold truncate mt-0.5">
+                          {[cataA.farmName, cataA.farmerName, cataA.origin].filter(Boolean).join(" • ")}
+                        </p>
+                      )}
+                      {(cataA.variety || cataA.process) && (
+                        <p className="text-[11px] text-[#00897B] font-bold truncate mt-0.5">
+                          {[cataA.variety, cataA.process].filter(Boolean).join(" | ")}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#4A5D68] mt-1">
                     <span>
@@ -944,13 +1061,32 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 </div>
 
                 <div className="p-4 sm:p-5 rounded-2xl bg-[#EBFBFA]/80 border-2 border-[#00D9B4]/60 shadow-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-black text-[#00897B] uppercase tracking-wider">
-                      ● Cata B: {cataB.coffeeName}
-                    </span>
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C]">
-                      {getMethodName(cataB.brewMethod)}
-                    </span>
+                  <div className="flex items-start gap-3.5 mb-3">
+                    <CoffeeThumbnail
+                      photoSrc={resolveCataPhoto(cataB)}
+                      coffeeName={cataB.coffeeName}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs sm:text-sm font-black text-[#00897B] uppercase tracking-wider truncate">
+                          ● Cata B: {cataB.coffeeName}
+                        </span>
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C] shrink-0">
+                          {getMethodName(cataB.brewMethod)}
+                        </span>
+                      </div>
+                      {(cataB.farmName || cataB.farmerName || cataB.origin) && (
+                        <p className="text-xs text-[#6A7B85] font-semibold truncate mt-0.5">
+                          {[cataB.farmName, cataB.farmerName, cataB.origin].filter(Boolean).join(" • ")}
+                        </p>
+                      )}
+                      {(cataB.variety || cataB.process) && (
+                        <p className="text-[11px] text-[#00897B] font-bold truncate mt-0.5">
+                          {[cataB.variety, cataB.process].filter(Boolean).join(" | ")}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#4A5D68] mt-1">
                     <span>

@@ -593,7 +593,10 @@ export default function App() {
     const recordId = editingCataId || `cata-${Date.now()}`;
     const createdAt = editingCataCreatedAt || new Date().toISOString();
 
-    const finalPhoto = draftPhoto || draftCoffee.imageUrl || "/icon-192.png";
+    // Almacenamiento limpio: solo se guarda photoUrl si el usuario tomó/subió una fotografía personal.
+    // Para cafés oficiales de catálogo no guardamos URLs redundantes en localStorage,
+    // ahorrando espacio y resolviendo la imagen en vivo dinámicamente en pantalla.
+    const finalPhoto = draftPhoto || undefined;
 
     const savedRecord: TastingRecord = {
       id: recordId,
@@ -1100,6 +1103,7 @@ export default function App() {
               onEditCata={handleEditCata}
               onDeleteCata={handleDeleteCata}
               onBackToHome={() => setCurrentScreen("home")}
+              liveCoffees={liveCoffees}
             />
           )}
 

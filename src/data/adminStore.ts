@@ -2588,7 +2588,7 @@ export const seedSimulatedAdminData = (): {
         spiderProfile: computeSensorySpiderProfile(selectedFlavors, bodyLevel),
         rating,
         userNotes,
-        photoUrl: "/icon-192.png",
+        photoUrl: undefined,
       };
 
       userTastings.push(record);
