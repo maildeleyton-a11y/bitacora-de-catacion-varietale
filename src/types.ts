@@ -190,6 +190,9 @@ export interface UserProfile {
 // 4. CATÁLOGO DE CAFÉS DE ESPECIALIDAD
 // ============================================================================
 
+export type CoffeeForm = "grano" | "molido";
+export type GrindSize = "fina" | "media" | "gruesa";
+
 /**
  * Información botánica, geográfica y comercial de un café de especialidad.
  */
@@ -222,12 +225,16 @@ export interface CoffeeInfo {
   imageUrl?: string;
   /** Clasificación comercial (ej: Café Especial, Edición Limitada, Café Exótico) */
   productType?: string;
-  /** Precio formateado en pesos colombianos */
-  price?: string;
   /** Enlace a la ficha oficial en la tienda web de Varietale */
   url?: string;
   /** Handle único para la URL del producto */
   handle?: string;
+  /** Disponibilidad de stock en tienda online */
+  available?: boolean;
+  /** Presentación inicial del café: grano entero o ya molido */
+  coffeeForm?: CoffeeForm;
+  /** Grosor de molienda utilizado para la cata (fina, media o gruesa) */
+  grindSize?: GrindSize;
 }
 
 // ============================================================================
@@ -262,6 +269,10 @@ export interface TastingRecord {
   process: string;
   /** Altura sobre el nivel del mar */
   altitude?: string;
+  /** Presentación inicial: grano entero recién molido o ya molido */
+  coffeeForm?: CoffeeForm;
+  /** Grosor de molienda utilizado para la cata (fina, media o gruesa) */
+  grindSize?: GrindSize;
   /** Método de preparación empleado */
   brewMethod: BrewMethod;
   /** Verificación de parámetros de preparación */

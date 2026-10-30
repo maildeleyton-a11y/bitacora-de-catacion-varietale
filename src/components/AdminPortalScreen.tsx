@@ -307,7 +307,7 @@ const HELP_DESK_SECTIONS = [
     bullets: [
       "Acceso Exclusivo desde el Panel: En la barra superior pulsa 'Probar como Usuario'. El antiguo icono de matraz en la pantalla de login fue retirado para garantizar que solo el Administrador pueda ingresar a este modo.",
       "Barra Superior de Pruebas: Al entrar verás una barra superior fija con tres opciones rápidas: '⚡ Simular 20 Catas Aleatorias', '🗑️ Limpiar Catas' y '🛡️ Volver al Panel Admin'.",
-      "Simulación de 20 Cataciones Reales: Llena instantáneamente la Bitácora con 20 cafés colombianos auténticos (Geisha, Bourbon Rosado, Caturra Chiroso, Tabi, Wush Wush, etc.), diferentes métodos (V60, Chemex, Aeropress, Prensa Francesa, Espresso), notas de la rueda SCA y calificaciones.",
+      "Simulación de 20 Cataciones Reales: Llena instantáneamente la Bitácora con los cafés oficiales de Varietale (Palermo, Bourbon Papayo, Las Hortensias, Mezcla de la Casa, La Argelia, Pitalito, etc.), diferentes métodos (V60, Chemex, Aeropress, Prensa Francesa, Espresso), notas de la rueda SCA y calificaciones.",
       "Validación de Funcionalidades: Prueba la gráfica de radar, el comparador de tazas, el historial de cataciones y los filtros de la Bitácora exactamente como lo haría un usuario activo.",
       "🛡️ Aislamiento Total de Métricas (Cero Contaminación): Ni la cuenta de prueba ni sus 20 cataciones se mezclan jamás con las métricas del negocio. El Panel Admin, los KPIs generales, el ranking de catadores y las exportaciones en Excel/CSV excluyen estrictamente estos registros de prueba.",
       "Retorno Inmediato al Panel Admin: Pulsa '🛡️ Volver al Panel Admin' desde la barra superior o desde el modal de perfil para regresar instantáneamente a tu panel de control.",
@@ -1598,7 +1598,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                               {tasting.coffeeName}
                             </div>
                             <div className="text-[#6A7B85] truncate">
-                              Por {userName} • {tasting.brewMethod.toUpperCase()}
+                              Por {userName} • {tasting.brewMethod.toUpperCase()} • {tasting.coffeeForm === "molido" ? "🌾 Molido" : "☕ Grano"} ({tasting.grindSize || "media"})
                             </div>
                           </div>
                           <span className="shrink-0 font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
@@ -1892,8 +1892,8 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
               </div>
             </div>
 
-            {/* Preferencias de Mercado: Variedades, Beneficios, Orígenes y Métodos de Preparación */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Preferencias de Mercado: Variedades, Beneficios, Orígenes, Métodos de Preparación y Molienda */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {/* Variedades Botánicas */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs">
                 <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#E8EDF1]">
@@ -2025,6 +2025,68 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                   <span>
                     <span>Denso:</span>{" "}
                     <strong data-cms-locked="true">{stats.bodyDistribution.denso}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Presentación Inicial y Molienda de Cata */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E8EDF1] shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#E8EDF1]">
+                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#01374C]">
+                      ⚙️ Presentación y Molienda
+                    </h3>
+                    <InfoHint
+                      title="Presentación y Molienda"
+                      text="Muestra la proporción de usuarios que inician con café En Grano fresco vs. Ya Molido, y la distribución del grosor de molienda calibrado para la cata (Fina, Media, Gruesa)."
+                    />
+                  </div>
+
+                  {/* Proporción Grano vs Molido */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-[#01374C] flex items-center gap-1">
+                        ☕ En Grano
+                      </span>
+                      <span className="text-[#00897B] font-extrabold">
+                        {stats.coffeeFormStats.granoPct}% ({stats.coffeeFormStats.granoCount})
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#E8EDF1] h-1.5 rounded-full overflow-hidden flex">
+                      <div
+                        className="bg-[#00D9B4] h-full transition-all duration-300"
+                        style={{ width: `${stats.coffeeFormStats.granoPct}%` }}
+                      />
+                      <div
+                        className="bg-[#A05C2C] h-full transition-all duration-300"
+                        style={{ width: `${stats.coffeeFormStats.molidoPct}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-[#01374C] flex items-center gap-1">
+                        🌾 Ya Molido
+                      </span>
+                      <span className="text-[#A05C2C] font-extrabold">
+                        {stats.coffeeFormStats.molidoPct}% ({stats.coffeeFormStats.molidoCount})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desglose de Grosor de Molienda */}
+                <div className="pt-3 mt-1 border-t border-[#E8EDF1] text-[11px] flex items-center justify-between text-[#52646E]">
+                  <span>Molienda:</span>
+                  <span>
+                    <span>Fina:</span>{" "}
+                    <strong className="text-[#01374C]">{stats.coffeeFormStats.grindCounts.fina}</strong>
+                  </span>
+                  <span>
+                    <span>Media:</span>{" "}
+                    <strong className="text-[#01374C]">{stats.coffeeFormStats.grindCounts.media}</strong>
+                  </span>
+                  <span>
+                    <span>Gruesa:</span>{" "}
+                    <strong className="text-[#01374C]">{stats.coffeeFormStats.grindCounts.gruesa}</strong>
                   </span>
                 </div>
               </div>
@@ -2815,9 +2877,18 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                                               {t.rating} ★
                                             </span>
                                           </div>
-                                          <div className="text-[#6A7B85]">
-                                            Método:{" "}
-                                            <strong>{t.brewMethod.toUpperCase()}</strong> •{" "}
+                                          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EBFBFA] text-[#01374C] border border-[#00D9B4]/30">
+                                              {t.coffeeForm === "molido" ? "🌾 Ya Molido" : "☕ En Grano"}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFF5EB] text-[#A05C2C] border border-[#A05C2C]/20">
+                                              Molienda: {(t.grindSize || "media").charAt(0).toUpperCase() + (t.grindSize || "media").slice(1)}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F5F8FA] text-[#52646E]">
+                                              Método: {t.brewMethod.toUpperCase()}
+                                            </span>
+                                          </div>
+                                          <div className="text-[#6A7B85] text-[11px]">
                                             {[t.origin, t.variety, t.process]
                                               .filter(Boolean)
                                               .join(" • ")}
@@ -3101,15 +3172,23 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                           )}
                       </div>
 
-                      <div className="pt-2.5 border-t border-[#DDC1AB]/50 flex items-center justify-between text-xs text-[#6A7B85]">
+                      <div className="pt-2.5 border-t border-[#DDC1AB]/50 flex flex-wrap items-center justify-between gap-2 text-xs text-[#6A7B85]">
                         <span>
                           Catador: <strong className="text-[#01374C]">{userName}</strong> (@
                           {username})
                         </span>
-                        <span>
-                          Método: <strong>{tasting.brewMethod.toUpperCase()}</strong> •{" "}
-                          {formatReadableDate(tasting.createdAt)}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-full bg-[#EBFBFA] text-[#01374C] font-semibold text-[11px]">
+                            {tasting.coffeeForm === "molido" ? "🌾 Ya Molido" : "☕ En Grano"}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-[#FFF5EB] text-[#A05C2C] font-semibold text-[11px]">
+                            Molienda: {(tasting.grindSize || "media").charAt(0).toUpperCase() + (tasting.grindSize || "media").slice(1)}
+                          </span>
+                          <span>
+                            Método: <strong>{tasting.brewMethod.toUpperCase()}</strong> •{" "}
+                            {formatReadableDate(tasting.createdAt)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -3225,11 +3304,6 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#EBFBFA] text-[#01374C] border border-[#00D9B4]/30">
                           #{index + 1} • {coffee.productType || "Café Especial"}
                         </span>
-                        {coffee.price && (
-                          <span className="text-xs font-black text-[#00897B]">
-                            {coffee.price}
-                          </span>
-                        )}
                       </div>
                       <h3 className="text-base font-black text-[#01374C] leading-snug">
                         {coffee.coffeeName}

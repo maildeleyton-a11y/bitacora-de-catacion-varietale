@@ -526,8 +526,12 @@ export default function App() {
       !("nativeEvent" in (presetCoffee as object));
 
     const sample: CoffeeInfo = isValidCoffee
-      ? { ...(presetCoffee as CoffeeInfo) }
-      : { ...EMPTY_COFFEE };
+      ? {
+          ...(presetCoffee as CoffeeInfo),
+          coffeeForm: (presetCoffee as CoffeeInfo).coffeeForm || "grano",
+          grindSize: (presetCoffee as CoffeeInfo).grindSize || "media",
+        }
+      : { ...EMPTY_COFFEE, coffeeForm: "grano", grindSize: "media" };
 
     setDraftCoffee(sample);
     const validMethod = typeof presetMethod === "string" ? (presetMethod as BrewMethod) : "v60";
@@ -564,6 +568,8 @@ export default function App() {
       process: record.process,
       altitude: record.altitude,
       imageUrl: record.photoUrl,
+      coffeeForm: record.coffeeForm || "grano",
+      grindSize: record.grindSize || "media",
     });
     setDraftMethod(record.brewMethod);
     setDraftQuality(record.qualityChecklist || {
@@ -602,6 +608,8 @@ export default function App() {
       variety: draftCoffee.variety?.trim() || "",
       process: draftCoffee.process?.trim() || "",
       altitude: draftCoffee.altitude?.trim() || "",
+      coffeeForm: draftCoffee.coffeeForm || "grano",
+      grindSize: draftCoffee.grindSize || "media",
       brewMethod: draftMethod,
       qualityChecklist: draftQuality,
       bodyLevel: draftBody,

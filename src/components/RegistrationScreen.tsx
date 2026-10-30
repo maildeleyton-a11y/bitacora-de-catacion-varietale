@@ -413,6 +413,8 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
       ...preset,
       brand: "VARIETALE",
       country: "Colombia",
+      coffeeForm: coffeeInfo.coffeeForm || "grano",
+      grindSize: coffeeInfo.grindSize || "media",
     });
     setScanMessage(`Café seleccionado: ${preset.coffeeName}`);
   };
@@ -1139,13 +1141,265 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
         )}
       </div>
 
-      {/* SECCIÓN 2: SELECTOR DE MÉTODO */}
+      {/* SECCIÓN 2: PRESENTACIÓN DEL CAFÉ Y GROSOR DE MOLIENDA */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-sm mb-5">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Coffee className="w-4 h-4 sm:w-5 sm:h-5 text-[#00D9B4]" />
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#01374C] flex items-baseline">
+              <span className="text-lg md:text-xl font-black text-[#01374C] mr-1.5">2.</span>
+              <span>Presentación y Grosor de Molienda</span>
+            </h2>
+          </div>
+        </div>
+        <p className="text-sm sm:text-base text-[#4A5D68] mb-4 leading-relaxed">
+          Selecciona si inicias con café en grano entero o ya molido, y confirma la molienda exacta para tu cata.
+        </p>
+
+        {/* Paso 2.1: Selector de Presentación de Origen */}
+        <div className="mb-3">
+          <span className="text-xs font-black uppercase tracking-wider text-[#01374C] block mb-2">
+            Paso 2.1: ¿Cómo inicias con tu café?
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              id="coffee-form-grano-btn"
+              onClick={() =>
+                onCoffeeInfoChange({
+                  ...coffeeInfo,
+                  coffeeForm: "grano",
+                  grindSize: coffeeInfo.grindSize || "media",
+                })
+              }
+              className={`p-4 rounded-xl border text-left flex items-start gap-3.5 transition-all cursor-pointer active:scale-[0.98] ${
+                (coffeeInfo.coffeeForm || "grano") === "grano"
+                  ? "bg-[#01374C] text-white border-[#01374C] shadow-md ring-2 ring-[#00D9B4]/60"
+                  : "bg-white text-[#01374C] border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/30 shadow-2xs"
+              }`}
+            >
+              <div
+                className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                  (coffeeInfo.coffeeForm || "grano") === "grano"
+                    ? "bg-[#00D9B4] text-[#01374C]"
+                    : "bg-[#FAF6F2] text-[#01374C] border border-[#DDC1AB]"
+                }`}
+              >
+                <Coffee className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-extrabold text-sm sm:text-base">☕ En Grano (Moleré al instante)</span>
+                  {(coffeeInfo.coffeeForm || "grano") === "grano" && (
+                    <span className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C]">
+                      ✓ Seleccionado
+                    </span>
+                  )}
+                </div>
+                <p
+                  className={`text-xs mt-1 leading-snug ${
+                    (coffeeInfo.coffeeForm || "grano") === "grano"
+                      ? "text-white/80"
+                      : "text-[#52646E]"
+                  }`}
+                >
+                  Tengo granos enteros. Los moleré fresco al grosor que elija abajo para la preparación.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              id="coffee-form-molido-btn"
+              onClick={() =>
+                onCoffeeInfoChange({
+                  ...coffeeInfo,
+                  coffeeForm: "molido",
+                  grindSize: coffeeInfo.grindSize || "media",
+                })
+              }
+              className={`p-4 rounded-xl border text-left flex items-start gap-3.5 transition-all cursor-pointer active:scale-[0.98] ${
+                coffeeInfo.coffeeForm === "molido"
+                  ? "bg-[#01374C] text-white border-[#01374C] shadow-md ring-2 ring-[#00D9B4]/60"
+                  : "bg-white text-[#01374C] border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/30 shadow-2xs"
+              }`}
+            >
+              <div
+                className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                  coffeeInfo.coffeeForm === "molido"
+                    ? "bg-[#00D9B4] text-[#01374C]"
+                    : "bg-[#FAF6F2] text-[#01374C] border border-[#DDC1AB]"
+                }`}
+              >
+                <Droplets className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-extrabold text-sm sm:text-base">🌾 Ya Molido</span>
+                  {coffeeInfo.coffeeForm === "molido" && (
+                    <span className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full bg-[#00D9B4] text-[#01374C]">
+                      ✓ Seleccionado
+                    </span>
+                  )}
+                </div>
+                <p
+                  className={`text-xs mt-1 leading-snug ${
+                    coffeeInfo.coffeeForm === "molido"
+                      ? "text-white/80"
+                      : "text-[#52646E]"
+                  }`}
+                >
+                  Tengo café ya molido de la bolsa. Identificaré abajo su grosor según su tacto.
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Paso 2.2: Grosor de Molienda para la Cata (Siempre visible y obligatorio para ambos casos) */}
+        <div className="mt-4 pt-4 border-t border-[#E8EDF1]">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm sm:text-base font-extrabold text-[#01374C] flex items-center gap-1.5">
+              <span>
+                Paso 2.2:{" "}
+                {(coffeeInfo.coffeeForm || "grano") === "grano"
+                  ? "¿A qué grosor moliste tus granos para esta cata?"
+                  : "¿Qué grosor de molienda tiene tu café?"}
+              </span>
+            </h3>
+            <span className="text-[11px] font-bold text-[#00897B] bg-[#EBFBFA] px-2.5 py-0.5 rounded-full border border-[#00D9B4]/30">
+              Guía táctil sensorial
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-[#52646E] mb-3.5 leading-relaxed">
+            Frota un poco de café entre la yema de tus dedos e identifica la textura de referencia:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Fina */}
+            <button
+              type="button"
+              id="grind-size-fina-btn"
+              onClick={() =>
+                onCoffeeInfoChange({
+                  ...coffeeInfo,
+                  coffeeForm: coffeeInfo.coffeeForm || "grano",
+                  grindSize: "fina",
+                })
+              }
+              className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer active:scale-[0.98] ${
+                coffeeInfo.grindSize === "fina"
+                  ? "bg-[#EBFBFA] border-[#00D9B4] ring-2 ring-[#00D9B4]/50 shadow-sm"
+                  : "bg-white border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/20 shadow-2xs"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-sm font-black text-[#01374C]">Molienda Fina</span>
+                  {coffeeInfo.grindSize === "fina" && (
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#01374C] text-[#00D9B4]">
+                      ✓ Activa en cata
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs font-bold text-[#00897B] mt-1 bg-white/80 px-2 py-1 rounded-md border border-[#00D9B4]/20 inline-block">
+                  Al tacto: como sal de mesa o harina fina
+                </div>
+                <p className="text-xs text-[#52646E] mt-2 leading-relaxed">
+                  Granos diminutos que casi no se sienten individuales.
+                </p>
+              </div>
+              <div className="mt-3 pt-2 border-t border-[#DDC1AB]/40 text-[11px] text-[#01374C] font-semibold">
+                📌 Métodos: Espresso, Moka Italiana, Aeropress corto
+              </div>
+            </button>
+
+            {/* Media */}
+            <button
+              type="button"
+              id="grind-size-media-btn"
+              onClick={() =>
+                onCoffeeInfoChange({
+                  ...coffeeInfo,
+                  coffeeForm: coffeeInfo.coffeeForm || "grano",
+                  grindSize: "media",
+                })
+              }
+              className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer active:scale-[0.98] ${
+                (coffeeInfo.grindSize || "media") === "media"
+                  ? "bg-[#EBFBFA] border-[#00D9B4] ring-2 ring-[#00D9B4]/50 shadow-sm"
+                  : "bg-white border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/20 shadow-2xs"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-sm font-black text-[#01374C]">Molienda Media</span>
+                  {(coffeeInfo.grindSize || "media") === "media" && (
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#01374C] text-[#00D9B4]">
+                      ✓ Activa en cata
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs font-bold text-[#00897B] mt-1 bg-white/80 px-2 py-1 rounded-md border border-[#00D9B4]/20 inline-block">
+                  Al tacto: como arena de playa limpia
+                </div>
+                <p className="text-xs text-[#52646E] mt-2 leading-relaxed">
+                  Granos perceptibles pero uniformes al deslizar los dedos.
+                </p>
+              </div>
+              <div className="mt-3 pt-2 border-t border-[#DDC1AB]/40 text-[11px] text-[#01374C] font-semibold">
+                📌 Métodos: V60, Chemex, Cafetera de goteo, Sifón
+              </div>
+            </button>
+
+            {/* Gruesa */}
+            <button
+              type="button"
+              id="grind-size-gruesa-btn"
+              onClick={() =>
+                onCoffeeInfoChange({
+                  ...coffeeInfo,
+                  coffeeForm: coffeeInfo.coffeeForm || "grano",
+                  grindSize: "gruesa",
+                })
+              }
+              className={`p-3.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer active:scale-[0.98] ${
+                coffeeInfo.grindSize === "gruesa"
+                  ? "bg-[#EBFBFA] border-[#00D9B4] ring-2 ring-[#00D9B4]/50 shadow-sm"
+                  : "bg-white border-[#E8EDF1] hover:bg-[#FAF6F2] hover:border-[#01374C]/20 shadow-2xs"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-sm font-black text-[#01374C]">Molienda Gruesa</span>
+                  {coffeeInfo.grindSize === "gruesa" && (
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#01374C] text-[#00D9B4]">
+                      ✓ Activa en cata
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs font-bold text-[#00897B] mt-1 bg-white/80 px-2 py-1 rounded-md border border-[#00D9B4]/20 inline-block">
+                  Al tacto: como sal marina gruesa o pimienta partida
+                </div>
+                <p className="text-xs text-[#52646E] mt-2 leading-relaxed">
+                  Fragmentos claramente visibles con bordes rugosos al tacto.
+                </p>
+              </div>
+              <div className="mt-3 pt-2 border-t border-[#DDC1AB]/40 text-[11px] text-[#01374C] font-semibold">
+                📌 Métodos: Prensa Francesa, Cold Brew
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN 3: SELECTOR DE MÉTODO */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-sm mb-5">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-[#00D9B4]" />
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#01374C] flex items-baseline">
-              <span className="text-lg md:text-xl font-black text-[#01374C] mr-1.5">2.</span>
+              <span className="text-lg md:text-xl font-black text-[#01374C] mr-1.5">3.</span>
               <span>Elige tu método de Preparación</span>
             </h2>
           </div>
@@ -1288,13 +1542,13 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
         })()}
       </div>
 
-      {/* SECCIÓN 3: CONSEJOS DE PREPARACIÓN */}
+      {/* SECCIÓN 4: CONSEJOS DE PREPARACIÓN */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 border border-[#E8EDF1] shadow-sm mb-6">
         <div className="mb-2.5">
           <div className="flex items-center gap-2">
             <Droplets className="w-4 h-4 sm:w-5 sm:h-5 text-[#00D9B4]" />
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-[#01374C] flex items-baseline">
-              <span className="text-lg md:text-xl font-black text-[#01374C] mr-1.5">3.</span>
+              <span className="text-lg md:text-xl font-black text-[#01374C] mr-1.5">4.</span>
               <span>Consejos de preparación:</span>
             </h2>
           </div>

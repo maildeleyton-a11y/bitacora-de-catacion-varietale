@@ -1286,7 +1286,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           type="text"
                           value={adminUserInput}
                           onChange={(e) => setAdminUserInput(e.target.value)}
-                          placeholder="amorporelcafe.admin"
+                          placeholder="admin"
                           autoComplete="username"
                           className="w-full pl-10 pr-3 py-2.5 bg-[#FAF6F2]/50 text-xs sm:text-sm border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                           required

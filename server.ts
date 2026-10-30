@@ -273,7 +273,6 @@ REGLAS CRÍTICAS:
     suggestedMacro: string;
     imageUrl: string;
     productType: string;
-    price?: string;
     url: string;
     handle: string;
     available: boolean;
@@ -349,30 +348,69 @@ REGLAS CRÍTICAS:
       .map((p: any) => {
         const text = (p.body_html || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
         const tags: string[] = p.tags || [];
+        const lowerText = (p.title + " " + text).toLowerCase();
 
         // Análisis de departamento y municipio de origen en Colombia
-        const depts = ["Cauca", "Huila", "Tolima", "Antioquia", "Cundinamarca", "Santander", "Nariño", "Quindío", "Meta", "Caldas"];
-        const foundDept = depts.find((d) => tags.some((t) => t.toLowerCase() === d.toLowerCase()) || text.includes(d));
-        const muni = tags.find((t) => !depts.includes(t) && !["café", "Especiales", "Exótico", "Edición Limitada", "Lote", "Grano", "cafés"].includes(t));
-        const origin = foundDept ? (muni ? `${muni}, ${foundDept}` : foundDept) : "Colombia";
+        let origin = "Colombia";
+        if (lowerText.includes("palermo") && lowerText.includes("huila")) origin = "Palermo, Huila";
+        else if (lowerText.includes("pinchote") || lowerText.includes("santander")) origin = "Pinchote, Santander";
+        else if (lowerText.includes("acevedo") || p.title.includes("Bourbon Papayo")) origin = "Acevedo, Huila";
+        else if (lowerText.includes("bituima") || lowerText.includes("cundinamarca") || p.title.includes("San Antonio")) origin = "Bituima, Cundinamarca";
+        else if (lowerText.includes("palestina") || p.title.includes("Papayo Enmielado")) origin = "Palestina, Huila";
+        else if (lowerText.includes("pitalito")) origin = "Pitalito, Huila";
+        else if (lowerText.includes("inzá") || lowerText.includes("inza") || lowerText.includes("cauca") || p.title.includes("Argelia")) origin = "Inzá (Tierradentro), Cauca";
+        else if (lowerText.includes("bruselas")) origin = "Bruselas, Huila";
+        else if (lowerText.includes("mesetas") || lowerText.includes("nasa")) origin = "Mesetas, Meta (Comunidad Nasa)";
+        else if (lowerText.includes("san josé") || lowerText.includes("san jose")) origin = "San José de Isnos, Huila";
+        else if (lowerText.includes("la laguna")) origin = "La Laguna, Huila";
+        else if (lowerText.includes("quindío") || lowerText.includes("quindio") || p.title.includes("Sans")) origin = "Montañas del Quindío";
+        else if (p.title.includes("Mezcla")) origin = "Colombia (Huila, Cundinamarca y Tolima)";
+        else {
+          const depts = ["Cauca", "Huila", "Tolima", "Antioquia", "Cundinamarca", "Santander", "Nariño", "Quindío", "Meta", "Caldas"];
+          const foundDept = depts.find((d) => tags.some((t) => t.toLowerCase() === d.toLowerCase()) || text.includes(d));
+          const muni = tags.find((t) => !depts.includes(t) && !["café", "Especiales", "Exótico", "Edición Limitada", "Lote", "Grano", "cafés"].includes(t));
+          origin = foundDept ? (muni ? `${muni}, ${foundDept}` : foundDept) : "Colombia";
+        }
 
-        // Variedad botánica
+        // Variedad botánica (incluyendo mezclas multi-varietales reales)
         let variety = "Arábica Especial";
-        const lowerText = (p.title + " " + text).toLowerCase();
-        if (lowerText.includes("borbón papayo") || lowerText.includes("bourbon papayo")) variety = "Borbón Papayo";
-        else if (lowerText.includes("caturra chiroso") || lowerText.includes("chiroso")) variety = "Caturra Chiroso";
-        else if (lowerText.includes("caturra")) variety = "Caturra";
-        else if (lowerText.includes("castillo")) variety = "Castillo";
-        else if (lowerText.includes("geisha")) variety = "Geisha";
-        else if (lowerText.includes("borbón") || lowerText.includes("bourbon")) variety = "Borbón";
+        if (lowerText.includes("castillo, caturra y colombia") || (lowerText.includes("castillo") && lowerText.includes("caturra") && lowerText.includes("colombia"))) {
+          variety = "Castillo, Caturra y Colombia";
+        } else if (lowerText.includes("caturra, colombia y castillo")) {
+          variety = "Caturra, Colombia y Castillo";
+        } else if (lowerText.includes("castillo y borbón") || lowerText.includes("castillo y bourbon")) {
+          variety = "Castillo y Borbón";
+        } else if (lowerText.includes("castillo y caturra") || lowerText.includes("caturra y castillo")) {
+          variety = "Castillo y Caturra";
+        } else if (lowerText.includes("borbón papayo") || lowerText.includes("bourbon papayo")) {
+          variety = "Borbón Papayo";
+        } else if (lowerText.includes("caturra chiroso") || lowerText.includes("chiroso")) {
+          variety = "Caturra Chiroso";
+        } else if (lowerText.includes("castillo rojo")) {
+          variety = "Castillo Rojo";
+        } else if (lowerText.includes("caturra")) {
+          variety = "Caturra";
+        } else if (lowerText.includes("castillo")) {
+          variety = "Castillo";
+        } else if (lowerText.includes("geisha")) {
+          variety = "Geisha";
+        } else if (lowerText.includes("borbón") || lowerText.includes("bourbon")) {
+          variety = "Borbón";
+        }
 
         // Proceso de beneficio
-        let process = "Lavado";
-        if (lowerText.includes("semilavado")) process = "Semilavado";
-        else if (lowerText.includes("lavado anaeróbico") || lowerText.includes("anaeróbico")) process = "Lavado Anaeróbico";
-        else if (lowerText.includes("honey dorado") || lowerText.includes("honey")) process = "Honey Dorado";
-        else if (lowerText.includes("natural")) process = "Natural";
-        else if (lowerText.includes("ea sugar cane") || lowerText.includes("descafein")) process = "EA Sugar Cane (Descafeinado)";
+        let process = "Lavado Tradicional";
+        if (lowerText.includes("ea sugar cane") || lowerText.includes("descafein")) {
+          process = "EA Sugar Cane (Descafeinado)";
+        } else if (lowerText.includes("semilavado") || lowerText.includes("semi lavado")) {
+          process = "Semilavado";
+        } else if (lowerText.includes("red honey") || lowerText.includes("honey dorado") || lowerText.includes("enmielado") || lowerText.includes("honey")) {
+          process = "Honey";
+        } else if (lowerText.includes("natural")) {
+          process = "Natural";
+        } else if (lowerText.includes("lavado anaeróbico") || lowerText.includes("anaeróbico")) {
+          process = "Lavado Anaeróbico";
+        }
 
         // Macro-perfil sugerido según notas organolépticas
         let suggestedMacro = "Frutal";
@@ -389,8 +427,6 @@ REGLAS CRÍTICAS:
         const altMatch = text.match(/\d{3,4}\s*msnm/i);
         const altitude = altMatch ? altMatch[0] : "1.750 msnm";
 
-        const priceNum = p.variants?.[0]?.price ? Number(p.variants[0].price) : undefined;
-        const price = priceNum ? `$${priceNum.toLocaleString("es-CO")}` : undefined;
         const available = p.variants?.some((v: any) => v.available !== false) ?? true;
 
         return {
@@ -403,7 +439,6 @@ REGLAS CRÍTICAS:
           suggestedMacro,
           imageUrl: p.images?.[0]?.src || "",
           productType: p.product_type || "Café Especial",
-          price,
           url: `https://varietale.com/products/${p.handle}`,
           handle: p.handle,
           available,

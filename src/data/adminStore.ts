@@ -843,7 +843,25 @@ export const loadTastingsForAccount = (acc: {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        // Auto-migración retroactiva: toda cata debe tener coffeeForm y grindSize
+        return parsed.map((t: TastingRecord, idx: number) => {
+          const updated = { ...t };
+          if (!updated.coffeeForm) {
+            updated.coffeeForm = idx % 3 === 1 ? "molido" : "grano";
+          }
+          if (!updated.grindSize) {
+            if (updated.brewMethod === "espresso" || updated.brewMethod === "moka") {
+              updated.grindSize = "fina";
+            } else if (updated.brewMethod === "prensa" || updated.brewMethod === "coldbrew") {
+              updated.grindSize = "gruesa";
+            } else {
+              updated.grindSize = "media";
+            }
+          }
+          return updated;
+        });
+      }
     }
   } catch {}
   return [];
@@ -1085,6 +1103,22 @@ export interface AdminDashboardStats {
     ligero: number;
     medio: number;
     denso: number;
+  };
+  coffeeFormStats: {
+    granoCount: number;
+    molidoCount: number;
+    granoPct: number;
+    molidoPct: number;
+    grindCounts: {
+      fina: number;
+      media: number;
+      gruesa: number;
+    };
+    grindPcts: {
+      fina: number;
+      media: number;
+      gruesa: number;
+    };
   };
 
   // Bloque E: Cupón, Recompra y Viralidad / PWA
@@ -1346,6 +1380,9 @@ export const computeAdminDashboardStats = (): AdminDashboardStats => {
   const originMap: Record<string, { count: number; ratingSum: number }> = {};
   const methodMap: Record<string, { count: number; ratingSum: number }> = {};
   const bodyDistribution = { ligero: 0, medio: 0, denso: 0 };
+  let granoCount = 0;
+  let molidoCount = 0;
+  const grindCounts = { fina: 0, media: 0, gruesa: 0 };
 
   allTastingsWithUser.forEach(({ tasting }) => {
     const rating = tasting.rating || 4;
@@ -1419,7 +1456,44 @@ export const computeAdminDashboardStats = (): AdminDashboardStats => {
     if (tasting.bodyLevel === 1) bodyDistribution.ligero++;
     else if (tasting.bodyLevel === 3) bodyDistribution.denso++;
     else bodyDistribution.medio++;
+
+    // Presentación inicial (Grano vs Molido)
+    if (tasting.coffeeForm === "molido") {
+      molidoCount++;
+    } else {
+      granoCount++;
+    }
+
+    // Grosor de molienda empleado para la cata
+    const gSize = tasting.grindSize || "media";
+    if (gSize === "fina") grindCounts.fina++;
+    else if (gSize === "gruesa") grindCounts.gruesa++;
+    else grindCounts.media++;
   });
+
+  const coffeeFormStats = {
+    granoCount,
+    molidoCount,
+    granoPct:
+      totalTastings > 0 ? Math.round((granoCount / totalTastings) * 100) : 0,
+    molidoPct:
+      totalTastings > 0 ? Math.round((molidoCount / totalTastings) * 100) : 0,
+    grindCounts,
+    grindPcts: {
+      fina:
+        totalTastings > 0
+          ? Math.round((grindCounts.fina / totalTastings) * 100)
+          : 0,
+      media:
+        totalTastings > 0
+          ? Math.round((grindCounts.media / totalTastings) * 100)
+          : 0,
+      gruesa:
+        totalTastings > 0
+          ? Math.round((grindCounts.gruesa / totalTastings) * 100)
+          : 0,
+    },
+  };
 
   const topCoffees = Object.values(coffeeStatsMap)
     .map((c) => ({
@@ -1518,6 +1592,7 @@ export const computeAdminDashboardStats = (): AdminDashboardStats => {
     topOrigins: toRankedArray(originMap),
     brewMethodsRanking,
     bodyDistribution,
+    coffeeFormStats,
     couponCopiesCount: couponCopies.length,
     couponClicksCount: redirectsBySource.welcome_coupon_btn,
     rebuyRecommendationsClicks: redirectsBySource.rebuy_recommendation,
@@ -1844,6 +1919,8 @@ export const exportAllTastingsToCsv = (
     "Variedad",
     "Beneficio",
     "Altura",
+    "Presentación",
+    "Grosor de Molienda",
     "Método de Preparación",
     "Cuerpo",
     "Calificación (Estrellas)",
@@ -1879,6 +1956,11 @@ export const exportAllTastingsToCsv = (
         escapeCsv(t.variety || ""),
         escapeCsv(t.process || ""),
         escapeCsv(t.altitude || ""),
+        escapeCsv(t.coffeeForm === "molido" ? "Molido" : "En Grano"),
+        escapeCsv(
+          (t.grindSize || "media").charAt(0).toUpperCase() +
+            (t.grindSize || "media").slice(1)
+        ),
         escapeCsv(t.brewMethod.toUpperCase()),
         escapeCsv(bodyText),
         escapeCsv(t.rating),
@@ -1945,6 +2027,8 @@ export const exportAllTastingsToExcel = (
           <td style="padding:6px 10px;border:1px solid #D5DFE5;">${escapeHtml(t.variety || "")}</td>
           <td style="padding:6px 10px;border:1px solid #D5DFE5;">${escapeHtml(t.process || "")}</td>
           <td style="padding:6px 10px;border:1px solid #D5DFE5;">${escapeHtml(t.altitude || "")}</td>
+          <td style="padding:6px 10px;border:1px solid #D5DFE5;text-align:center;">${escapeHtml(t.coffeeForm === "molido" ? "Molido" : "En Grano")}</td>
+          <td style="padding:6px 10px;border:1px solid #D5DFE5;text-align:center;">${escapeHtml((t.grindSize || "media").charAt(0).toUpperCase() + (t.grindSize || "media").slice(1))}</td>
           <td style="padding:6px 10px;border:1px solid #D5DFE5;text-align:center;">${escapeHtml(t.brewMethod.toUpperCase())}</td>
           <td style="padding:6px 10px;border:1px solid #D5DFE5;text-align:center;">${escapeHtml(bodyText)}</td>
           <td style="padding:6px 10px;border:1px solid #D5DFE5;text-align:center;font-weight:bold;">${t.rating}</td>
@@ -1976,6 +2060,8 @@ export const exportAllTastingsToExcel = (
           <th style="padding:8px 12px;">Variedad</th>
           <th style="padding:8px 12px;">Beneficio</th>
           <th style="padding:8px 12px;">Altura</th>
+          <th style="padding:8px 12px;">Presentación</th>
+          <th style="padding:8px 12px;">Molienda</th>
           <th style="padding:8px 12px;">Método</th>
           <th style="padding:8px 12px;">Cuerpo</th>
           <th style="padding:8px 12px;">Calificación (★)</th>
@@ -2229,16 +2315,21 @@ export const seedSimulatedAdminData = (): {
     { id: "sim-user-20", name: "Tomás Echeverri", username: "tomas.echeverri", email: "tomas.echeverri@hotmail.com", phone: "+57 311 889 7766", pin: "1593", provider: "email", daysAgoCreated: 0, tastingsCount: 0, isPwa: false, platform: "Escritorio", avatarColor: "#01374C" },
   ];
 
-  // Pool de cafés (Varietale oficiales + marcas competidoras para probar la comparativa)
+  // Pool de cafés (13 cafés oficiales auténticos de Varietale + marcas de referencia para comparativa)
   const coffeePool = [
-    { coffeeName: "Varietale Geisha Especial", brand: "VARIETALE", department: "Tolima", origin: "Planadas, Tolima", farmName: "Finca La Cristalina", farmerName: "Don Hernando Rojas", variety: "Geisha", process: "Lavado", altitude: "1950 msnm", isVarietale: true },
-    { coffeeName: "Varietale Bourbon Rosado", brand: "VARIETALE", department: "Huila", origin: "Palestina, Huila", farmName: "Finca El Mirador", farmerName: "Familia Meneses", variety: "Bourbon Rosado", process: "Honey", altitude: "1850 msnm", isVarietale: true },
-    { coffeeName: "Varietale Tabi Natural", brand: "VARIETALE", department: "Huila", origin: "Pitalito, Huila", farmName: "Finca Las Flores", farmerName: "Jhonatan Gasca", variety: "Tabi", process: "Natural", altitude: "1800 msnm", isVarietale: true },
-    { coffeeName: "Varietale Caturra Chiroso", brand: "VARIETALE", department: "Antioquia", origin: "Urrao, Antioquia", farmName: "Finca El Roble", farmerName: "Carlos Caro", variety: "Caturra", process: "Lavado", altitude: "2000 msnm", isVarietale: true },
-    { coffeeName: "Varietale Pacamara Honey", brand: "VARIETALE", department: "Caldas", origin: "Manizales, Caldas", farmName: "Hacienda Venecia", farmerName: "Juan Guillermo", variety: "Pacamara", process: "Honey", altitude: "1780 msnm", isVarietale: true },
-    { coffeeName: "Varietale Castillo de Origen", brand: "VARIETALE", department: "Quindío", origin: "Génova, Quindío", farmName: "Finca Buenos Aires", farmerName: "Luis Fernando Giraldo", variety: "Castillo", process: "Lavado", altitude: "1720 msnm", isVarietale: true },
-    { coffeeName: "Varietale Blend de la Casa", brand: "VARIETALE", department: "Cundinamarca", origin: "Viotá, Cundinamarca", farmName: "Finca Santa Helena", farmerName: "Asociación Viotá", variety: "Caturra", process: "Lavado", altitude: "1650 msnm", isVarietale: true },
-    { coffeeName: "Varietale Wush Wush Exótico", brand: "VARIETALE", department: "Huila", origin: "Acevedo, Huila", farmName: "Finca El Diviso", farmerName: "Néstor Lasso", variety: "Wush Wush", process: "Natural", altitude: "1900 msnm", isVarietale: true },
+    { coffeeName: "Palermo", brand: "VARIETALE", department: "Huila", origin: "Palermo, Huila", farmName: "", farmerName: "", variety: "Castillo y Borbón", process: "Lavado Tradicional", altitude: "900 msnm", isVarietale: true },
+    { coffeeName: "Las Hortensias", brand: "VARIETALE", department: "Santander", origin: "Pinchote, Santander", farmName: "", farmerName: "Juan Pablo García", variety: "Castillo Rojo", process: "Lavado Tradicional", altitude: "1.600 msnm", isVarietale: true },
+    { coffeeName: "Bourbon Papayo", brand: "VARIETALE", department: "Huila", origin: "Acevedo, Huila", farmName: "", farmerName: "", variety: "Borbón Papayo", process: "Natural (88 pts SCA)", altitude: "1.750 msnm", isVarietale: true },
+    { coffeeName: "Mezcla de la Casa", brand: "VARIETALE", department: "Huila", origin: "Colombia (Huila, Cundinamarca y Tolima)", farmName: "", farmerName: "", variety: "Castillo, Caturra y Colombia", process: "Lavado Tradicional", altitude: "1.750 msnm", isVarietale: true },
+    { coffeeName: "San Antonio", brand: "VARIETALE", department: "Cundinamarca", origin: "Bituima, Cundinamarca", farmName: "", farmerName: "", variety: "Castillo", process: "Lavado Tradicional", altitude: "1.650 msnm", isVarietale: true },
+    { coffeeName: "La Laguna", brand: "VARIETALE", department: "Huila", origin: "La Laguna, Huila", farmName: "", farmerName: "", variety: "Castillo", process: "Semilavado", altitude: "1.700 msnm", isVarietale: true },
+    { coffeeName: "San José", brand: "VARIETALE", department: "Huila", origin: "San José de Isnos, Huila", farmName: "", farmerName: "", variety: "Castillo", process: "Lavado Tradicional", altitude: "1.650 msnm", isVarietale: true },
+    { coffeeName: "Mesetas", brand: "VARIETALE", department: "Meta", origin: "Mesetas, Meta (Comunidad Nasa)", farmName: "", farmerName: "Comunidad Indígena Nasa", variety: "Castillo", process: "Semilavado", altitude: "1.000 msnm", isVarietale: true },
+    { coffeeName: "Bruselas", brand: "VARIETALE", department: "Huila", origin: "Bruselas, Huila", farmName: "", farmerName: "", variety: "Caturra", process: "Lavado Tradicional", altitude: "1.650 msnm", isVarietale: true },
+    { coffeeName: "La Argelia", brand: "VARIETALE", department: "Cauca", origin: "Inzá (Tierradentro), Cauca", farmName: "Finca La Argelia", farmerName: "Alejandro Ariza", variety: "Caturra", process: "Lavado Tradicional", altitude: "1.640 msnm", isVarietale: true },
+    { coffeeName: "Sans (Descafeinado)", brand: "VARIETALE", department: "Quindío", origin: "Montañas del Quindío", farmName: "", farmerName: "", variety: "Castillo y Caturra", process: "EA Sugar Cane (Descafeinado)", altitude: "1.750 msnm", isVarietale: true },
+    { coffeeName: "Papayo Enmielado", brand: "VARIETALE", department: "Huila", origin: "Palestina, Huila", farmName: "", farmerName: "", variety: "Borbón Papayo", process: "Red Honey", altitude: "1.900 msnm", isVarietale: true },
+    { coffeeName: "Pitalito", brand: "VARIETALE", department: "Huila", origin: "Pitalito, Huila", farmName: "", farmerName: "Jhohan Becerra", variety: "Caturra, Colombia y Castillo", process: "Lavado Tradicional", altitude: "1.500 msnm", isVarietale: true },
     // Competencia (~20% de las catas)
     { coffeeName: "Reserva Especial Quindío", brand: "San Alberto", department: "Quindío", origin: "Buenavista, Quindío", farmName: "Hacienda San Alberto", farmerName: "", variety: "Caturra", process: "Lavado", altitude: "1700 msnm", isVarietale: false },
     { coffeeName: "Rocko Mountain Natural", brand: "Libertario Coffee", department: "Huila", origin: "San Agustín, Huila", farmName: "Finca El Paraíso", farmerName: "", variety: "Castillo", process: "Natural", altitude: "1750 msnm", isVarietale: false },
@@ -2460,6 +2551,17 @@ export const seedSimulatedAdminData = (): {
           ((now - createdDate.getTime()) * (c + 1)) / (p.tastingsCount + 1)
       );
 
+      const isMolido = (idx + c) % 3 === 1;
+      const coffeeForm: "grano" | "molido" = isMolido ? "molido" : "grano";
+      let grindSize: "fina" | "media" | "gruesa";
+      if (brewMethod === "espresso" || brewMethod === "moka") {
+        grindSize = "fina";
+      } else if (brewMethod === "prensa" || brewMethod === "coldbrew") {
+        grindSize = "gruesa";
+      } else {
+        grindSize = "media";
+      }
+
       const record: TastingRecord = {
         id: `sim-cata-${p.id}-${c + 1}`,
         createdAt: cataTime.toISOString(),
@@ -2473,6 +2575,8 @@ export const seedSimulatedAdminData = (): {
         variety: chosenCoffee.variety,
         process: chosenCoffee.process,
         altitude: chosenCoffee.altitude,
+        coffeeForm,
+        grindSize,
         brewMethod,
         qualityChecklist: {
           waterFiltered: rating >= 3,
@@ -2506,11 +2610,13 @@ export const seedSimulatedAdminData = (): {
   // Generar Eventos de Redirección a varietale.com (para alimentar KPI, fuentes y recompra)
   const simRedirects: VarietaleRedirectEvent[] = [];
   const rebuyCoffees = [
-    "Varietale Geisha Especial",
-    "Varietale Bourbon Rosado",
-    "Varietale Tabi Natural",
-    "Varietale Caturra Chiroso",
-    "Varietale Pacamara Honey",
+    "Bourbon Papayo",
+    "Mezcla de la Casa",
+    "Palermo",
+    "Las Hortensias",
+    "San Antonio",
+    "Sans (Descafeinado)",
+    "Pitalito",
   ];
 
   // Algunos usuarios tienen visitas a varietale.com y algunos 0 visitas para poder probar el filtro "Sin visitas"

@@ -568,9 +568,11 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                       <h3 className="text-base sm:text-lg font-black text-[#01374C] leading-snug break-words">
                         {cata.coffeeName}
                       </h3>
-                      {cata.farmName && (
+                      {(cata.farmName || cata.farmerName) && (
                         <p className="text-xs text-[#6A7B85] font-semibold truncate mt-0.5">
-                          Finca: {cata.farmName} {cata.farmerName ? `(${cata.farmerName})` : ""}
+                          {cata.farmName ? `Finca: ${cata.farmName}` : ""}
+                          {cata.farmName && cata.farmerName ? " • " : ""}
+                          {cata.farmerName ? `Productor: ${cata.farmerName}` : ""}
                         </p>
                       )}
                     </div>
@@ -581,6 +583,15 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                     <span className="inline-flex items-center gap-1.5 font-bold text-[#01374C] bg-[#FAF6F2] px-2 py-0.5 rounded-md border border-[#DDC1AB]/50">
                       <BrewMethodIcon type={cata.brewMethod} className="w-3.5 h-3.5 text-[#00D9B4]" />
                       <span>{getMethodName(cata.brewMethod)}</span>
+                    </span>
+                    <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md border ${
+                      cata.coffeeForm === "molido"
+                        ? "bg-[#EBFBFA] text-[#00897B] border-[#00D9B4]/40"
+                        : "bg-[#FAF6F2] text-[#01374C] border-[#DDC1AB]/60"
+                    }`}>
+                      <span>
+                        {cata.coffeeForm === "molido" ? "🌾 Ya molido" : "☕ Grano"} • Molienda {cata.grindSize ? (cata.grindSize.charAt(0).toUpperCase() + cata.grindSize.slice(1)) : "Media"}
+                      </span>
                     </span>
                     {cata.variety ? (
                       <span className="inline-flex items-center gap-1 text-[#52646E] before:content-['•'] before:text-[#DDC1AB] before:mr-1">
@@ -645,6 +656,33 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                 {/* Expand / Collapse Details */}
                 {isExpanded && (
                   <div className="mt-3.5 pt-3.5 border-t border-[#E8EDF1] space-y-3.5">
+                    {/* Parámetros de Extracción y Molienda */}
+                    <div className="bg-[#FAF6F2]/80 p-3.5 rounded-xl border border-[#DDC1AB]/80 text-xs sm:text-sm">
+                      <span className="font-bold text-[#01374C] uppercase text-[11px] block mb-2">
+                        Parámetros de Preparación y Molienda:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[#4A5D68]">
+                        <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1]">
+                          <span className="block text-[11px] text-[#889DA7]">Presentación inicial:</span>
+                          <strong className="text-[#01374C] text-xs sm:text-sm">
+                            {cata.coffeeForm === "molido" ? "🌾 Café Ya Molido" : "☕ En Grano (Molienda al instante)"}
+                          </strong>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1]">
+                          <span className="block text-[11px] text-[#889DA7]">Molienda de cata:</span>
+                          <strong className="text-[#00897B] text-xs sm:text-sm capitalize">
+                            Molienda {cata.grindSize || "media"}
+                          </strong>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-lg border border-[#E8EDF1]">
+                          <span className="block text-[11px] text-[#889DA7]">Método de extracción:</span>
+                          <strong className="text-[#01374C] text-xs sm:text-sm">
+                            {getMethodName(cata.brewMethod)}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* User Notes (Reseñas / Comentarios de base de datos bloqueados) */}
                     {cata.userNotes && (
                       <div className="bg-white p-3.5 rounded-xl border border-[#DDC1AB]">
@@ -869,9 +907,25 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                       {getMethodName(cataA.brewMethod)}
                     </span>
                   </div>
-                  <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
-                    Cuerpo: <strong className="text-[#01374C]">{cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#4A5D68] mt-1">
+                    <span>
+                      Presentación:{" "}
+                      <strong className="text-[#01374C]">
+                        {cataA.coffeeForm === "molido" ? "🌾 Ya Molido" : "☕ En Grano (Molienda fresco)"}
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Molienda:{" "}
+                      <strong className="text-[#00897B] capitalize">
+                        {cataA.grindSize || "media"}
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Cuerpo: <strong className="text-[#01374C]">{cataA.bodyLevel === 1 ? "Ligero" : cataA.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
+                    </span>
+                  </div>
                   <div className="mt-3 pt-3 border-t border-[#DDC1AB]/60">
                     <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
                     <div className="flex flex-wrap gap-1.5">
@@ -898,9 +952,25 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                       {getMethodName(cataB.brewMethod)}
                     </span>
                   </div>
-                  <p className="text-sm sm:text-base text-[#4A5D68] mt-1">
-                    Cuerpo: <strong className="text-[#01374C]">{cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#4A5D68] mt-1">
+                    <span>
+                      Presentación:{" "}
+                      <strong className="text-[#01374C]">
+                        {cataB.coffeeForm === "molido" ? "🌾 Ya Molido" : "☕ En Grano (Molienda fresco)"}
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Molienda:{" "}
+                      <strong className="text-[#00897B] capitalize">
+                        {cataB.grindSize || "media"}
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Cuerpo: <strong className="text-[#01374C]">{cataB.bodyLevel === 1 ? "Ligero" : cataB.bodyLevel === 2 ? "Medio" : "Denso"}</strong>
+                    </span>
+                  </div>
                   <div className="mt-3 pt-3 border-t border-[#00D9B4]/30">
                     <span className="text-xs sm:text-sm font-bold text-[#4A5D68] block mb-1.5">Notas dominantes:</span>
                     <div className="flex flex-wrap gap-1.5">

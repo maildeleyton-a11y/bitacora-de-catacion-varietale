@@ -279,7 +279,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   <span className="text-xs sm:text-sm text-[#4A5D68] truncate max-w-full">
                     <span>Última cata: </span>
                     <strong data-cms-locked="true" className="text-[#01374C]">
-                      {tastings[0].coffeeName} ({tastings[0].brewMethod.toUpperCase()})
+                      {tastings[0].coffeeName} ({tastings[0].brewMethod.toUpperCase()} • {tastings[0].coffeeForm === "molido" ? "Premolido" : "Grano"} {tastings[0].grindSize ? (tastings[0].grindSize.charAt(0).toUpperCase() + tastings[0].grindSize.slice(1)) : "Media"})
                     </strong>
                   </span>
                   <button
