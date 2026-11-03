@@ -34,11 +34,13 @@
 ### 2. Principio de Aislamiento y Seguridad (Riesgo Cero)
 
 > [!IMPORTANT]
-> **Garantía para el Cliente (Varietale):**
-> 1. La aplicación **NO reemplaza, borra ni modifica** ningún archivo existente en el hosting de Varietale.
-> 2. En DreamHost, al crear un nuevo sitio web/subdominio, el panel crea **una carpeta dedicada e independiente** (por ejemplo: `/home/usuario/bitacora.varietale.com/`).
-> 3. No utiliza ni comparte bases de datos existentes de MySQL o WordPress de Varietale, lo que elimina cualquier posibilidad de conflicto o lentitud en el sitio principal.
-> 4. Los datos de las catas registradas por los usuarios se gestionan mediante almacenamiento local cifrado en sus propios navegadores (`HTML5 LocalStorage`).
+> **Datos Confirmados en Producción (DreamHost):**
+> - **Servidor:** VPS Basic `vps31414` (Ashburn, Virginia)
+> - **Dirección IP Asignada:** `173.236.200.69`
+> - **Usuario del Servidor:** `bitacoravarietale_app`
+> - **Ruta Web del Subdominio:** `/home/bitacoravarietale_app/bitacora.varietale.com/`
+> - **Versión de PHP:** 8.3
+> - **Garantía:** Cero contacto con `/home/.../varietale.com/` (sitio corporativo intacto).
 
 ---
 
@@ -66,24 +68,24 @@
 1. Iniciar sesión en GoDaddy y entrar al **Administrador de Dominios**.
 2. Buscar `varietale.com` y hacer clic en **Administrar DNS** (o *Zona DNS*).
 3. Añadir el nuevo registro:
-   - **Tipo:** `CNAME`
+   - **Tipo:** `A`
    - **Nombre:** `bitacora`
-   - **Valor / Destino:** El hostname asignado por DreamHost (o si se usa registro tipo `A`, la IP de DreamHost).
-   - **TTL:** 1 hora (o predeterminado).
+   - **Valor / Datos:** `173.236.200.69`
+   - **TTL:** 1/2 hora o 1 hora (predeterminado).
 4. Guardar cambios.
 
 ---
 
-### 5. Paso a Paso en Hostinger Colombia (DNS de `mrbite.agency`)
+### 5. Configuración DNS de Mr. Bite (cPanel de Hostinger)
 
-1. Iniciar sesión en el panel de **Hostinger**.
-2. Ir a **Dominios** > Seleccionar `mrbite.agency` > **DNS / Servidores de Nombres**.
-3. Añadir un registro en la Zona DNS:
-   - **Tipo:** `CNAME`
-   - **Nombre:** `varietale` (o `bitacora`)
-   - **Apunta a:** `bitacora.varietale.com`
-   - **TTL:** 14400 (o predeterminado).
+1. Iniciar sesión en el **cPanel** de `mrbite.agency` (`cpl16.main-hosting.eu`).
+2. Abrir la herramienta **Zone Editor** (Editor de Zona DNS).
+3. En la fila de `mrbite.agency`, hacer clic en **`+ A Record`**:
+   - **Name:** `bitacora-varietale` (cPanel lo completa a `bitacora-varietale.mrbite.agency.`)
+   - **Address (IP):** `173.236.200.69`
+   - **TTL:** 14400
 4. Guardar cambios.
+5. En DreamHost: Subdominio agregado como **Dominio Espejo (Mirror)** hacia `bitacora.varietale.com` con certificado SSL Let's Encrypt.
 
 ---
 
