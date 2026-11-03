@@ -465,6 +465,19 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
     };
   }, []);
 
+  // Reactividad en tiempo real: actualiza automáticamente el Dashboard al guardarse cualquier cata
+  useEffect(() => {
+    const handleCataSaved = () => {
+      setRefreshTick((t) => t + 1);
+    };
+    window.addEventListener("varietale-cata-saved", handleCataSaved);
+    window.addEventListener("storage", handleCataSaved);
+    return () => {
+      window.removeEventListener("varietale-cata-saved", handleCataSaved);
+      window.removeEventListener("storage", handleCataSaved);
+    };
+  }, []);
+
   // Todos los eventos de redirección almacenados en memoria
   const allRawRedirectEvents = useMemo(() => {
     return getVarietaleRedirectEvents();

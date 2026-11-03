@@ -1,0 +1,27 @@
+====================================================================
+BITÁCORA DE CATACIÓN VARIETALE - APLICACIÓN WEB PROGRESIVA (PWA)
+====================================================================
+
+Este directorio aloja la aplicación web oficial de la Bitácora de Catación
+de Varietale ("Amor por el Café").
+
+DOMINIOS ASOCIADOS:
+- https://bitacora.varietale.com (Acceso público oficial clientes Varietale)
+- https://varietale.mrbite.agency (Portafolio y caso de éxito Mr. Bite)
+
+CARACTERÍSTICAS TÉCNICAS:
+- Tipo: Single Page Application (SPA) / Progressive Web App (PWA)
+- Framework: React 19 + TypeScript + Tailwind CSS (compilado estático para máximo rendimiento)
+- Enrutamiento: Controlado vía .htaccess hacia index.html
+- Almacenamiento de catas de usuarios: Persistencia local aislada (HTML5 LocalStorage)
+- Seguridad: SSL / HTTPS (Let's Encrypt)
+
+AISLAMIENTO Y SEGURIDAD:
+- Este directorio está 100% aislado de la tienda web principal o sitio corporativo de Varietale.
+- No modifica ni depende de bases de datos compartidas ni de la instalación de WordPress/Shopify de Varietale.
+
+CONTACTO Y MANTENIMIENTO:
+- Desarrollado y administrado por: Mr. Bite (Agencia Digital)
+- Repositorio oficial de código fuente: Privado en GitHub (maildeleyton-a11y)
+- Fecha de configuración inicial: Noviembre 2026
+====================================================================

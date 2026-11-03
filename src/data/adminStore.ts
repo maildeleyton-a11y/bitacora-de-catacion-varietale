@@ -1186,6 +1186,23 @@ export const computeAdminDashboardStats = (): AdminDashboardStats => {
     });
   });
 
+  // Incluir también cataciones registradas por usuarios invitados en tiempo real
+  try {
+    const guestRaw = localStorage.getItem("varietale_user_tastings_guest");
+    if (guestRaw) {
+      const guestTastings: TastingRecord[] = JSON.parse(guestRaw);
+      if (Array.isArray(guestTastings)) {
+        guestTastings.forEach((t) => {
+          allTastingsWithUser.push({
+            tasting: t,
+            userName: "Catador Invitado",
+            username: "invitado",
+          });
+        });
+      }
+    }
+  } catch {}
+
   // Ordenar catas por fecha descendente
   allTastingsWithUser.sort((a, b) => {
     const tA = Date.parse(a.tasting.createdAt) || 0;

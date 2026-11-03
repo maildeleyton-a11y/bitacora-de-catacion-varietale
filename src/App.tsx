@@ -653,6 +653,13 @@ export default function App() {
       }
     }
 
+    // Notificar en tiempo real al Dashboard y otros componentes de la aplicación
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("varietale-cata-saved", { detail: savedRecord })
+      );
+    }
+
     setEditingCataId(null);
     setEditingCataCreatedAt(null);
     setCelebrationCata(savedRecord);
