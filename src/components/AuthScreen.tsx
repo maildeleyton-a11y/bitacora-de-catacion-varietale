@@ -52,6 +52,15 @@ import {
   setAdminSessionActive,
   triggerWebhookInBackground,
 } from "../data/adminStore";
+import {
+  apiLogin,
+  apiRegister,
+  apiRecoverLookup,
+  apiRecoverReset,
+  apiAdminLogin,
+  apiAdminVerifyPin,
+  apiAdminUpdateCredentials,
+} from "../data/apiClient";
 
 interface AuthScreenProps {
   /** Callback al completar exitosamente el inicio de sesión o registro */
@@ -82,6 +91,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [canReactivateLogin, setCanReactivateLogin] = useState(false);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
   // Quick remembered user
   const [rememberedUser, setRememberedUser] = useState<StoredAccount | null>(null);
@@ -203,8 +214,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   }, []);
 
   // Handle Login
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAuthSubmitting) return;
     setLoginError(null);
 
     const identifier = loginIdentifier.trim();
@@ -217,30 +229,83 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       return;
     }
 
-    // Verify account in accountStore
-    const account = findAccountByIdentifier(identifier);
-    if (!account) {
-      setLoginError("No se encontró una cuenta con ese correo. Regístrate o accede con Google.");
-      return;
-    }
+    setIsAuthSubmitting(true);
+    setCanReactivateLogin(false);
+    try {
+      const res = await apiLogin(identifier, loginPassword.trim());
+      if (res.ok && res.data?.user) {
+        const user = res.data.user;
+        if (rememberMe) {
+          setLastRememberedIdentifier(user.email || user.username || identifier);
+        } else {
+          setLastRememberedIdentifier(null);
+        }
+        onLoginSuccess(user);
+        return;
+      }
 
-    if (account.password && account.password !== loginPassword.trim()) {
-      setLoginError("Contraseña incorrecta. Puedes restablecerla con tu PIN de respaldo.");
-      return;
-    }
+      if (!res.networkError) {
+        setCanReactivateLogin(Boolean(res.data?.canReactivate));
+        setLoginError(res.data?.error || "Credenciales incorrectas o cuenta no encontrada.");
+        return;
+      }
 
-    if (rememberMe) {
-      setLastRememberedIdentifier(account.email || account.username);
-    } else {
-      setLastRememberedIdentifier(null);
-    }
+      // Fallback offline / static GitHub Pages
+      const account = findAccountByIdentifier(identifier);
+      if (!account) {
+        setLoginError("No se encontró una cuenta con ese correo. Regístrate o accede con Google.");
+        return;
+      }
 
-    onLoginSuccess(accountToUserProfile(account));
+      if (account.password && account.password !== loginPassword.trim()) {
+        setLoginError("Contraseña incorrecta. Puedes restablecerla con tu PIN de respaldo.");
+        return;
+      }
+
+      if (rememberMe) {
+        setLastRememberedIdentifier(account.email || account.username);
+      } else {
+        setLastRememberedIdentifier(null);
+      }
+
+      onLoginSuccess(accountToUserProfile(account));
+    } finally {
+      setIsAuthSubmitting(false);
+    }
+  };
+
+  const handleReactivateLogin = async () => {
+    if (isAuthSubmitting) return;
+    const identifier = loginIdentifier.trim();
+    const pwd = loginPassword.trim();
+    if (!identifier || !pwd) return;
+
+    setIsAuthSubmitting(true);
+    setLoginError(null);
+    try {
+      const res = await apiLogin(identifier, pwd, true);
+      if (res.ok && res.data?.user) {
+        const user = res.data.user;
+        setCanReactivateLogin(false);
+        if (rememberMe) {
+          setLastRememberedIdentifier(user.email || user.username || identifier);
+        } else {
+          setLastRememberedIdentifier(null);
+        }
+        onLoginSuccess(user);
+        return;
+      }
+      setCanReactivateLogin(false);
+      setLoginError(res.data?.error || "No se pudo reactivar tu cuenta en este momento.");
+    } finally {
+      setIsAuthSubmitting(false);
+    }
   };
 
   // Handle Registration
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAuthSubmitting) return;
     setRegError(null);
 
     if (!regName.trim()) {
@@ -269,42 +334,93 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       ? regEmail.trim().toLowerCase()
       : `${cleanUserSlug || "catador"}@varietale.com`;
 
-    // Check if user already exists
-    const existing = findAccountByIdentifier(cleanUserSlug);
-    if (existing) {
-      setRegError(`El usuario @${cleanUserSlug} ya está registrado. Intenta iniciar sesión.`);
-      return;
+    setIsAuthSubmitting(true);
+    try {
+      const res = await apiRegister({
+        name: regName.trim(),
+        username: cleanUserSlug,
+        email: emailToUse,
+        password: regPassword.trim(),
+        securityPin: regPin.trim(),
+      });
+
+      if (res.ok && res.data?.user) {
+        const cloudUser = res.data.user;
+        const localShadow: StoredAccount = {
+          id: cloudUser.id,
+          name: cloudUser.name,
+          username: cloudUser.username || cleanUserSlug,
+          email: cloudUser.email || emailToUse,
+          securityPin: regPin.trim(),
+          securityQuestion: "",
+          securityAnswer: "",
+          avatarColor: cloudUser.avatarColor || "#01374C",
+          authProvider: "email",
+          createdAt: cloudUser.memberSince || new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" }),
+        };
+        saveAccount(localShadow);
+        triggerWebhookInBackground("new_user", localShadow);
+        setLastRememberedIdentifier(cloudUser.email || cloudUser.username || emailToUse);
+        onLoginSuccess(cloudUser);
+        return;
+      }
+
+      if (!res.networkError) {
+        setRegError(res.data?.error || `No pudimos crear la cuenta @${cleanUserSlug}. Verifica los datos.`);
+        return;
+      }
+
+      // Fallback offline / static GitHub Pages
+      const existing = findAccountByIdentifier(cleanUserSlug);
+      if (existing) {
+        setRegError(`El usuario @${cleanUserSlug} ya está registrado. Intenta iniciar sesión.`);
+        return;
+      }
+
+      const newAccount: StoredAccount = {
+        id: `user-${cleanUserSlug || Date.now().toString(36)}`,
+        name: regName.trim(),
+        username: cleanUserSlug,
+        email: emailToUse,
+        password: regPassword.trim(),
+        securityPin: regPin.trim(),
+        securityQuestion: "",
+        securityAnswer: "",
+        avatarColor: "#01374C",
+        authProvider: "email",
+        createdAt: new Date().toLocaleDateString("es-CO", {
+          month: "long",
+          year: "numeric",
+        }),
+      };
+
+      saveAccount(newAccount);
+      triggerWebhookInBackground("new_user", newAccount);
+      setLastRememberedIdentifier(newAccount.email || newAccount.username);
+      onLoginSuccess(accountToUserProfile(newAccount));
+    } finally {
+      setIsAuthSubmitting(false);
     }
-
-    const newAccount: StoredAccount = {
-      id: `user-${cleanUserSlug || Date.now().toString(36)}`,
-      name: regName.trim(),
-      username: cleanUserSlug,
-      email: emailToUse,
-      password: regPassword.trim(),
-      securityPin: regPin.trim(),
-      securityQuestion: "",
-      securityAnswer: "",
-      avatarColor: "#01374C",
-      authProvider: "email",
-      createdAt: new Date().toLocaleDateString("es-CO", {
-        month: "long",
-        year: "numeric",
-      }),
-    };
-
-    saveAccount(newAccount);
-    triggerWebhookInBackground("new_user", newAccount);
-    setLastRememberedIdentifier(newAccount.email || newAccount.username);
-    onLoginSuccess(accountToUserProfile(newAccount));
   };
 
   // Admin Login Handler
-  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+  const handleAdminLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminError(null);
     if (!adminUserInput.trim() || !adminPassInput.trim()) {
       setAdminError("Ingresa tu usuario y contraseña de Administrador.");
+      return;
+    }
+
+    const res = await apiAdminLogin(adminUserInput.trim(), adminPassInput.trim());
+    if (res.ok && res.data?.success) {
+      setAdminSessionActive(true);
+      setShowAdminModal(false);
+      if (onAdminLoginSuccess) onAdminLoginSuccess();
+      return;
+    }
+    if (!res.networkError) {
+      setAdminError(res.data?.error || "Credenciales de Administrador incorrectas.");
       return;
     }
 
@@ -318,11 +434,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   // Admin Verify Master PIN
-  const handleVerifyAdminPin = (e: React.FormEvent) => {
+  const handleVerifyAdminPin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminError(null);
     if (!adminMasterPinInput.trim()) {
       setAdminError("Ingresa tu PIN Maestro de Recuperación.");
+      return;
+    }
+    const res = await apiAdminVerifyPin(adminMasterPinInput.trim());
+    if (res.ok && res.data?.success) {
+      setIsAdminPinVerified(true);
+      setAdminError(null);
+      return;
+    }
+    if (!res.networkError) {
+      setAdminError("PIN Maestro incorrecto.");
       return;
     }
     if (verifyAdminMasterPin(adminMasterPinInput)) {
@@ -334,14 +460,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   // Admin Reset Password via Master PIN
-  const handleAdminResetPasswordSubmit = (e: React.FormEvent) => {
+  const handleAdminResetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminError(null);
     if (!adminNewPassword.trim() || adminNewPassword.trim().length < 4) {
       setAdminError("La nueva contraseña debe tener al menos 4 caracteres.");
       return;
     }
+    const res = await apiAdminUpdateCredentials({
+      password: adminNewPassword.trim(),
+      masterPin: adminMasterPinInput.trim(),
+    });
+    if (!res.ok && !res.networkError) {
+      setAdminError("No se pudo actualizar la contraseña de Administrador en DreamHost.");
+      return;
+    }
     saveAdminCredentials({ password: adminNewPassword.trim() });
+    await apiAdminLogin(adminUserInput.trim() || "amorporelcafe.admin", adminNewPassword.trim());
     setAdminSessionActive(true);
     setAdminSuccessMsg("¡Contraseña actualizada! Entrando al panel...");
     setTimeout(() => {
@@ -352,7 +487,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   // Search Username Handler
-  const handleSearchUsername = (e: React.FormEvent) => {
+  const handleSearchUsername = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotUserError(null);
     setFoundUsername(null);
@@ -360,6 +495,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     const query = forgotUserEmail.trim();
     if (!query) {
       setForgotUserError("Ingresa tu correo o número de teléfono registrado.");
+      return;
+    }
+
+    const res = await apiRecoverLookup(query);
+    if (res.ok && res.data?.account) {
+      setFoundUsername(res.data.account);
+      return;
+    }
+    if (!res.networkError) {
+      setForgotUserError(res.data?.error || "No encontramos una cuenta con ese dato. Revisa el correo o regístrate.");
       return;
     }
 
@@ -372,13 +517,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   // Step 1: Search account for password reset
-  const handleStartPasswordReset = (e: React.FormEvent) => {
+  const handleStartPasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetError(null);
 
     const id = resetIdentifier.trim();
     if (!id) {
       setResetError("Ingresa tu correo electrónico registrado.");
+      return;
+    }
+
+    const res = await apiRecoverLookup(id);
+    if (res.ok && res.data?.account) {
+      setTargetAccount(res.data.account);
+      setIsIdentityVerified(false);
+      return;
+    }
+    if (!res.networkError) {
+      setResetError(res.data?.error || "No se encontró ninguna cuenta asociada a este correo o usuario.");
       return;
     }
 
@@ -403,16 +559,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       setResetError("Ingresa tu PIN de 4 dígitos.");
       return;
     }
-    if (verifyPin(targetAccount.username, resetPinInput.trim())) {
-      setIsIdentityVerified(true);
-      setResetError(null);
-    } else {
+    // En modo DreamHost el PIN también se valida en el paso final en el servidor; si existe localmente lo verificamos
+    if (targetAccount.securityPin && !verifyPin(targetAccount.username, resetPinInput.trim()) && targetAccount.securityPin !== resetPinInput.trim()) {
       setResetError("PIN incorrecto. Revisa los 4 dígitos que definiste en tu registro.");
+      return;
     }
+    setIsIdentityVerified(true);
+    setResetError(null);
   };
 
   // Step 3: Complete Password Reset
-  const handleCompletePasswordReset = (e: React.FormEvent) => {
+  const handleCompletePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetError(null);
 
@@ -424,6 +581,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
     if (newPassword !== confirmPassword) {
       setResetError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    const cloudRes = await apiRecoverReset(
+      targetAccount.email || targetAccount.username,
+      resetPinInput.trim(),
+      newPassword.trim()
+    );
+    if (cloudRes.ok) {
+      const loginAfter = await apiLogin(targetAccount.email || targetAccount.username, newPassword.trim());
+      setResetSuccessMessage("¡Contraseña restablecida con éxito! Ingresando a tu Bitácora...");
+      setTimeout(() => {
+        setShowResetPasswordModal(false);
+        onLoginSuccess(loginAfter.data?.user || accountToUserProfile(targetAccount));
+      }, 1200);
+      return;
+    }
+    if (!cloudRes.networkError) {
+      setResetError(cloudRes.data?.error || "PIN incorrecto o error al actualizar contraseña.");
+      if ((cloudRes.data?.error || "").toLowerCase().includes("pin")) {
+        setIsIdentityVerified(false);
+      }
       return;
     }
 
@@ -547,9 +726,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           {authMode === "login" && (
             <form onSubmit={handleLoginSubmit} className="space-y-3.5">
               {loginError && (
-                <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium text-center flex items-center justify-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-                  <span>{loginError}</span>
+                <div
+                  className={`p-3 rounded-xl text-xs font-medium text-center space-y-2 border ${
+                    canReactivateLogin
+                      ? "bg-[#EBFBFA] border-[#00D9B4] text-[#01374C]"
+                      : "bg-red-50 border-red-200 text-red-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                  {canReactivateLogin && (
+                    <button
+                      type="button"
+                      onClick={handleReactivateLogin}
+                      disabled={isAuthSubmitting}
+                      className="w-full min-h-[42px] py-2 px-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-black text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <span>Volver a darme de alta y recuperar mis catas</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#00D9B4]" />
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -603,7 +801,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     id="login-username-input"
                     type="text"
                     value={loginIdentifier}
-                    onChange={(e) => setLoginIdentifier(e.target.value)}
+                    onChange={(e) => {
+                      setLoginIdentifier(e.target.value);
+                      setCanReactivateLogin(false);
+                    }}
                     placeholder="tucorreo@ejemplo.com"
                     autoComplete="email"
                     className="w-full pl-10 pr-3 py-3 min-h-[46px] bg-[#FAF6F2]/50 text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C] transition-all"
@@ -642,7 +843,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     id="login-password-input"
                     type={showLoginPassword ? "text" : "password"}
                     value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
+                    onChange={(e) => {
+                      setLoginPassword(e.target.value);
+                      setCanReactivateLogin(false);
+                    }}
                     placeholder="••••••••"
                     autoComplete="current-password"
                     className="w-full pl-10 pr-11 py-3 min-h-[46px] bg-[#FAF6F2]/50 text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#01374C] transition-all"

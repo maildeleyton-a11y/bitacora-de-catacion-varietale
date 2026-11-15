@@ -72,6 +72,18 @@ import {
   syncUiCmsFromServer,
   applyCmsOverridesToMasterData,
 } from "./data/uiCmsStore";
+import {
+  apiValidateSession,
+  apiLogout,
+  apiFetchUserTastings,
+  apiSaveTastingWithPhoto,
+  apiDeleteTasting,
+  getStoredSessionProfile,
+  idbLoadUserTastings,
+  idbSaveUserTastings,
+  getPendingSyncQueue,
+  flushPendingQueueForUser,
+} from "./data/apiClient";
 
 // ============================================================================
 // 1. CONSTANTES DE PERSISTENCIA Y SESIÓN
@@ -147,7 +159,7 @@ export default function App() {
   };
 
   // --------------------------------------------------------------------------
-  // B. Estado de Autenticación y Sesión del Usuario
+  // B. Estado de Autenticación y Sesión del Usuario (DreamHost persistente)
   // --------------------------------------------------------------------------
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
@@ -155,6 +167,11 @@ export default function App() {
       localStorage.removeItem("varietale_current_user_v2");
       localStorage.removeItem("varietale_current_user_v1");
       localStorage.removeItem("varietale_current_user");
+
+      const cloudProfile = getStoredSessionProfile();
+      if (cloudProfile && cloudProfile.id && cloudProfile.id !== "user-test-dev") {
+        return cloudProfile;
+      }
 
       const sessionSaved = sessionStorage.getItem(SESSION_USER_KEY);
       if (sessionSaved) {
@@ -164,7 +181,7 @@ export default function App() {
         }
       }
     } catch (e) {
-      console.warn("Fallo al leer usuario activo desde sessionStorage:", e);
+      console.warn("Fallo al leer usuario activo desde almacenamiento de sesión:", e);
     }
     // Inicia sin sesión para que la pantalla inicial sea obligatoriamente la de ingreso/registro
     return null;
@@ -180,6 +197,10 @@ export default function App() {
     try {
       if (isAdminSessionActive()) {
         return "admin";
+      }
+      const cloudProfile = getStoredSessionProfile();
+      if (cloudProfile && cloudProfile.id && cloudProfile.id !== "user-test-dev") {
+        return "home";
       }
       const sessionSaved = sessionStorage.getItem(SESSION_USER_KEY);
       if (sessionSaved) {
@@ -259,22 +280,120 @@ export default function App() {
   }, [currentScreen]);
 
   // --------------------------------------------------------------------------
-  // D. Historial de Catas Particionado por Usuario
+  // D. Historial de Catas Sincronizado con DreamHost + IndexedDB
   // --------------------------------------------------------------------------
+  const hydratedUserIdRef = useRef<string | null>(null);
+  const [pendingCloudSyncCount, setPendingCloudSyncCount] = useState<number>(() =>
+    getPendingSyncQueue().length
+  );
   const [tastings, setTastings] = useState<TastingRecord[]>(() => {
     return loadUserTastings(currentUser);
   });
 
-  // Sincroniza los cambios en las catas con el almacenamiento del usuario activo
+  // Persistir caché en IndexedDB (libre de cuota de 5MB) sin sobrescribir al cambiar de usuario
   useEffect(() => {
     if (!currentUser) return;
-    try {
-      const key = getUserTastingsKey(currentUser);
-      localStorage.setItem(key, JSON.stringify(tastings));
-    } catch (e) {
-      console.warn("Fallo al guardar catas del usuario en localStorage:", e);
+    if (hydratedUserIdRef.current !== currentUser.id) return;
+
+    if (currentUser.id === "user-test-dev") {
+      try {
+        localStorage.setItem(getUserTastingsKey(currentUser), JSON.stringify(tastings));
+      } catch {}
+      return;
     }
+
+    if (currentUser.authProvider === "guest") {
+      idbSaveUserTastings(currentUser.id, tastings);
+      try {
+        const key = getUserTastingsKey(currentUser);
+        const stripped = tastings.map((t) =>
+          t.photoUrl && t.photoUrl.startsWith("data:image/") ? { ...t, photoUrl: undefined } : t
+        );
+        localStorage.setItem(key, JSON.stringify(stripped));
+      } catch {}
+      return;
+    }
+
+    // Para usuarios registrados: guardar copia completa en IndexedDB (nunca Base64 en localStorage)
+    idbSaveUserTastings(currentUser.id, tastings);
   }, [tastings, currentUser]);
+
+  // Hidratar catas desde DreamHost + IndexedDB y validar sesión persistente
+  const hydrateCloudSessionAndTastings = async (user: UserProfile) => {
+    hydratedUserIdRef.current = null;
+    if (user.id === "user-test-dev") {
+      let localTest = getTestUserTastings();
+      if (!localTest || localTest.length === 0) {
+        localTest = seedTestUser20Tastings();
+      }
+      hydratedUserIdRef.current = user.id;
+      setTastings(localTest);
+      return;
+    }
+
+    // 1) Lectura inmediata desde IndexedDB para mostrar rápido sin flash vacío
+    const cached = await idbLoadUserTastings(user.id);
+    if (cached.length > 0) {
+      setTastings(cached);
+    }
+
+    if (user.authProvider === "guest") {
+      const legacyGuest = loadUserTastings(user);
+      if (cached.length === 0 && legacyGuest.length > 0) {
+        setTastings(legacyGuest);
+      }
+      hydratedUserIdRef.current = user.id;
+      return;
+    }
+
+    // 2) Sincronización real con DreamHost (flushea cola offline + migra catas legadas en localStorage)
+    const result = await apiFetchUserTastings(user);
+    hydratedUserIdRef.current = user.id;
+    if (result.fromCloud || result.tastings.length > 0) {
+      setTastings(result.tastings);
+    }
+    setPendingCloudSyncCount(getPendingSyncQueue().filter((q) => q.userId === user.id).length);
+  };
+
+  useEffect(() => {
+    if (!currentUser) return;
+    let active = true;
+
+    (async () => {
+      if (currentUser.authProvider !== "guest" && currentUser.id !== "user-test-dev") {
+        const sessionCheck = await apiValidateSession();
+        if (!active) return;
+        if (sessionCheck.status === 401 || sessionCheck.status === 403) {
+          setCurrentUser(null);
+          setTastings([]);
+          setCurrentScreen("auth");
+          return;
+        }
+        if (sessionCheck.ok && sessionCheck.data?.user) {
+          setCurrentUser(sessionCheck.data.user);
+        }
+      }
+      if (active) {
+        await hydrateCloudSessionAndTastings(currentUser);
+      }
+    })();
+
+    const handleOnline = async () => {
+      if (currentUser.authProvider === "guest" || currentUser.id === "user-test-dev") return;
+      const flushed = await flushPendingQueueForUser(currentUser.id);
+      if (flushed > 0 && active) {
+        await hydrateCloudSessionAndTastings(currentUser);
+      }
+      if (active) {
+        setPendingCloudSyncCount(getPendingSyncQueue().filter((q) => q.userId === currentUser.id).length);
+      }
+    };
+    window.addEventListener("online", handleOnline);
+    return () => {
+      active = false;
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [currentUser?.id]);
 
   // --------------------------------------------------------------------------
   // E. Controladores de Autenticación (Login, Invitado, Logout)
@@ -283,6 +402,7 @@ export default function App() {
     if (user.id === "user-test-dev") {
       return;
     }
+    hydratedUserIdRef.current = null;
     recordUserSessionActivity(user);
     setCurrentUser(user);
     try {
@@ -291,8 +411,8 @@ export default function App() {
     } catch (e) {
       console.warn("Fallo al guardar sesión de usuario:", e);
     }
-    const userTastings = loadUserTastings(user);
-    setTastings(userTastings);
+    const immediateLegacy = loadUserTastings(user);
+    setTastings(immediateLegacy);
     setCurrentScreen("home");
 
     // Disparar siempre después del signin si la app no está instalada en el dispositivo
@@ -314,6 +434,7 @@ export default function App() {
       authProvider: "guest",
       verified: false,
     };
+    hydratedUserIdRef.current = null;
     setCurrentUser(guestUser);
     try {
       sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(guestUser));
@@ -321,8 +442,7 @@ export default function App() {
     } catch (e) {
       console.warn("Fallo al guardar sesión de invitado:", e);
     }
-    const guestTastings = loadUserTastings(guestUser);
-    setTastings(guestTastings);
+    setTastings(loadUserTastings(guestUser));
     setCurrentScreen("home");
 
     // Disparar siempre después del signin si la app no está instalada en el dispositivo
@@ -332,7 +452,10 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    apiLogout().catch(() => {});
+    hydratedUserIdRef.current = null;
     setCurrentUser(null);
+    setPendingCloudSyncCount(0);
     try {
       sessionStorage.removeItem(SESSION_USER_KEY);
       localStorage.removeItem("varietale_current_user_v2");
@@ -444,28 +567,51 @@ export default function App() {
   // --------------------------------------------------------------------------
   const [liveCoffees, setLiveCoffees] = useState<CoffeeInfo[]>(() => {
     try {
+      const savedV2 = localStorage.getItem("varietale_live_catalog_cache_v2");
+      if (savedV2) {
+        const parsed = JSON.parse(savedV2);
+        if (parsed && Array.isArray(parsed.coffees)) {
+          return parsed.coffees.filter((c: CoffeeInfo) => c.available === true);
+        }
+      }
       const saved = localStorage.getItem("varietale_live_catalog_cache");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((c: CoffeeInfo) => c.available === true);
+        }
       }
     } catch {
       // Utiliza muestra de respaldo si falla el almacenamiento
     }
-    return VARIETALE_SAMPLE_COFFEES;
+    return VARIETALE_SAMPLE_COFFEES.filter((c) => c.available === true);
   });
+  const [catalogVerifiedLive, setCatalogVerifiedLive] = useState<boolean>(false);
   const [isSyncingCatalog, setIsSyncingCatalog] = useState<boolean>(false);
+  const lastCatalogCheckRef = useRef<number>(0);
 
   const refreshLiveCatalog = async (force: boolean = false) => {
+    lastCatalogCheckRef.current = Date.now();
     try {
       setIsSyncingCatalog(true);
       const res = await fetch(`/api/varietale-coffees${force ? "?refresh=true" : ""}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.coffees && json.coffees.length > 0) {
-          setLiveCoffees(json.coffees);
+        const verified = Boolean(json.verifiedLive);
+        const activeCoffees = Array.isArray(json.coffees)
+          ? json.coffees.filter((c: CoffeeInfo) => c.available === true)
+          : [];
+
+        // Si el backend verificó la tienda en vivo, respetamos estrictamente existencias reales
+        // (incluso si temporalmente no hay cafés con stock).
+        if (verified || activeCoffees.length > 0) {
+          setLiveCoffees(activeCoffees);
+          setCatalogVerifiedLive(verified);
           try {
-            localStorage.setItem("varietale_live_catalog_cache", JSON.stringify(json.coffees));
+            localStorage.setItem(
+              "varietale_live_catalog_cache_v2",
+              JSON.stringify({ coffees: activeCoffees, verifiedLive: verified, fetchedAt: Date.now() })
+            );
           } catch {
             // Ignorar errores de cuota de localStorage
           }
@@ -482,8 +628,22 @@ export default function App() {
     refreshLiveCatalog();
     const interval = setInterval(() => {
       refreshLiveCatalog();
-    }, 3 * 60 * 1000);
-    return () => clearInterval(interval);
+    }, 2 * 60 * 1000);
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === "hidden") return;
+      if (Date.now() - lastCatalogCheckRef.current > 30 * 1000) {
+        refreshLiveCatalog();
+      }
+    };
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
+    };
   }, []);
 
   // --------------------------------------------------------------------------
@@ -638,14 +798,23 @@ export default function App() {
 
     setTastings(updated);
     if (currentUser) {
-      try {
-        const key = getUserTastingsKey(currentUser);
-        localStorage.setItem(key, JSON.stringify(updated));
-      } catch (err) {
-        console.warn("Fallo al persistir cata guardada:", err);
+      hydratedUserIdRef.current = currentUser.id;
+      if (currentUser.id === "user-test-dev") {
+        try {
+          localStorage.setItem(getUserTastingsKey(currentUser), JSON.stringify(updated));
+        } catch {}
+      } else {
+        idbSaveUserTastings(currentUser.id, updated);
+        apiSaveTastingWithPhoto(currentUser, savedRecord).then(({ synced, savedRecord: cloudRecord }) => {
+          setTastings((prev) => prev.map((t) => (t.id === cloudRecord.id ? cloudRecord : t)));
+          setPendingCloudSyncCount(getPendingSyncQueue().filter((q) => q.userId === currentUser.id).length);
+          if (!synced && currentUser.authProvider !== "guest") {
+            console.info("Cata guardada en dispositivo; pendiente de sincronización con DreamHost.");
+          }
+        });
       }
 
-      if (isNewCata) {
+      if (isNewCata && currentUser.id !== "user-test-dev") {
         triggerWebhookInBackground("new_tasting", {
           user: currentUser,
           tasting: savedRecord,
@@ -671,11 +840,19 @@ export default function App() {
   const handleDeleteCata = (id: string) => {
     const updated = tastings.filter((t) => t.id !== id);
     setTastings(updated);
-    try {
-      const key = getUserTastingsKey(currentUser);
-      localStorage.setItem(key, JSON.stringify(updated));
-    } catch (err) {
-      console.warn("Fallo al persistir eliminación de cata:", err);
+    if (currentUser) {
+      if (currentUser.id === "user-test-dev") {
+        try {
+          localStorage.setItem(getUserTastingsKey(currentUser), JSON.stringify(updated));
+        } catch {}
+      } else {
+        idbSaveUserTastings(currentUser.id, updated);
+        if (currentUser.authProvider !== "guest") {
+          apiDeleteTasting(currentUser.id, id).then(() => {
+            setPendingCloudSyncCount(getPendingSyncQueue().filter((q) => q.userId === currentUser.id).length);
+          });
+        }
+      }
     }
   };
 
@@ -1031,6 +1208,16 @@ export default function App() {
             </aside>
           )}
 
+          {/* Barra de Sincronización Pendiente (si DreamHost no estuvo accesible al guardar) */}
+          {currentUser && currentScreen !== "admin" && pendingCloudSyncCount > 0 && (
+            <div
+              data-cms-locked="true"
+              className="bg-amber-50 border-b border-amber-200 text-amber-900 text-xs font-semibold px-3 py-1.5 text-center"
+            >
+              Tienes {pendingCloudSyncCount} {pendingCloudSyncCount === 1 ? "cata pendiente" : "catas pendientes"} por sincronizar con DreamHost. Se subirá automáticamente al recuperar conexión.
+            </div>
+          )}
+
           {/* Pantalla 0: Autenticación Obligatoria (si no hay sesión ni está en Admin) */}
           {currentScreen !== "admin" && (currentScreen === "auth" || !currentUser) && (
             <AuthScreen
@@ -1079,6 +1266,7 @@ export default function App() {
                 }
               }}
               liveCoffees={liveCoffees}
+              catalogVerifiedLive={catalogVerifiedLive}
               isEditing={Boolean(editingCataId)}
               hasZeroTastings={tastings.length === 0}
             />
@@ -1114,6 +1302,7 @@ export default function App() {
               onDeleteCata={handleDeleteCata}
               onBackToHome={() => setCurrentScreen("home")}
               liveCoffees={liveCoffees}
+              catalogVerifiedLive={catalogVerifiedLive}
             />
           )}
 

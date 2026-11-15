@@ -2,11 +2,27 @@
 # BITÁCORA DE CATACIÓN VARIETALE - CONFIGURACIÓN APACHE / DREAMHOST
 # ====================================================================
 
-# 1. Enrutamiento SPA (Single Page Application / PWA)
-# Redirige todas las solicitudes de rutas virtuales a index.html
+# 0. Bloquear acceso directo a bases de datos, logs y secretos
+<FilesMatch "\.(sqlite|sqlite3|db|bak|env|log|secret)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# 1. Enrutamiento API PHP y SPA (Single Page Application / PWA)
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # Enrutar todas las peticiones /api/* hacia api/index.php
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^api/(.*)$ api/index.php?route=$1 [QSA,L]
+
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
@@ -19,8 +35,8 @@
   Header set X-Frame-Options "SAMEORIGIN"
   Header set X-XSS-Protection "1; mode=block"
 
-  # No cachear el index.html ni el Service Worker para asegurar actualizaciones inmediatas de la app
-  <FilesMatch "(index\.html|sw\.js|manifest\.webmanifest)$">
+  # No cachear el index.html, Service Worker ni respuestas API
+  <FilesMatch "(index\.html|sw\.js|manifest\.webmanifest|\.php)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
     Header set Pragma "no-cache"
     Header set Expires 0

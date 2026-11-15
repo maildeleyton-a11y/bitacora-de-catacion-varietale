@@ -48,38 +48,52 @@ interface LogbookScreenProps {
   onBackToHome: () => void;
   /** Catálogo en vivo sincronizado con varietale.com para resolución dinámica */
   liveCoffees?: CoffeeInfo[];
+  /** Indica si el catálogo en vivo ya verificó stock real en varietale.com */
+  catalogVerifiedLive?: boolean;
 }
 
 /**
  * Componente de miniatura fotográfica que intenta mostrar la imagen del café
- * y, si falla la carga de red o no existe imagen, muestra el isotipo oficial de Varietale.
+ * y, si falla la carga de red o no existe imagen, degrada al fallback o al isotipo oficial de Varietale.
  */
 interface CoffeeThumbnailProps {
   photoSrc?: string;
+  fallbackSrc?: string;
   coffeeName: string;
   className?: string;
 }
 
 const CoffeeThumbnail: React.FC<CoffeeThumbnailProps> = ({
   photoSrc,
+  fallbackSrc,
   coffeeName,
   className = "w-13 h-13 sm:w-15 sm:h-15 rounded-xl",
 }) => {
-  const [imgError, setImgError] = useState(false);
+  const [stage, setStage] = useState<"primary" | "fallback" | "icon">(
+    photoSrc ? "primary" : fallbackSrc ? "fallback" : "icon"
+  );
 
-  // Reiniciar estado de error si la fuente de la foto cambia dinámicamente
+  // Reiniciar etapa de carga si cambia la fuente de la foto
   useEffect(() => {
-    setImgError(false);
-  }, [photoSrc]);
+    setStage(photoSrc ? "primary" : fallbackSrc ? "fallback" : "icon");
+  }, [photoSrc, fallbackSrc]);
 
-  if (photoSrc && !imgError) {
+  const activeSrc = stage === "primary" ? photoSrc : stage === "fallback" ? fallbackSrc : undefined;
+
+  if (activeSrc && stage !== "icon") {
     return (
       <img
-        src={photoSrc}
+        src={activeSrc}
         alt={coffeeName}
         className={`${className} object-cover border border-[#DDC1AB] shrink-0 bg-[#FAF6F2]`}
         loading="lazy"
-        onError={() => setImgError(true)}
+        onError={() => {
+          if (stage === "primary" && fallbackSrc && fallbackSrc !== photoSrc) {
+            setStage("fallback");
+          } else {
+            setStage("icon");
+          }
+        }}
       />
     );
   }
@@ -98,6 +112,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   onDeleteCata,
   onBackToHome,
   liveCoffees,
+  catalogVerifiedLive = false,
 }) => {
   const [activeTab, setActiveTab] = useState<"historial" | "comparador" | "exploracion">("historial");
 
@@ -110,30 +125,20 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
       .replace(/\s+/g, " ")
       .trim();
 
-  // Resolución dinámica en tiempo de ejecución:
-  // 1. Si el usuario tomó una foto propia, tiene prioridad absoluta.
-  // 2. Si no hay foto propia, busca la foto oficial en el catálogo en vivo (o respaldo de Varietale).
-  // 3. Cero redundancia de fotos en localStorage.
-  const resolveCataPhoto = (cata: TastingRecord): string | undefined => {
-    if (cata.photoUrl && cata.photoUrl !== "/icon-192.png") {
-      return cata.photoUrl;
-    }
+  const resolveOfficialCoffeeImage = (cata: TastingRecord): string | undefined => {
     const catalog = liveCoffees && liveCoffees.length > 0 ? liveCoffees : VARIETALE_SAMPLE_COFFEES;
     const target = normalizeCoffeeKey(cata.coffeeName || "");
     if (!target) return undefined;
 
-    // Coincidencia exacta
     const exact = catalog.find((c) => normalizeCoffeeKey(c.coffeeName) === target);
     if (exact?.imageUrl) return exact.imageUrl;
 
-    // Coincidencia parcial
     const partial = catalog.find((c) => {
       const cName = normalizeCoffeeKey(c.coffeeName);
       return cName.includes(target) || target.includes(cName);
     });
     if (partial?.imageUrl) return partial.imageUrl;
 
-    // Coincidencia por palabra clave distintiva
     const keywords = target
       .split(" ")
       .filter((w) => w.length > 3 && !["cafe", "edicion", "especial", "varietale"].includes(w));
@@ -146,6 +151,16 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
     }
 
     return undefined;
+  };
+
+  // Resolución dinámica en tiempo de ejecución:
+  // 1. Si el usuario tomó una foto propia, tiene prioridad absoluta.
+  // 2. Si no hay foto propia (o fue borrada por baja), cae al catálogo o isotipo sin romperse.
+  const resolveCataPhoto = (cata: TastingRecord): string | undefined => {
+    if (cata.photoUrl && cata.photoUrl !== "/icon-192.png") {
+      return cata.photoUrl;
+    }
+    return resolveOfficialCoffeeImage(cata);
   };
 
   // Asegurar que la bitácora siempre cargue en la parte superior y al cambiar de pestaña
@@ -312,6 +327,14 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
   }, [tastings]);
 
   // Dynamic Rebuy CTA recommendation
+  const availableCatalog = useMemo(() => {
+    const source =
+      liveCoffees && (catalogVerifiedLive || liveCoffees.length > 0)
+        ? liveCoffees
+        : VARIETALE_SAMPLE_COFFEES;
+    return source.filter((c) => c.available === true);
+  }, [liveCoffees, catalogVerifiedLive]);
+
   const recommendation = useMemo(() => {
     if (tastings.length === 0) {
       return {
@@ -325,68 +348,106 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
     }
 
     const { floral, frutal, tostado, dulce, nueces, especias, acido } = explorationProfile;
-    const catalogOptions = [
+    const axisSpecs = [
       {
-        isWelcomePromo: false,
         val: floral,
         title: "Te falta explorar cafés con perfil Floral",
-        coffee: "La Argelia",
-        url: "https://varietale.com/products/la-argelia",
-        ctaText: "Ver La Argelia en varietale.com",
+        macros: ["floral"],
+        keywords: ["floral", "jazmin", "flor", "rosa", "violeta", "bergamota"],
       },
       {
-        isWelcomePromo: false,
         val: frutal,
         title: "Te falta explorar cafés con perfil Frutal y Tropical",
-        coffee: "Bourbon Papayo",
-        url: "https://varietale.com/products/borbon-papayo",
-        ctaText: "Ver Bourbon Papayo en varietale.com",
+        macros: ["frutal"],
+        keywords: ["frut", "baya", "mora", "arandano", "fresa", "mandarina", "papayo", "durazno", "citric"],
       },
       {
-        isWelcomePromo: false,
         val: tostado,
-        title: "Te falta explorar cafés con perfil Tostado y Especiado",
-        coffee: "Las Hortensias (Orgánico)",
-        url: "https://varietale.com/products/las-hortensias",
-        ctaText: "Ver Las Hortensias en varietale.com",
+        title: "Te falta explorar cafés con perfil Tostado y Cacao",
+        macros: ["tostado"],
+        keywords: ["tostad", "cacao", "chocolate", "panela", "oscuro", "caramelo"],
       },
       {
-        isWelcomePromo: false,
         val: dulce,
         title: "Te falta explorar cafés con perfil Dulce y Achocolatado",
-        coffee: "San Antonio",
-        url: "https://varietale.com/products/san-antonio",
-        ctaText: "Ver San Antonio en varietale.com",
+        macros: ["dulce"],
+        keywords: ["dulce", "miel", "caramelo", "cana", "panela", "melado", "chocolate"],
       },
       {
-        isWelcomePromo: false,
         val: nueces ?? 0,
         title: "Te falta explorar cafés con notas de Cacao y Frutos Secos",
-        coffee: "Café Especial Varietale",
-        url: "https://varietale.com/collections/cafes",
-        ctaText: "Explorar cafés en varietale.com",
+        macros: ["nueces", "frutos secos / cacao", "nueces/cacao"],
+        keywords: ["cacao", "nuez", "avellana", "almendra", "chocolate"],
       },
       {
-        isWelcomePromo: false,
         val: especias ?? 0,
         title: "Te falta explorar cafés con notas Especiadas y Cálidas",
-        coffee: "Las Hortensias (Orgánico)",
-        url: "https://varietale.com/products/las-hortensias",
-        ctaText: "Ver Las Hortensias en varietale.com",
+        macros: ["especias"],
+        keywords: ["especia", "canela", "clavo", "pimienta", "herbal"],
       },
       {
-        isWelcomePromo: false,
         val: acido ?? 0,
         title: "Te falta explorar cafés con perfil Ácido y Cítrico",
-        coffee: "Bourbon Papayo",
-        url: "https://varietale.com/products/borbon-papayo",
-        ctaText: "Ver Bourbon Papayo en varietale.com",
+        macros: ["acido", "ácido / fermentado"],
+        keywords: ["citric", "limon", "lima", "naranja", "acidez", "brillante", "vinoso"],
       },
-    ];
+    ].sort((a, b) => a.val - b.val);
 
-    catalogOptions.sort((a, b) => a.val - b.val);
-    return catalogOptions[0];
-  }, [explorationProfile, tastings.length]);
+    if (availableCatalog.length === 0) {
+      return {
+        isWelcomePromo: false,
+        val: axisSpecs[0].val,
+        title: axisSpecs[0].title,
+        coffee: "Tienda Oficial Varietale",
+        url: "https://varietale.com/collections/cafes",
+        ctaText: "Ver existencias actualizadas en varietale.com",
+      };
+    }
+
+    const tastedNames = new Set(tastings.map((t) => normalizeCoffeeKey(t.coffeeName)));
+    const matchesAxis = (coffee: CoffeeInfo, spec: typeof axisSpecs[number]) => {
+      const macro = normalizeCoffeeKey(coffee.suggestedMacro || "");
+      const hay = normalizeCoffeeKey(`${coffee.coffeeName} ${coffee.description || ""} ${coffee.process || ""}`);
+      if (spec.macros.some((m) => macro.includes(normalizeCoffeeKey(m)))) return true;
+      return spec.keywords.some((kw) => hay.includes(kw));
+    };
+
+    for (const spec of axisSpecs) {
+      const untastedMatch = availableCatalog.find(
+        (c) => !tastedNames.has(normalizeCoffeeKey(c.coffeeName)) && matchesAxis(c, spec)
+      );
+      const anyMatch = untastedMatch || availableCatalog.find((c) => matchesAxis(c, spec));
+      if (anyMatch) {
+        const productUrl =
+          anyMatch.url ||
+          (anyMatch.handle ? `https://varietale.com/products/${anyMatch.handle}` : "https://varietale.com/collections/cafes");
+        return {
+          isWelcomePromo: false,
+          val: spec.val,
+          title: spec.title,
+          coffee: anyMatch.coffeeName,
+          url: productUrl,
+          ctaText: `Ver ${anyMatch.coffeeName} en varietale.com`,
+        };
+      }
+    }
+
+    // Fallback estricto: primer café con existencias reales que aún no haya probado
+    const fallbackCoffee =
+      availableCatalog.find((c) => !tastedNames.has(normalizeCoffeeKey(c.coffeeName))) || availableCatalog[0];
+    const fallbackUrl =
+      fallbackCoffee.url ||
+      (fallbackCoffee.handle ? `https://varietale.com/products/${fallbackCoffee.handle}` : "https://varietale.com/collections/cafes");
+
+    return {
+      isWelcomePromo: false,
+      val: axisSpecs[0].val,
+      title: axisSpecs[0].title,
+      coffee: fallbackCoffee.coffeeName,
+      url: fallbackUrl,
+      ctaText: `Ver ${fallbackCoffee.coffeeName} en varietale.com`,
+    };
+  }, [explorationProfile, tastings, availableCatalog]);
 
   const cataA = useMemo(() => {
     if (tastings.length === 0) return null;
@@ -640,6 +701,7 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
                   <div className="pt-3 flex items-start gap-3">
                     <CoffeeThumbnail
                       photoSrc={resolveCataPhoto(cata)}
+                      fallbackSrc={resolveOfficialCoffeeImage(cata)}
                       coffeeName={cata.coffeeName}
                     />
 

@@ -7,3 +7,7 @@ coverage/
 .env*
 !.env.example
 bitacora-dist.zip
+.dev-data/
+public/api/storage/bitacora.sqlite*
+public/api/storage/uploads/
+public/api/storage/*.secret

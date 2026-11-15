@@ -184,6 +184,10 @@ export interface UserProfile {
   authProvider?: "google" | "email" | "guest";
   /** Estado de verificación de la cuenta */
   verified?: boolean;
+  /** Estado de suscripción de la cuenta en DreamHost */
+  status?: "active" | "unsubscribed";
+  /** Fecha ISO en que se dio de baja la cuenta (si aplica) */
+  unsubscribedAt?: string | null;
 }
 
 // ============================================================================

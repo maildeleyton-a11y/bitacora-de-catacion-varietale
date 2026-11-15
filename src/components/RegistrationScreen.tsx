@@ -44,6 +44,7 @@ import { BrewMethodIcon } from "./BrewMethodIcons";
 import { BrandFooter } from "./BrandFooter";
 import { WelcomeGiftCard } from "./WelcomeGiftCard";
 import { VarietaleBrandIcon } from "./VarietaleLogo";
+import { optimizeImageDataUrlForCloud } from "../data/apiClient";
 
 interface RegistrationScreenProps {
   /** Información técnica del café a evaluar */
@@ -68,6 +69,8 @@ interface RegistrationScreenProps {
   onCancel: () => void;
   /** Catálogo en vivo sincronizado con varietale.com */
   liveCoffees?: CoffeeInfo[];
+  /** Indica si el backend confirmó stock en tiempo real en varietale.com */
+  catalogVerifiedLive?: boolean;
   /** Indica si se está editando una cata existente */
   isEditing?: boolean;
   /** Indica si el usuario aún no tiene catas en la bitácora */
@@ -86,6 +89,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
   onProceedToWheel,
   onCancel,
   liveCoffees: propLiveCoffees,
+  catalogVerifiedLive = false,
   isEditing = false,
   hasZeroTastings = false,
 }) => {
@@ -122,11 +126,19 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
     return "lista";
   });
 
-  // Catálogo en vivo de Varietale
-  const [localCatalog, setLocalCatalog] = useState<CoffeeInfo[]>(VARIETALE_SAMPLE_COFFEES);
+  // Catálogo en vivo de Varietale (estrictamente con existencias disponibles)
+  const [localCatalog, setLocalCatalog] = useState<CoffeeInfo[]>(() =>
+    VARIETALE_SAMPLE_COFFEES.filter((c) => c.available === true)
+  );
+  const [localVerifiedLive, setLocalVerifiedLive] = useState<boolean>(false);
   const [listCategory, setListCategory] = useState<string>("todos");
 
-  const liveCatalog = propLiveCoffees && propLiveCoffees.length > 0 ? propLiveCoffees : localCatalog;
+  const effectiveVerifiedLive = catalogVerifiedLive || localVerifiedLive;
+  const liveCatalog = (
+    propLiveCoffees && (effectiveVerifiedLive || propLiveCoffees.length > 0)
+      ? propLiveCoffees
+      : localCatalog
+  ).filter((c) => c.available === true);
 
   // Asegurar que la pantalla siempre cargue en la parte superior
   useEffect(() => {
@@ -136,14 +148,19 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
   }, [inputMode]);
 
   useEffect(() => {
+    if (catalogVerifiedLive) return;
     if (propLiveCoffees && propLiveCoffees.length > 0) return;
     async function loadCatalog() {
       try {
         const res = await fetch("/api/varietale-coffees");
         if (res.ok) {
           const json = await res.json();
-          if (json.coffees && json.coffees.length > 0) {
-            setLocalCatalog(json.coffees);
+          const active = Array.isArray(json.coffees)
+            ? json.coffees.filter((c: CoffeeInfo) => c.available === true)
+            : [];
+          if (json.verifiedLive || active.length > 0) {
+            setLocalCatalog(active);
+            setLocalVerifiedLive(Boolean(json.verifiedLive));
           }
         }
       } catch (err) {
@@ -151,7 +168,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
       }
     }
     loadCatalog();
-  }, [propLiveCoffees]);
+  }, [propLiveCoffees, catalogVerifiedLive]);
 
   const filteredCatalog = liveCatalog.filter((c) => {
     if (listCategory === "todos") return true;
@@ -222,18 +239,19 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
     });
   };
 
-  // Captura local de imagen sin OCR ni IA (almacenamiento ultra-rápido en cliente)
+  // Captura y optimización automática de imagen para la nube de DreamHost (<= 720px WebP/JPEG ligero)
   const handleImageFile = async (file: File) => {
     if (!file) return;
 
     try {
-      const { base64: optimizedBase64 } = await compressImageForAnalysis(file);
-      if (!optimizedBase64) {
+      const { base64 } = await compressImageForAnalysis(file);
+      if (!base64) {
         throw new Error("No se pudo leer la imagen.");
       }
+      const cloudOptimized = await optimizeImageDataUrlForCloud(base64, 720, 0.74);
 
-      onPhotoChange(optimizedBase64);
-      setScanMessage("Foto de la bolsa lista para tu ficha de cata.");
+      onPhotoChange(cloudOptimized);
+      setScanMessage("Foto optimizada lista para tu ficha de cata.");
     } catch (err) {
       console.error(err);
       setScanMessage("No se pudo procesar la foto.");
@@ -419,10 +437,14 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
     setScanMessage(`Café seleccionado: ${preset.coffeeName}`);
   };
 
-  // Validación: Marca y/o Nombre del café son obligatorios para continuar
-  const isStep1Valid = Boolean(
-    (coffeeInfo?.coffeeName || "").trim() || (coffeeInfo?.brand || "").trim()
-  );
+  // Validación: exige haber elegido un café en modo catálogo o ingresar marca/nombre en modo manual
+  const isStep1Valid =
+    inputMode === "lista"
+      ? Boolean((coffeeInfo?.coffeeName || "").trim())
+      : Boolean(
+          (coffeeInfo?.coffeeName || "").trim() ||
+            ((coffeeInfo?.brand || "").trim() && (coffeeInfo?.brand || "").trim() !== "VARIETALE")
+        );
 
   const handleProceed = () => {
     if (!isStep1Valid) return;
@@ -444,7 +466,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full safe-pb">
+    <div className="min-h-screen bg-[#FDFCFB] pb-12 pt-4 px-4 sm:px-6 md:px-8 max-w-xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full safe-pb">
       {/* Pop-up Obsequio de Bienvenida en Paso 1/2 si no hay catas registradas */}
       {showGiftModal && (
         <div
@@ -603,6 +625,7 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
               <img
                 src={photoUrl}
                 alt="Foto de la bolsa"
+                onError={() => onPhotoChange("")}
                 className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-[#DDC1AB] shrink-0"
               />
               <div className="text-left flex-1 min-w-0">
@@ -782,6 +805,16 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                   </button>
                 );
               })}
+              {filteredCatalog.length === 0 && (
+                <div className="sm:col-span-2 p-4 rounded-2xl border border-dashed border-[#DDC1AB] bg-[#FAF6F2] text-center space-y-1.5">
+                  <p className="text-xs sm:text-sm font-bold text-[#01374C]">
+                    No hay cafés disponibles en stock para esta categoría en varietale.com en este momento.
+                  </p>
+                  <p className="text-[11px] text-[#52646E]">
+                    Prueba cambiando a «Todos» o registra manualmente el café desde «Otra marca / manual».
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1093,12 +1126,18 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
                 <img
                   src={photoUrl}
                   alt={coffeeInfo.coffeeName || "Foto del café"}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
                   className="w-12 h-12 object-cover rounded-lg bg-white border border-[#DDC1AB] shrink-0"
                 />
               ) : coffeeInfo.imageUrl ? (
                 <img
                   src={coffeeInfo.imageUrl}
                   alt={coffeeInfo.coffeeName || "Foto del café"}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
                   className="w-12 h-12 object-contain rounded-lg bg-white p-0.5 border border-[#DDC1AB] shrink-0"
                 />
               ) : (
@@ -1649,31 +1688,36 @@ export const RegistrationScreen: React.FC<RegistrationScreenProps> = ({
         </div>
       </div>
 
+      {/* Continue CTA (al final del formulario, después de completar café, método y consejos) */}
+      <div className="mt-6 mb-4">
+        <button
+          id="proceed-to-wheel-btn"
+          onClick={handleProceed}
+          disabled={!isStep1Valid}
+          className={`w-full min-h-[54px] py-4 px-5 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] ${
+            isStep1Valid
+              ? "bg-[#01374C] text-white hover:bg-[#002636] cursor-pointer"
+              : "bg-[#E8EDF1] text-[#93A3AB] cursor-not-allowed"
+          }`}
+        >
+          <span className="text-center">
+            {isStep1Valid
+              ? "Continuar a la Rueda Sensorial"
+              : inputMode === "lista"
+              ? "Selecciona un café de la lista para continuar"
+              : "Ingresa el Nombre o Marca del café para continuar"}
+          </span>
+          <ArrowRight className="w-5 h-5 text-[#00D9B4] shrink-0" />
+        </button>
+        {!isStep1Valid && (
+          <p className="text-xs text-[#6A7B85] text-center mt-2">
+            Primero completa la selección de tu café y método de preparación arriba.
+          </p>
+        )}
+      </div>
+
       {/* Global Brand Footer */}
       <BrandFooter className="mt-6 mb-2" />
-
-      {/* Fixed Bottom Continue CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-3 sm:p-4 pb-[calc(0.85rem+env(safe-area-inset-bottom,0px))] border-t border-[#E8EDF1] z-20 shadow-[0_-4px_20px_rgba(1,55,76,0.06)]">
-        <div className="max-w-xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center gap-2">
-          <button
-            id="proceed-to-wheel-btn"
-            onClick={handleProceed}
-            disabled={!isStep1Valid}
-            className={`w-full min-h-[52px] py-4 px-5 rounded-xl font-black text-base sm:text-lg flex items-center justify-center gap-2.5 transition-all shadow-md active:scale-[0.99] ${
-              isStep1Valid
-                ? "bg-[#01374C] text-white hover:bg-[#002636] cursor-pointer"
-                : "bg-[#E8EDF1] text-[#93A3AB] cursor-not-allowed"
-            }`}
-          >
-            <span>
-              {isStep1Valid
-                ? "Continuar a la Rueda Sensorial"
-                : "Ingresa la Marca o Nombre del café para continuar"}
-            </span>
-            <ArrowRight className="w-5 h-5 text-[#00D9B4]" />
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

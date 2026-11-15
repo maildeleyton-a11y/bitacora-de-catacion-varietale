@@ -17,6 +17,7 @@
 import { FlavorDescriptor, BrewMethodInfo, MacroProfile } from "../types";
 import { FLAVOR_DESCRIPTORS } from "./wheelDescriptors";
 import { BREW_METHODS, MACRO_THEMES } from "./coffeeData";
+import { getStoredAdminToken } from "./apiClient";
 
 export const UI_CMS_STORAGE_KEY = "varietale_admin_ui_cms_v1";
 export const UI_CMS_VISUAL_MODE_SESSION_KEY = "varietale_admin_visual_edit_mode";
@@ -2424,9 +2425,13 @@ export function saveUiCmsState(
   }
 
   if (syncBackend) {
+    const adminToken = getStoredAdminToken();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (adminToken) headers["X-Admin-Token"] = adminToken;
+
     fetch("/api/admin/ui-cms", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(withTimestamp),
     }).catch(() => {
       // Silencioso si está offline

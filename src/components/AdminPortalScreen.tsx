@@ -99,6 +99,15 @@ import {
 } from "../data/adminStore";
 import { BrandFooter } from "./BrandFooter";
 import { AdminUiCmsTab } from "./AdminUiCmsTab";
+import {
+  apiAdminFetchDirectory,
+  apiAdminResetUser,
+  apiAdminUnsubscribeUser,
+  apiAdminUpdateCredentials,
+  apiAdminBackupConfig,
+  apiAdminDownloadBackup,
+  getStoredAdminToken,
+} from "../data/apiClient";
 
 interface AdminPortalScreenProps {
   /** Catálogo de cafés sincronizado actualmente con varietale.com */
@@ -417,15 +426,120 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   const [adminCredsSavedMsg, setAdminCredsSavedMsg] = useState<string | null>(null);
 
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
+  const [cloudBackupToken, setCloudBackupToken] = useState<string | null>(null);
+  const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
+  const [isUnsubscribingUser, setIsUnsubscribingUser] = useState(false);
+  const [cloudData, setCloudData] = useState<{
+    loaded: boolean;
+    users: EnrichedUserRecord[];
+    redirects: any[];
+    shares: any[];
+    coupons: any[];
+  } | null>(null);
   const fileInputBackupRef = useRef<HTMLInputElement>(null);
 
   // Estado de Simulación Temporal de 20 Usuarios
   const [simBannerMsg, setSimBannerMsg] = useState<string | null>(null);
   const isSimActive = useMemo(() => isSimulationDataLoaded(), [refreshTick]);
 
-  // Recalcular analíticas en vivo
-  const stats = useMemo(() => computeAdminDashboardStats(), [refreshTick]);
-  const usersDirectory = useMemo(() => getEnrichedUsersDirectory(), [refreshTick]);
+  // Cargar directorio y analíticas en vivo desde DreamHost SQLite
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!getStoredAdminToken()) return;
+      const res = await apiAdminFetchDirectory();
+      if (!active || !res.ok || !res.data?.success) return;
+
+      const rawRedirects = Array.isArray(res.data.redirects) ? res.data.redirects : [];
+      const rawShares = Array.isArray(res.data.shares) ? res.data.shares : [];
+      const rawCoupons = Array.isArray(res.data.coupons) ? res.data.coupons : [];
+
+      const mappedUsers: EnrichedUserRecord[] = (res.data.users || []).map((u: any) => {
+        const tastingsList = Array.isArray(u.tastings) ? u.tastings : [];
+        const tastingsCount = tastingsList.length;
+        const uniqueCoffees = new Set(
+          tastingsList.map((t: any) => (t.coffeeName || "").trim().toLowerCase()).filter(Boolean)
+        );
+        const avgRating =
+          tastingsCount > 0
+            ? Number(
+                (
+                  tastingsList.reduce((acc: number, t: any) => acc + (Number(t.rating) || 0), 0) /
+                  tastingsCount
+                ).toFixed(1)
+              )
+            : 0;
+        const macroFreq: Record<string, number> = {};
+        tastingsList.forEach((t: any) => {
+          (t.selectedFlavors || []).forEach((f: any) => {
+            if (f?.macro) {
+              macroFreq[f.macro] = (macroFreq[f.macro] || 0) + 1;
+            }
+          });
+        });
+        const topMacro =
+          Object.entries(macroFreq).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+        const userRedirects = rawRedirects.filter(
+          (r: any) => r.userId === u.account?.id || r.username === u.account?.username
+        ).length;
+        const userShares = rawShares.filter(
+          (s: any) => s.userId === u.account?.id || s.username === u.account?.username
+        ).length;
+
+        return {
+          account: u.account,
+          tastings: tastingsList,
+          tastingsCount,
+          uniqueCoffeesCount: uniqueCoffees.size,
+          avgRating,
+          redirectsCount: userRedirects,
+          sharesCount: userShares,
+          isStandalonePwa: Boolean(u.isStandalonePwa),
+          isPwaInstalled: Boolean(u.isStandalonePwa),
+          favoriteMacro: topMacro,
+          platform: (u.platform === "iOS" || u.platform === "Android" ? u.platform : "Escritorio") as "iOS" | "Android" | "Escritorio",
+          lastActivityAt: u.lastActivityAt || u.account?.createdAt || new Date().toISOString(),
+        };
+      });
+
+      setCloudData({
+        loaded: true,
+        users: mappedUsers,
+        redirects: rawRedirects,
+        shares: rawShares,
+        coupons: rawCoupons,
+      });
+
+      const tokRes = await apiAdminBackupConfig(false);
+      if (active && tokRes.ok && tokRes.data?.backupToken) {
+        setCloudBackupToken(tokRes.data.backupToken);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [refreshTick]);
+
+  // Recalcular analíticas en vivo (prioriza DreamHost SQLite cuando está cargado)
+  const stats = useMemo(
+    () =>
+      computeAdminDashboardStats(
+        cloudData?.loaded && !isSimActive
+          ? {
+              users: cloudData.users,
+              redirects: cloudData.redirects,
+              shares: cloudData.shares,
+              coupons: cloudData.coupons,
+            }
+          : undefined
+      ),
+    [refreshTick, cloudData, isSimActive]
+  );
+  const usersDirectory = useMemo(
+    () => (cloudData?.loaded && !isSimActive ? cloudData.users : getEnrichedUsersDirectory()),
+    [refreshTick, cloudData, isSimActive]
+  );
 
   // ============================================================================
   // ANALÍTICA TEMPORAL Y AUDITORÍA DE REDIRECCIONES A VARIETALE.COM
@@ -963,12 +1077,17 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   };
 
   // Guardar Credenciales de Administrador
-  const handleSaveAdminCredentials = (e: React.FormEvent) => {
+  const handleSaveAdminCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminCredsForm.username.trim()) return;
     if (adminCredsForm.password.trim().length < 4) return;
     if (adminCredsForm.masterPin.trim().length < 4) return;
 
+    await apiAdminUpdateCredentials({
+      username: adminCredsForm.username.trim(),
+      password: adminCredsForm.password.trim(),
+      newMasterPin: adminCredsForm.masterPin.trim(),
+    });
     saveAdminCredentials({
       username: adminCredsForm.username.trim(),
       password: adminCredsForm.password.trim(),
@@ -979,15 +1098,16 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   };
 
   // Soporte a cliente: actualizar clave / PIN
-  const handleApplyClientSupport = (e: React.FormEvent) => {
+  const handleApplyClientSupport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supportModalUser) return;
-    const ok = adminResetClientCredentials(
-      supportModalUser.account.id,
-      supportNewPassword.trim() || undefined,
-      supportNewPin.trim() || undefined
-    );
-    if (ok) {
+    const newPass = supportNewPassword.trim() || undefined;
+    const newPin = supportNewPin.trim() || undefined;
+
+    const cloudRes = await apiAdminResetUser(supportModalUser.account.id, newPass, newPin);
+    const localOk = adminResetClientCredentials(supportModalUser.account.id, newPass, newPin);
+
+    if (cloudRes.ok || localOk) {
       setSupportFeedback("¡Credenciales del usuario actualizadas con éxito!");
       setRefreshTick((t) => t + 1);
       setTimeout(() => {
@@ -1003,12 +1123,60 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
     }
   };
 
-  // Importar archivo JSON de respaldo
+  // Descargar Backup JSON completo desde DreamHost (liviano, sin fotos)
+  const handleDownloadCloudBackup = async () => {
+    setIsDownloadingBackup(true);
+    try {
+      const res = await apiAdminDownloadBackup();
+      if (res.ok && res.data) {
+        const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `varietale-dreamhost-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setBackupMsg("Backup descargado desde DreamHost (usuarios, catas y métricas, sin fotos).");
+        setTimeout(() => setBackupMsg(null), 4000);
+        return;
+      }
+      exportFullDatabaseBackupJson();
+    } finally {
+      setIsDownloadingBackup(false);
+    }
+  };
+
+  // Importar archivo JSON de respaldo (soporta restauración directa a DreamHost SQLite)
   const handleImportBackupFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const content = ev.target?.result;
       if (typeof content === "string") {
+        try {
+          const parsed = JSON.parse(content);
+          if (parsed?.schemaVersion === "varietale-dreamhost-backup-v1" && getStoredAdminToken()) {
+            const resp = await fetch("/api/backup/restore", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Token": getStoredAdminToken() || "",
+              },
+              body: content,
+            });
+            const json = await resp.json();
+            if (resp.ok && json.success) {
+              setBackupMsg(
+                `Restauración en DreamHost exitosa: ${json.restoredUsers} usuarios y ${json.restoredTastings} catas.`
+              );
+              setRefreshTick((t) => t + 1);
+              setTimeout(() => setBackupMsg(null), 5000);
+              return;
+            }
+          }
+        } catch {}
+
         const result = importFullDatabaseBackupJson(content);
         setBackupMsg(result.message);
         if (result.ok) {
@@ -2715,8 +2883,16 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                                 />
                               </td>
                               <td className="py-3.5 pr-2">
-                                <div className="font-black text-[#01374C] flex items-center gap-1.5">
+                                <div className="font-black text-[#01374C] flex flex-wrap items-center gap-1.5">
                                   <span>{u.account.name}</span>
+                                  {u.account.status === "unsubscribed" && (
+                                    <span
+                                      className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300"
+                                      title="Usuario dado de baja: fotos eliminadas del servidor, catas preservadas"
+                                    >
+                                      Dado de baja
+                                    </span>
+                                  )}
                                   {u.isPwaInstalled && (
                                     <span
                                       className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-[#EBFBFA] text-[#00897B] border border-[#00D9B4]/40"
@@ -2823,14 +2999,16 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                                     <span>PIN / Clave</span>
                                   </button>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => setUserToDelete(u)}
-                                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                                    title="Eliminar cuenta"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  {u.account.status !== "unsubscribed" && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setUserToDelete(u)}
+                                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                      title="Dar de baja (elimina fotos físicas, conserva catas)"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -3305,6 +3483,9 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                       <img
                         src={coffee.imageUrl}
                         alt={coffee.coffeeName}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
                         className="w-20 h-20 rounded-xl object-contain bg-white p-1 border border-[#E8EDF1] shrink-0"
                       />
                     ) : (
@@ -3787,11 +3968,12 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={exportFullDatabaseBackupJson}
-                    className="min-h-[44px] py-2.5 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
+                    disabled={isDownloadingBackup}
+                    onClick={handleDownloadCloudBackup}
+                    className="min-h-[44px] py-2.5 px-4 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                   >
                     <Download className="w-4 h-4 text-[#00D9B4]" />
-                    <span>Descargar Backup (.JSON)</span>
+                    <span>{isDownloadingBackup ? "Generando..." : "Descargar Backup (.JSON sin fotos)"}</span>
                   </button>
 
                   <button
@@ -3803,6 +3985,45 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                     <span>Restaurar desde Archivo</span>
                   </button>
                 </div>
+
+                {cloudBackupToken && (
+                  <div className="p-3.5 rounded-xl bg-[#F5F8FA] border border-[#E8EDF1] space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-black text-[#01374C]">
+                        Token de Respaldo Automático GitHub (DREAMHOST_BACKUP_TOKEN)
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(cloudBackupToken);
+                            setBackupMsg("Token copiado. Guárdalo en GitHub Secrets como DREAMHOST_BACKUP_TOKEN.");
+                            setTimeout(() => setBackupMsg(null), 4000);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white border border-[#DDC1AB] text-[11px] font-bold text-[#01374C] cursor-pointer"
+                        >
+                          Copiar Token
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const r = await apiAdminBackupConfig(true);
+                            if (r.ok && r.data?.backupToken) {
+                              setCloudBackupToken(r.data.backupToken);
+                              setBackupMsg("Nuevo token generado en DreamHost. Actualiza DREAMHOST_BACKUP_TOKEN en GitHub.");
+                            }
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-[#01374C] text-[#00D9B4] text-[11px] font-bold cursor-pointer"
+                        >
+                          Regenerar
+                        </button>
+                      </div>
+                    </div>
+                    <code className="block text-[11px] bg-white px-2.5 py-1.5 rounded-lg border border-[#E8EDF1] text-[#01374C] break-all select-all">
+                      {cloudBackupToken}
+                    </code>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -4035,7 +4256,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
         </div>
       )}
 
-      {/* MODAL DE CONFIRMACIÓN PARA ELIMINAR USUARIO */}
+      {/* MODAL DE CONFIRMACIÓN PARA DAR DE BAJA USUARIO (BORRA FOTOS, CONSERVA CATAS) */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-[#E8EDF1] text-center space-y-3">
@@ -4043,17 +4264,20 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
               <Trash2 className="w-6 h-6" />
             </div>
             <h3 data-cms-locked="true" className="text-base font-black text-[#01374C]">
-              ¿Eliminar a {userToDelete.account.name}?
+              ¿Dar de baja a {userToDelete.account.name}?
             </h3>
             <p className="text-xs text-[#52646E] leading-relaxed">
-              <span>Se eliminará la cuenta</span>{" "}
+              <span>Se desactivará la cuenta</span>{" "}
               <strong data-cms-locked="true">@{userToDelete.account.username}</strong>{" "}
-              <span>y sus</span>{" "}
-              <strong data-cms-locked="true">{userToDelete.tastingsCount} catas registradas</strong>.
+              <span>y se eliminarán de DreamHost todas sus fotos cargadas.</span>{" "}
+              <strong data-cms-locked="true">
+                Sus {userToDelete.tastingsCount} catas registradas e historial se conservarán intactos en la base de datos.
+              </strong>
             </p>
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
+                disabled={isUnsubscribingUser}
                 onClick={() => setUserToDelete(null)}
                 className="flex-1 py-2.5 rounded-xl bg-[#FAF6F2] text-[#01374C] font-bold text-xs border border-[#DDC1AB] cursor-pointer"
               >
@@ -4061,17 +4285,26 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  adminDeleteUserAccount(userToDelete.account.id);
-                  setSelectedUserIds((prev) =>
-                    prev.filter((id) => id !== userToDelete.account.id)
-                  );
-                  setUserToDelete(null);
-                  setRefreshTick((t) => t + 1);
+                disabled={isUnsubscribingUser}
+                onClick={async () => {
+                  setIsUnsubscribingUser(true);
+                  try {
+                    const cloudRes = await apiAdminUnsubscribeUser(userToDelete.account.id);
+                    if (!cloudRes.ok && cloudRes.networkError) {
+                      adminDeleteUserAccount(userToDelete.account.id);
+                    }
+                    setSelectedUserIds((prev) =>
+                      prev.filter((id) => id !== userToDelete.account.id)
+                    );
+                    setUserToDelete(null);
+                    setRefreshTick((t) => t + 1);
+                  } finally {
+                    setIsUnsubscribingUser(false);
+                  }
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs cursor-pointer disabled:opacity-60"
               >
-                Sí, eliminar
+                {isUnsubscribingUser ? "Procesando..." : "Sí, dar de baja"}
               </button>
             </div>
           </div>

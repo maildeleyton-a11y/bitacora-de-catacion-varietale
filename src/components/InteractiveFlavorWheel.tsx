@@ -227,7 +227,7 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pb-36 pt-3 px-3.5 sm:px-6 lg:px-8 max-w-lg md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full safe-pb">
+    <div className="min-h-screen bg-[#FDFCFB] pb-12 pt-3 px-3.5 sm:px-6 lg:px-8 max-w-lg md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full safe-pb">
       {/* Top Navigation Bar */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -835,32 +835,35 @@ export const InteractiveFlavorWheel: React.FC<InteractiveFlavorWheelProps> = ({
         </div>
       </div>
 
+      {/* Primary Save CTA (al final de la cata, después de calificación y apuntes) */}
+      <div className="mt-6 mb-4">
+        <button
+          id="save-cata-btn"
+          onClick={onSaveCata}
+          disabled={selectedFlavors.length === 0}
+          className={`w-full min-h-[54px] py-4 px-5 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] ${
+            selectedFlavors.length > 0
+              ? "bg-[#01374C] text-white hover:bg-[#002636] cursor-pointer"
+              : "bg-[#E8EDF1] text-[#9FB2BC] cursor-not-allowed"
+          }`}
+        >
+          <Check className="w-5 h-5 text-[#00D9B4] stroke-[2.5] shrink-0" />
+          <span>
+            {isEditing
+              ? "Actualizar Cata en Mi Bitácora"
+              : "Guardar Cata en Mi Bitácora"}
+          </span>
+          <span data-cms-locked="true">({selectedFlavors.length} notas)</span>
+        </button>
+        {selectedFlavors.length === 0 && (
+          <p className="text-xs text-[#6A7B85] text-center mt-2">
+            Selecciona al menos 1 descriptor en la Rueda Sensorial para guardar tu cata.
+          </p>
+        )}
+      </div>
+
       {/* Global Brand Footer */}
       <BrandFooter className="mt-6 mb-2" />
-
-      {/* Primary Save CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-3 sm:p-4 pb-[calc(0.85rem+env(safe-area-inset-bottom,0px))] border-t border-[#E8EDF1] z-20 shadow-[0_-4px_20px_rgba(1,55,76,0.06)]">
-        <div className="max-w-lg md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto flex items-center gap-2">
-          <button
-            id="save-cata-btn"
-            onClick={onSaveCata}
-            disabled={selectedFlavors.length === 0}
-            className={`flex-1 min-h-[52px] py-4 px-5 rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] ${
-              selectedFlavors.length > 0
-                ? "bg-[#01374C] text-white hover:bg-[#002636] cursor-pointer"
-                : "bg-[#E8EDF1] text-[#9FB2BC] cursor-not-allowed"
-            }`}
-          >
-            <Check className="w-5 h-5 text-[#00D9B4] stroke-[2.5]" />
-            <span>
-              {isEditing
-                ? "Actualizar Cata en Mi Bitácora"
-                : "Guardar Cata en Mi Bitácora"}
-            </span>
-            <span data-cms-locked="true">({selectedFlavors.length} notas)</span>
-          </button>
-        </div>
-      </div>
 
       {/* Pop-up Modal for Flavor Descriptor Details & Intensity (1 a 5) */}
       <AnimatePresence>

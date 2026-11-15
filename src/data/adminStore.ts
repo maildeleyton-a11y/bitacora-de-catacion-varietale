@@ -32,6 +32,7 @@ import {
   BREW_METHODS,
   computeSensorySpiderProfile,
 } from "./coffeeData";
+import { apiTrackAnalyticsEvent } from "./apiClient";
 
 // ============================================================================
 // 1. CREDENCIALES Y SEGURIDAD DEL ADMINISTRADOR
@@ -378,6 +379,7 @@ export const recordVarietaleRedirect = (
     const updated = [event, ...existing];
     localStorage.setItem(REDIRECT_EVENTS_KEY, JSON.stringify(updated));
     triggerWebhookInBackground("varietale_redirect", event);
+    apiTrackAnalyticsEvent("redirect", event).catch(() => {});
   } catch (e) {
     console.warn("No se pudo registrar evento de redirección:", e);
   }
@@ -751,6 +753,7 @@ export const recordAppShare = (channel: ShareChannelType): void => {
     const existing = getAppShareEvents();
     const updated = [event, ...existing];
     localStorage.setItem(SHARE_EVENTS_KEY, JSON.stringify(updated));
+    apiTrackAnalyticsEvent("share", event).catch(() => {});
   } catch (e) {
     console.warn("No se pudo registrar evento de compartido:", e);
   }
@@ -788,6 +791,7 @@ export const recordCouponCopy = (couponCode: string): void => {
     const existing = getCouponCopyEvents();
     const updated = [event, ...existing];
     localStorage.setItem(COUPON_EVENTS_KEY, JSON.stringify(updated));
+    apiTrackAnalyticsEvent("coupon", event).catch(() => {});
   } catch {}
 };
 
@@ -807,7 +811,11 @@ export const getCouponCopyEvents = (): CouponCopyEvent[] => {
 // ============================================================================
 
 export interface EnrichedUserRecord {
-  account: StoredAccount & { phone?: string };
+  account: StoredAccount & {
+    phone?: string;
+    status?: "active" | "unsubscribed";
+    unsubscribedAt?: string | null;
+  };
   tastings: TastingRecord[];
   tastingsCount: number;
   uniqueCoffeesCount: number;
@@ -1143,11 +1151,16 @@ export interface AdminDashboardStats {
   }[];
 }
 
-export const computeAdminDashboardStats = (): AdminDashboardStats => {
-  const users = getEnrichedUsersDirectory();
-  const redirects = getVarietaleRedirectEvents();
-  const shares = getAppShareEvents();
-  const couponCopies = getCouponCopyEvents();
+export const computeAdminDashboardStats = (overrideData?: {
+  users?: EnrichedUserRecord[];
+  redirects?: VarietaleRedirectEvent[];
+  shares?: AppShareEvent[];
+  coupons?: CouponCopyEvent[];
+}): AdminDashboardStats => {
+  const users = overrideData?.users ?? getEnrichedUsersDirectory();
+  const redirects = overrideData?.redirects ?? getVarietaleRedirectEvents();
+  const shares = overrideData?.shares ?? getAppShareEvents();
+  const couponCopies = overrideData?.coupons ?? getCouponCopyEvents();
 
   const now = Date.now();
   const ms7Days = 7 * 24 * 60 * 60 * 1000;

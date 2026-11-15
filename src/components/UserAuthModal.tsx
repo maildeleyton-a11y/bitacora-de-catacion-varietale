@@ -23,6 +23,8 @@ import {
   EyeOff,
   ArrowRight,
   Smartphone,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { UserProfile, TastingRecord } from "../types";
 import { GoogleAccountChooserModal } from "./GoogleAccountChooserModal";
@@ -34,6 +36,13 @@ import {
   accountToUserProfile,
   StoredAccount,
 } from "../data/accountStore";
+import {
+  apiLogin,
+  apiRegister,
+  apiRecoverLookup,
+  apiRecoverReset,
+  apiUnsubscribeSelf,
+} from "../data/apiClient";
 
 interface UserAuthModalProps {
   /** Indica si el modal se encuentra visible */
@@ -101,6 +110,7 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [canReactivateLogin, setCanReactivateLogin] = useState(false);
 
   // Quick reminder states
   const [reminderQuery, setReminderQuery] = useState("");
@@ -117,11 +127,25 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
+  // Unsubscribe & loading states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showUnsubscribeConfirm, setShowUnsubscribeConfirm] = useState(false);
+  const [isUnsubscribing, setIsUnsubscribing] = useState(false);
+  const [unsubscribeError, setUnsubscribeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowUnsubscribeConfirm(false);
+      setUnsubscribeError(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   // Handle new user registration
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setRegError(null);
 
     if (!regName.trim()) {
@@ -146,37 +170,75 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
       ? regEmail.trim().toLowerCase()
       : `${cleanUserSlug || "catador"}@varietale.com`;
 
-    const existing = findAccountByIdentifier(cleanUserSlug);
-    if (existing) {
-      setRegError(`El usuario @${cleanUserSlug} ya existe. Intenta con otro o inicia sesión.`);
-      return;
+    setIsSubmitting(true);
+    try {
+      const res = await apiRegister({
+        name: regName.trim(),
+        username: cleanUserSlug,
+        email: emailToUse,
+        password: regPassword.trim(),
+        securityPin: regPin.trim(),
+      });
+
+      if (res.ok && res.data?.user) {
+        const cloudUser = res.data.user;
+        saveAccount({
+          id: cloudUser.id,
+          name: cloudUser.name,
+          username: cloudUser.username || cleanUserSlug,
+          email: cloudUser.email || emailToUse,
+          securityPin: regPin.trim(),
+          securityQuestion: "",
+          securityAnswer: "",
+          avatarColor: cloudUser.avatarColor || "#01374C",
+          authProvider: "email",
+          createdAt: cloudUser.memberSince || new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" }),
+        });
+        onLogin(cloudUser);
+        onClose();
+        return;
+      }
+
+      if (!res.networkError) {
+        setRegError(res.data?.error || `No pudimos registrar @${cleanUserSlug}. Verifica los datos.`);
+        return;
+      }
+
+      const existing = findAccountByIdentifier(cleanUserSlug);
+      if (existing) {
+        setRegError(`El usuario @${cleanUserSlug} ya existe. Intenta con otro o inicia sesión.`);
+        return;
+      }
+
+      const newAccount: StoredAccount = {
+        id: `user-${cleanUserSlug || Date.now().toString(36)}`,
+        name: regName.trim(),
+        username: cleanUserSlug,
+        email: emailToUse,
+        password: regPassword.trim(),
+        securityPin: regPin.trim(),
+        securityQuestion: "",
+        securityAnswer: "",
+        avatarColor: "#01374C",
+        authProvider: "email",
+        createdAt: new Date().toLocaleDateString("es-CO", {
+          month: "long",
+          year: "numeric",
+        }),
+      };
+
+      saveAccount(newAccount);
+      onLogin(accountToUserProfile(newAccount));
+      onClose();
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const newAccount: StoredAccount = {
-      id: `user-${cleanUserSlug || Date.now().toString(36)}`,
-      name: regName.trim(),
-      username: cleanUserSlug,
-      email: emailToUse,
-      password: regPassword.trim(),
-      securityPin: regPin.trim(),
-      securityQuestion: "",
-      securityAnswer: "",
-      avatarColor: "#01374C",
-      authProvider: "email",
-      createdAt: new Date().toLocaleDateString("es-CO", {
-        month: "long",
-        year: "numeric",
-      }),
-    };
-
-    saveAccount(newAccount);
-    onLogin(accountToUserProfile(newAccount));
-    onClose();
   };
 
   // Handle login submit
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setLoginError(null);
 
     const idInput = loginIdentifier.trim();
@@ -185,23 +247,65 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
       return;
     }
 
-    const acc = findAccountByIdentifier(idInput);
-    if (!acc) {
-      setLoginError("No se encontró una cuenta con ese dato. Regístrate o ingresa con Google.");
-      return;
-    }
+    setIsSubmitting(true);
+    setCanReactivateLogin(false);
+    try {
+      const res = await apiLogin(idInput, loginPassword.trim());
+      if (res.ok && res.data?.user) {
+        onLogin(res.data.user);
+        onClose();
+        return;
+      }
 
-    if (acc.password && acc.password !== loginPassword.trim()) {
-      setLoginError("Contraseña incorrecta. Puedes restablecerla con tu PIN de respaldo.");
-      return;
-    }
+      if (!res.networkError) {
+        setCanReactivateLogin(Boolean(res.data?.canReactivate));
+        setLoginError(res.data?.error || "Credenciales incorrectas o cuenta no encontrada.");
+        return;
+      }
 
-    onLogin(accountToUserProfile(acc));
-    onClose();
+      const acc = findAccountByIdentifier(idInput);
+      if (!acc) {
+        setLoginError("No se encontró una cuenta con ese dato. Regístrate o ingresa con Google.");
+        return;
+      }
+
+      if (acc.password && acc.password !== loginPassword.trim()) {
+        setLoginError("Contraseña incorrecta. Puedes restablecerla con tu PIN de respaldo.");
+        return;
+      }
+
+      onLogin(accountToUserProfile(acc));
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReactivateLogin = async () => {
+    if (isSubmitting) return;
+    const idInput = loginIdentifier.trim();
+    const pwd = loginPassword.trim();
+    if (!idInput || !pwd) return;
+
+    setIsSubmitting(true);
+    setLoginError(null);
+    try {
+      const res = await apiLogin(idInput, pwd, true);
+      if (res.ok && res.data?.user) {
+        setCanReactivateLogin(false);
+        onLogin(res.data.user);
+        onClose();
+        return;
+      }
+      setCanReactivateLogin(false);
+      setLoginError(res.data?.error || "No se pudo reactivar tu cuenta en este momento.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Quick Reminder Search
-  const handleReminderSearch = (e: React.FormEvent) => {
+  const handleReminderSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setReminderError(null);
     setFoundAccount(null);
@@ -209,6 +313,16 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
     const q = reminderQuery.trim();
     if (!q) {
       setReminderError("Ingresa tu correo o teléfono");
+      return;
+    }
+
+    const res = await apiRecoverLookup(q);
+    if (res.ok && res.data?.account) {
+      setFoundAccount(res.data.account);
+      return;
+    }
+    if (!res.networkError) {
+      setReminderError(res.data?.error || "No se encontró cuenta asociada. Revisa el dato o regístrate.");
       return;
     }
 
@@ -221,9 +335,20 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
   };
 
   // Password reset step 1
-  const handleStartReset = (e: React.FormEvent) => {
+  const handleStartReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetError(null);
+
+    const res = await apiRecoverLookup(resetIdentifier.trim());
+    if (res.ok && res.data?.account) {
+      setTargetAccount(res.data.account);
+      setIsVerified(false);
+      return;
+    }
+    if (!res.networkError) {
+      setResetError(res.data?.error || "Cuenta no encontrada. Revisa tu correo o usuario.");
+      return;
+    }
 
     const acc = findAccountByIdentifier(resetIdentifier.trim());
     if (!acc) {
@@ -245,15 +370,15 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
       return;
     }
 
-    if (verifyPin(targetAccount.username, resetPinInput.trim())) {
-      setIsVerified(true);
-    } else {
+    if (targetAccount.securityPin && !verifyPin(targetAccount.username, resetPinInput.trim()) && targetAccount.securityPin !== resetPinInput.trim()) {
       setResetError("PIN incorrecto. Revisa tus 4 dígitos de respaldo.");
+      return;
     }
+    setIsVerified(true);
   };
 
   // Password reset step 3: Set new password
-  const handleSaveNewPassword = (e: React.FormEvent) => {
+  const handleSaveNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetError(null);
     if (!targetAccount) return;
@@ -267,6 +392,28 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
       return;
     }
 
+    const cloudRes = await apiRecoverReset(
+      targetAccount.email || targetAccount.username,
+      resetPinInput.trim(),
+      newPassword.trim()
+    );
+    if (cloudRes.ok) {
+      const loginAfter = await apiLogin(targetAccount.email || targetAccount.username, newPassword.trim());
+      setResetSuccess("¡Contraseña actualizada!");
+      setTimeout(() => {
+        onLogin(loginAfter.data?.user || accountToUserProfile(targetAccount));
+        onClose();
+      }, 1000);
+      return;
+    }
+    if (!cloudRes.networkError) {
+      setResetError(cloudRes.data?.error || "PIN incorrecto o error al actualizar contraseña.");
+      if ((cloudRes.data?.error || "").toLowerCase().includes("pin")) {
+        setIsVerified(false);
+      }
+      return;
+    }
+
     resetPassword(targetAccount.username, newPassword.trim());
     setResetSuccess("¡Contraseña actualizada!");
     setTimeout(() => {
@@ -274,6 +421,28 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
       onLogin(accountToUserProfile(updated));
       onClose();
     }, 1000);
+  };
+
+  const handleConfirmUnsubscribe = async () => {
+    if (!currentUser || isUnsubscribing) return;
+    setIsUnsubscribing(true);
+    setUnsubscribeError(null);
+    try {
+      const res = await apiUnsubscribeSelf();
+      if (!res.ok) {
+        setUnsubscribeError(
+          res.networkError
+            ? "Necesitas conexión con DreamHost para completar tu baja y eliminar tus fotos del servidor."
+            : res.data?.error || "No se pudo procesar tu baja en este momento."
+        );
+        return;
+      }
+      setShowUnsubscribeConfirm(false);
+      onLogout();
+      onClose();
+    } finally {
+      setIsUnsubscribing(false);
+    }
   };
 
   // Calculate user cata stats
@@ -394,8 +563,25 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
             {!currentUser && activeTab === "login" && (
               <form onSubmit={handleLoginSubmit} className="space-y-3.5">
                 {loginError && (
-                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm font-medium text-center">
-                    {loginError}
+                  <div
+                    className={`p-3 rounded-xl text-xs sm:text-sm font-medium text-center space-y-2 border ${
+                      canReactivateLogin
+                        ? "bg-[#EBFBFA] border-[#00D9B4] text-[#01374C]"
+                        : "bg-red-50 border-red-200 text-red-700"
+                    }`}
+                  >
+                    <p>{loginError}</p>
+                    {canReactivateLogin && (
+                      <button
+                        type="button"
+                        onClick={handleReactivateLogin}
+                        disabled={isSubmitting}
+                        className="w-full min-h-[42px] py-2 px-3 rounded-xl bg-[#01374C] hover:bg-[#002636] text-white font-black text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <span>Volver a darme de alta y recuperar mis catas</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-[#00D9B4]" />
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -418,7 +604,10 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     <input
                       type="text"
                       value={loginIdentifier}
-                      onChange={(e) => setLoginIdentifier(e.target.value)}
+                      onChange={(e) => {
+                        setLoginIdentifier(e.target.value);
+                        setCanReactivateLogin(false);
+                      }}
                       placeholder="tucorreo@ejemplo.com"
                       className="w-full pl-10 pr-3 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                       required
@@ -451,7 +640,10 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     <input
                       type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
+                      onChange={(e) => {
+                        setLoginPassword(e.target.value);
+                        setCanReactivateLogin(false);
+                      }}
                       placeholder="••••••••"
                       className="w-full pl-10 pr-11 py-2.5 min-h-[46px] bg-white text-base border border-[#DDC1AB] rounded-xl text-[#01374C] focus:outline-none focus:ring-2 focus:ring-[#01374C]"
                     />
@@ -834,11 +1026,65 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
                     onLogout();
                     onClose();
                   }}
-                  className="w-full py-2.5 rounded-xl border border-red-200 text-red-700 hover:bg-red-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="w-full py-2.5 rounded-xl border border-[#DDC1AB] text-[#01374C] hover:bg-[#FAF6F2] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Cerrar Sesión</span>
                 </button>
+
+                {/* Dar de baja cuenta (elimina fotos físicas en DreamHost, conserva metadata y catas) */}
+                {currentUser.authProvider !== "guest" && currentUser.username !== "catador.prueba" && (
+                  <div className="pt-2 border-t border-[#E8EDF1]">
+                    {!showUnsubscribeConfirm ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUnsubscribeError(null);
+                          setShowUnsubscribeConfirm(true);
+                        }}
+                        className="w-full py-2 rounded-xl border border-red-200/80 text-red-700 hover:bg-red-50 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Darme de baja de la aplicación</span>
+                      </button>
+                    ) : (
+                      <div className="p-3 rounded-2xl bg-red-50 border border-red-200 space-y-2.5">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                          <div className="text-[11px] text-red-900 leading-relaxed">
+                            <p className="font-black mb-1">¿Confirmas darte de baja?</p>
+                            <p>
+                              Se eliminarán de inmediato todos los archivos fotográficos de tu cuenta en DreamHost, pero conservaremos tus datos y todo tu historial de catas registradas como respaldo histórico.
+                            </p>
+                          </div>
+                        </div>
+                        {unsubscribeError && (
+                          <p className="text-[11px] font-bold text-red-700 bg-white/80 p-2 rounded-lg border border-red-200">
+                            {unsubscribeError}
+                          </p>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={isUnsubscribing}
+                            onClick={() => setShowUnsubscribeConfirm(false)}
+                            className="flex-1 py-2 rounded-xl bg-white border border-red-200 text-[#01374C] text-[11px] font-bold cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUnsubscribing}
+                            onClick={handleConfirmUnsubscribe}
+                            className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[11px] font-black cursor-pointer disabled:opacity-60"
+                          >
+                            {isUnsubscribing ? "Procesando..." : "Sí, darme de baja"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

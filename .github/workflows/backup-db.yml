@@ -1,0 +1,74 @@
+name: Backup Base de Datos DreamHost a GitHub (Sin Fotos)
+
+on:
+  schedule:
+    # Ejecución automática cada 6 horas desde la nube de GitHub (cero dependencia local)
+    - cron: '15 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup-dreamhost-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar respaldo JSON liviano (usuarios, catas y métricas, sin fotos)
+        env:
+          BACKUP_URL: ${{ vars.DREAMHOST_BACKUP_URL || 'https://bitacora.varietale.com/api/backup' }}
+          BACKUP_TOKEN: ${{ secrets.DREAMHOST_BACKUP_TOKEN }}
+        run: |
+          if [ -z "$BACKUP_TOKEN" ]; then
+            echo "::error::Falta configurar el secreto DREAMHOST_BACKUP_TOKEN en GitHub Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          curl -fsSL -H "X-Backup-Token: ${BACKUP_TOKEN}" "${BACKUP_URL}" -o /tmp/backup-raw.json
+          python3 - <<'PY'
+          import json, sys
+          with open("/tmp/backup-raw.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+          if data.get("schemaVersion") != "varietale-dreamhost-backup-v1":
+              print("Schema invalido:", data.get("schemaVersion"))
+              sys.exit(1)
+          if data.get("includesPhotos") is not False:
+              print("El respaldo no debe incluir fotos.")
+              sys.exit(1)
+          print("Respaldo valido:", data.get("counts"))
+          with open("/tmp/backup-formatted.json", "w", encoding="utf-8") as out:
+              json.dump(data, out, ensure_ascii=False, indent=2)
+          PY
+
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Guardar snapshot en rama aislada backups (sin afectar main)
+        run: |
+          git config user.name "Varietale Cloud Backup Bot"
+          git config user.email "backup-bot@varietale.com"
+
+          git fetch origin backups || true
+          if git rev-parse --verify origin/backups >/dev/null 2>&1; then
+            git checkout -B backups origin/backups
+          else
+            git checkout --orphan backups
+            git rm -rf . >/dev/null 2>&1 || true
+            git clean -fdx
+          fi
+
+          mkdir -p backups/history
+          TODAY=$(date -u +%Y-%m-%d)
+          cp /tmp/backup-formatted.json backups/varietale-db-latest.json
+          cp /tmp/backup-formatted.json "backups/history/varietale-db-${TODAY}.json"
+
+          # Mantener máximo los últimos 60 snapshots diarios históricos para mantener el repo liviano
+          ls -1t backups/history/varietale-db-*.json 2>/dev/null | tail -n +61 | xargs -r rm -f
+
+          git add backups/varietale-db-latest.json "backups/history/varietale-db-${TODAY}.json"
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(backup): respaldo automatico DreamHost BD (${TODAY})"
+            git push origin backups
+          else
+            echo "Sin cambios en la base de datos desde el ultimo respaldo."
+          fi

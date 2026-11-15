@@ -193,7 +193,7 @@ export const FloatingShareTab: React.FC = () => {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 24, scale: 0.96 }}
               transition={{ duration: 0.18 }}
-              className="fixed right-7 sm:right-8 top-1/2 -translate-y-1/2 z-50 w-68 sm:w-76 bg-white rounded-2xl p-4 shadow-2xl border border-[#DDC1AB] text-left"
+              className="fixed right-7 sm:right-8 top-1/2 -translate-y-1/2 z-50 w-68 sm:w-76 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl p-4 shadow-2xl border border-[#DDC1AB] text-left"
             >
               <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-[#E8EDF1]">
                 <div className="flex items-center gap-2">

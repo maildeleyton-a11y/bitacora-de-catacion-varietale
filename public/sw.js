@@ -116,6 +116,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Nunca cachear endpoints autenticados o mutables de /api/ (catas, sesión, fotos, admin, backups)
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   // C. Recursos estáticos (JS, CSS, imágenes, fuentes): Network First para evitar assets rotos
   event.respondWith(
     fetch(request)

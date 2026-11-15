@@ -17,9 +17,9 @@ import {
   findAccountByIdentifier,
   saveAccount,
   accountToUserProfile,
-  extractGoogleFirstName,
   StoredAccount,
 } from "../data/accountStore";
+import { apiGoogleAuth } from "../data/apiClient";
 
 interface GoogleAccountChooserModalProps {
   /** Controla si el modal se encuentra abierto */
@@ -43,6 +43,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
   const [customUsername, setCustomUsername] = useState("");
   const [customEmail, setCustomEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,14 +61,43 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
 
   if (!isOpen) return null;
 
-  const handleSelectExisting = (acc: StoredAccount) => {
-    const profile = accountToUserProfile(acc);
-    onSelectAccount(profile);
-    onClose();
+  const formatGoogleDisplayName = (email: string): string => {
+    const local = email.split("@")[0] || "Catador";
+    const parts = local
+      .replace(/\d+$/g, "")
+      .split(/[._-]+/)
+      .filter(Boolean)
+      .slice(0, 3);
+    if (parts.length === 0) return "Catador";
+    return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
   };
 
-  const handleCreateOrSelectCustom = (e: React.FormEvent) => {
+  const handleSelectExisting = async (acc: StoredAccount) => {
+    if (isLoading) return;
+    setError(null);
+    setIsLoading(true);
+    try {
+      const res = await apiGoogleAuth(acc.email, acc.username, acc.name);
+      if (res.ok && res.data?.user) {
+        onSelectAccount(res.data.user);
+        onClose();
+        return;
+      }
+      if (!res.networkError) {
+        setError(res.data?.error || "No se pudo autenticar esta cuenta en DreamHost.");
+        return;
+      }
+      // Fallback offline / static GitHub Pages
+      onSelectAccount(accountToUserProfile(acc));
+      onClose();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateOrSelectCustom = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setError(null);
 
     const email = customEmail.trim().toLowerCase();
@@ -76,51 +106,82 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
       return;
     }
 
-    // Determine username and display name
-    // Only use customUsername if explicitly entered in register mode; otherwise use Google first name!
-    const rawUser = mode === "register"
-      ? customUsername.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "")
-      : "";
-    const googleFirstName = extractGoogleFirstName(email);
-    const cleanUser = rawUser || googleFirstName.toLowerCase();
-    const formattedName = googleFirstName;
+    const rawUser =
+      mode === "register"
+        ? customUsername.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "")
+        : "";
+    const formattedName = formatGoogleDisplayName(email);
 
-    // Check if account already exists
-    const existing = findAccountByIdentifier(email);
-    if (existing) {
-      // Existing account selected
-      const updated: StoredAccount = {
-        ...existing,
-        username: rawUser || existing.username || googleFirstName.toLowerCase(),
-        name: existing.name || formattedName,
+    setIsLoading(true);
+    try {
+      const res = await apiGoogleAuth(email, rawUser || undefined, formattedName);
+      if (res.ok && res.data?.user) {
+        const cloudUser = res.data.user;
+        // Guardar referencia ligera local (solo metadata no sensible) para selector rápido
+        saveAccount({
+          id: cloudUser.id,
+          name: cloudUser.name,
+          username: cloudUser.username || rawUser || email.split("@")[0].toLowerCase(),
+          email: cloudUser.email || email,
+          securityPin: "0000",
+          securityQuestion: "",
+          securityAnswer: "",
+          avatarColor: cloudUser.avatarColor || "#EA4335",
+          authProvider: "google",
+          createdAt: cloudUser.memberSince || new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" }),
+        });
+        onSelectAccount(cloudUser);
+        onClose();
+        return;
+      }
+
+      if (!res.networkError) {
+        setError(res.data?.error || "No se pudo completar el acceso con Google.");
+        return;
+      }
+
+      // Fallback offline / static GitHub Pages sin colisión de nombres
+      const uniqueLocalHandle = (email.split("@")[0] || "catador")
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, "");
+      const cleanUser = rawUser || uniqueLocalHandle;
+
+      const existing = findAccountByIdentifier(email);
+      if (existing) {
+        const updated: StoredAccount = {
+          ...existing,
+          username: rawUser || existing.username || uniqueLocalHandle,
+          name: existing.name || formattedName,
+          authProvider: "google",
+        };
+        saveAccount(updated);
+        onSelectAccount(accountToUserProfile(updated));
+        onClose();
+        return;
+      }
+
+      const newGoogleAccount: StoredAccount = {
+        id: `user-google-${cleanUser}-${Date.now().toString(36)}`,
+        name: formattedName,
+        username: cleanUser,
+        email: email,
+        securityPin: "0000",
+        securityQuestion: "",
+        securityAnswer: "",
+        avatarColor: "#EA4335",
         authProvider: "google",
+        createdAt: new Date().toLocaleDateString("es-CO", {
+          month: "long",
+          year: "numeric",
+        }),
       };
-      saveAccount(updated);
-      onSelectAccount(accountToUserProfile(updated));
+
+      saveAccount(newGoogleAccount);
+      onSelectAccount(accountToUserProfile(newGoogleAccount));
       onClose();
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    // New Google account creation
-    const newGoogleAccount: StoredAccount = {
-      id: `user-google-${cleanUser}-${Date.now().toString(36)}`,
-      name: formattedName,
-      username: cleanUser,
-      email: email,
-      securityPin: "0000",
-      securityQuestion: "¿Cuál es tu método de filtrado o preparación preferido?",
-      securityAnswer: "v60",
-      avatarColor: "#EA4335",
-      authProvider: "google",
-      createdAt: new Date().toLocaleDateString("es-CO", {
-        month: "long",
-        year: "numeric",
-      }),
-    };
-
-    saveAccount(newGoogleAccount);
-    onSelectAccount(accountToUserProfile(newGoogleAccount));
-    onClose();
   };
 
   return (

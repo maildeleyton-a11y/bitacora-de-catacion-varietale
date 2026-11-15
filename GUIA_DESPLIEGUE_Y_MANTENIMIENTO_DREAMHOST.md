@@ -123,17 +123,58 @@ Cada vez que se desee publicar una nueva versión de la aplicación:
 │   └── ...
 │
 └── bitacora.varietale.com/         <-- CARPETA DEDICADA DE LA BITÁCORA (NUEVA)
-    ├── .htaccess                  <-- Reglas de redirección SPA y optimización de caché
+    ├── .htaccess                  <-- Reglas de redirección SPA, seguridad SQLite y ruteo /api/*
     ├── LEEME_INFO_BITACORA.txt    <-- Identificador técnico para Varietale y desarrolladores
     ├── index.html                 <-- Punto de entrada principal
     ├── manifest.json              <-- Manifiesto PWA para instalación móvil
     ├── sw.js                      <-- Service Worker para modo offline
-    └── assets/                    <-- Archivos JS, CSS, logos y fotografías optimizadas
+    ├── api/                       <-- Backend centralizado PHP 8.3 (SQLite, Auth, Catas, Fotos, Catálogo)
+    │   ├── index.php
+    │   ├── db.php
+    │   └── varietale_catalog.php
+    └── assets/                    <-- Archivos JS, CSS y recursos estáticos
+
+├── bitacora_storage/              <-- CARPETA AISLADA DE DATOS EN DREAMHOST (FUERA DEL WEBROOT)
+    ├── bitacora.sqlite            <-- Base de datos central (usuarios, sesiones, catas, analítica, CMS)
+    ├── backup_token.secret        <-- Token privado para respaldo automático GitHub Actions
+    └── uploads/                   <-- Fotos optimizadas de clientes activos (se borran al darse de baja)
 ```
 
 ---
 
-### 8. Registro de Contacto y Soporte
+### 8. Backend Centralizado PHP 8.3 + SQLite en DreamHost y Respaldos en GitHub
+
+1. **Aislamiento total de datos frente a despliegues (`rsync`):**
+   - El backend PHP almacena la base SQLite (`bitacora.sqlite`) y las fotografías optimizadas (`uploads/`) en `/home/bitacoravarietale_app/bitacora_storage/` (directorio hermano **fuera** de `bitacora.varietale.com/`).
+   - Al actualizar código con `rsync`, usar siempre exclusiones de seguridad:
+     ```bash
+     npm run build
+     rsync -avz --delete \
+       --exclude 'api/storage/bitacora.sqlite*' \
+       --exclude 'api/storage/uploads/' \
+       --exclude 'api/storage/*.secret' \
+       dist/ bitacoravarietale_app@173.236.200.69:/home/bitacoravarietale_app/bitacora.varietale.com/
+     ```
+2. **Fotos optimizadas y ciclo de vida al darse de baja:**
+   - Las fotografías subidas por usuarios registrados se comprimen automáticamente en el navegador (~720px WebP/JPEG) y se sirven desde DreamHost en `/api/photos/view`.
+   - Cuando un usuario se da de baja (o el administrador lo da de baja), **todos sus archivos fotográficos físicos se eliminan de inmediato en DreamHost**, mientras se conserva el 100% de su perfil e historial completo de catas en `bitacora.sqlite`.
+3. **Respaldo automático en la nube (GitHub Actions -> Rama `backups`, sin fotos):**
+   - Entra al **Portal Admin -> Configuración -> Copia de Seguridad General** en `https://bitacora.varietale.com` y copia el **Token de Respaldo Automático (`DREAMHOST_BACKUP_TOKEN`)**.
+   - Agrégalo en GitHub (`maildeleyton-a11y/bitacora-de-catacion-varietale` -> `Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`) con el nombre `DREAMHOST_BACKUP_TOKEN`.
+   - El workflow `.github/workflows/backup-db.yml` descargará cada 6 horas el archivo JSON liviano (sin fotos) a la rama `backups` (`backups/varietale-db-latest.json`).
+4. **Recuperación rápida ante fallos (Disaster Recovery):**
+   - **Código:** `deploy.yml` publica compilación en GitHub Pages (`main`) y el código completo está en GitHub sin depender del computador local.
+   - **Datos:** Descarga `backups/varietale-db-latest.json` desde la rama `backups` de GitHub y súbelo desde **Portal Admin -> Restaurar desde Archivo** o mediante:
+     ```bash
+     curl -X POST https://bitacora.varietale.com/api/backup/restore \
+       -H "Content-Type: application/json" \
+       -H "X-Backup-Token: $DREAMHOST_BACKUP_TOKEN" \
+       --data-binary @varietale-db-latest.json
+     ```
+
+---
+
+### 9. Registro de Contacto y Soporte
 - **Agencia de Desarrollo:** Mr. Bite
 - **Repositorio de Código:** Privado en GitHub (`maildeleyton-a11y/bitacora-de-catacion-varietale`)
 - **Fecha de Creación:** Noviembre 2026

@@ -249,7 +249,7 @@ export const LaunchSequence: React.FC<LaunchSequenceProps> = ({
         }}
       >
         {/* Contenedor interno anclado al tamaño 100vh de la pantalla para alineación milimétrica */}
-        <div className="absolute bottom-0 left-0 right-0 h-screen w-screen flex flex-col items-center justify-center p-6">
+        <div className="absolute bottom-0 left-0 right-0 h-screen w-full flex flex-col items-center justify-center p-6">
           {/* Key Visual Blanco (fade-out en fase 2: 2.0s - 2.5s) */}
           <div
             className={`transition-opacity duration-500 ease-in-out flex items-center justify-center ${

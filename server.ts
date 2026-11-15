@@ -14,6 +14,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { registerDevApiRoutes } from "./serverDevApi";
 
 dotenv.config();
 
@@ -54,6 +55,9 @@ async function startServer(): Promise<void> {
 
   // Límite amplio para recibir fotos de bolsas en base64 de alta resolución
   app.use(express.json({ limit: "15mb" }));
+
+  // Rutas de paridad de desarrollo local (usuarios, catas, fotos, admin, backup)
+  registerDevApiRoutes(app);
 
   // --------------------------------------------------------------------------
   // RUTA: Verificación de estado del servidor
@@ -278,49 +282,65 @@ REGLAS CRÍTICAS:
     available: boolean;
   }
 
-  let cachedCoffees: SyncedCoffee[] | null = null;
+  let cachedAllCoffees: SyncedCoffee[] | null = null;
   let lastFetchTime = 0;
-  const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutos de caché para catálogo siempre fresco
+  let lastFetchVerified = false;
+  const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutos de caché para catálogo y existencias en tiempo real
 
-  async function fetchLiveCoffeesFromVarietale(): Promise<SyncedCoffee[]> {
-    let rawProducts: any[] = [];
+  async function fetchLiveCoffeesFromVarietale(): Promise<{ allCoffees: SyncedCoffee[]; verifiedLive: boolean }> {
+    const visibleHandles: string[] = [];
+    let collectionOk = false;
 
-    // Intento 1: Colección oficial 'cafes'
-    try {
-      const colRes = await fetch("https://varietale.com/collections/cafes/products.json?limit=250", {
-        headers: {
-          "User-Agent": "VarietaleBitacoraApp/1.0",
-          Accept: "application/json",
-        },
-      });
-      if (colRes.ok) {
-        const colData: any = await colRes.json();
-        if (Array.isArray(colData.products) && colData.products.length > 0) {
-          rawProducts = colData.products;
-        }
-      }
-    } catch (err) {
-      console.warn("Fallo al obtener /collections/cafes, usando fallback:", err);
-    }
-
-    // Intento 2: Endpoint general de productos si la colección estaba vacía
-    if (rawProducts.length === 0) {
-      const allRes = await fetch("https://varietale.com/products.json?limit=250", {
-        headers: {
-          "User-Agent": "VarietaleBitacoraApp/1.0",
-          Accept: "application/json",
-        },
-      });
-      if (allRes.ok) {
-        const allData: any = await allRes.json();
-        rawProducts = allData.products || [];
+    for (let page = 1; page <= 5; page++) {
+      try {
+        const url = `https://varietale.com/collections/cafes${page > 1 ? `?page=${page}` : ""}`;
+        const htmlRes = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; VarietaleBitacoraSync/2.0)",
+            Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+          },
+        });
+        if (!htmlRes.ok) break;
+        collectionOk = true;
+        const html = await htmlRes.text();
+        const matches = [...html.matchAll(/"handle":"([a-z0-9-]+)"/gi)].map((m) => m[1]);
+        const uniqueNew = Array.from(new Set(matches)).filter((h) => !visibleHandles.includes(h));
+        if (uniqueNew.length === 0) break;
+        visibleHandles.push(...uniqueNew);
+        if (!html.includes('rel="next"') && !html.includes(`?page=${page + 1}`)) break;
+      } catch (err) {
+        console.warn("Fallo obteniendo página de /collections/cafes:", err);
+        break;
       }
     }
+
+    if (!collectionOk) {
+      return { allCoffees: cachedAllCoffees || [], verifiedLive: false };
+    }
+
+    const rawProducts = (
+      await Promise.all(
+        visibleHandles.map(async (handle) => {
+          try {
+            const pRes = await fetch(`https://varietale.com/products/${encodeURIComponent(handle)}.js`, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (compatible; VarietaleBitacoraSync/2.0)",
+                Accept: "application/json",
+              },
+            });
+            if (!pRes.ok) return null;
+            return await pRes.json();
+          } catch {
+            return null;
+          }
+        })
+      )
+    ).filter(Boolean);
 
     // Filtra exclusivamente cafés de especialidad (descarta tés, tazas, prensas, molinos)
     const coffees: SyncedCoffee[] = rawProducts
       .filter((p: any) => {
-        const type = (p.product_type || "").toLowerCase();
+        const type = (p.type || p.product_type || "").toLowerCase();
         const text = (p.title + " " + type + " " + (p.tags || []).join(" ")).toLowerCase();
         if (
           type.includes("té") ||
@@ -346,9 +366,10 @@ REGLAS CRÍTICAS:
         );
       })
       .map((p: any) => {
-        const text = (p.body_html || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+        const rawHtml = p.description || p.body_html || "";
+        const text = rawHtml.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
         const tags: string[] = p.tags || [];
-        const lowerText = (p.title + " " + text).toLowerCase();
+        const lowerText = (p.title + " " + text + " " + tags.join(" ")).toLowerCase();
 
         // Análisis de departamento y municipio de origen en Colombia
         let origin = "Colombia";
@@ -358,7 +379,8 @@ REGLAS CRÍTICAS:
         else if (lowerText.includes("bituima") || lowerText.includes("cundinamarca") || p.title.includes("San Antonio")) origin = "Bituima, Cundinamarca";
         else if (lowerText.includes("palestina") || p.title.includes("Papayo Enmielado")) origin = "Palestina, Huila";
         else if (lowerText.includes("pitalito")) origin = "Pitalito, Huila";
-        else if (lowerText.includes("inzá") || lowerText.includes("inza") || lowerText.includes("cauca") || p.title.includes("Argelia")) origin = "Inzá (Tierradentro), Cauca";
+        else if (lowerText.includes("alto llano") || (lowerText.includes("san pablo") && lowerText.includes("nariño"))) origin = "San Pablo, Nariño";
+        else if (lowerText.includes("inzá") || lowerText.includes("inza") || p.title.includes("Argelia")) origin = "Inzá (Tierradentro), Cauca";
         else if (lowerText.includes("bruselas")) origin = "Bruselas, Huila";
         else if (lowerText.includes("mesetas") || lowerText.includes("nasa")) origin = "Mesetas, Meta (Comunidad Nasa)";
         else if (lowerText.includes("san josé") || lowerText.includes("san jose")) origin = "San José de Isnos, Huila";
@@ -372,7 +394,7 @@ REGLAS CRÍTICAS:
           origin = foundDept ? (muni ? `${muni}, ${foundDept}` : foundDept) : "Colombia";
         }
 
-        // Variedad botánica (incluyendo mezclas multi-varietales reales)
+        // Variedad botánica
         let variety = "Arábica Especial";
         if (lowerText.includes("castillo, caturra y colombia") || (lowerText.includes("castillo") && lowerText.includes("caturra") && lowerText.includes("colombia"))) {
           variety = "Castillo, Caturra y Colombia";
@@ -382,6 +404,8 @@ REGLAS CRÍTICAS:
           variety = "Castillo y Borbón";
         } else if (lowerText.includes("castillo y caturra") || lowerText.includes("caturra y castillo")) {
           variety = "Castillo y Caturra";
+        } else if (lowerText.includes("borbón rosado") || lowerText.includes("pink bourbon")) {
+          variety = "Borbón Rosado";
         } else if (lowerText.includes("borbón papayo") || lowerText.includes("bourbon papayo")) {
           variety = "Borbón Papayo";
         } else if (lowerText.includes("caturra chiroso") || lowerText.includes("chiroso")) {
@@ -404,30 +428,39 @@ REGLAS CRÍTICAS:
           process = "EA Sugar Cane (Descafeinado)";
         } else if (lowerText.includes("semilavado") || lowerText.includes("semi lavado")) {
           process = "Semilavado";
-        } else if (lowerText.includes("red honey") || lowerText.includes("honey dorado") || lowerText.includes("enmielado") || lowerText.includes("honey")) {
+        } else if (lowerText.includes("red honey")) {
+          process = "Red Honey";
+        } else if (lowerText.includes("honey dorado") || lowerText.includes("enmielado") || lowerText.includes("honey")) {
           process = "Honey";
+        } else if (lowerText.includes("anaeróbico")) {
+          process = "Anaeróbico";
         } else if (lowerText.includes("natural")) {
           process = "Natural";
-        } else if (lowerText.includes("lavado anaeróbico") || lowerText.includes("anaeróbico")) {
-          process = "Lavado Anaeróbico";
         }
 
-        // Macro-perfil sugerido según notas organolépticas
-        let suggestedMacro = "Frutal";
+        // Macro-perfil sugerido
+        let suggestedMacro = "Dulce";
         if (lowerText.includes("jazmín") || lowerText.includes("floral") || lowerText.includes("té blanco") || lowerText.includes("flor de café")) {
           suggestedMacro = "Floral";
-        } else if (lowerText.includes("chocolate") || lowerText.includes("cacao") || lowerText.includes("caramelo") || lowerText.includes("panela") || lowerText.includes("dulce")) {
-          suggestedMacro = "Dulce";
+        } else if (lowerText.includes("frutos rojos") || lowerText.includes("papaya") || lowerText.includes("mango") || lowerText.includes("lima") || lowerText.includes("limón") || lowerText.includes("frutal") || lowerText.includes("arándano")) {
+          suggestedMacro = "Frutal";
         } else if (lowerText.includes("especias") || lowerText.includes("especiado") || lowerText.includes("cardamomo") || lowerText.includes("canela")) {
           suggestedMacro = "Especias";
-        } else if (lowerText.includes("tostado") || lowerText.includes("frutos secos") || lowerText.includes("avellana")) {
+        } else if (lowerText.includes("tostado") || lowerText.includes("cereal") || lowerText.includes("avellana") || lowerText.includes("almendra")) {
           suggestedMacro = "Tostado";
         }
 
-        const altMatch = text.match(/\d{3,4}\s*msnm/i);
+        const altMatch = text.match(/\d(?:[.,]?\d{2,3})\s*msnm/i);
         const altitude = altMatch ? altMatch[0] : "1.750 msnm";
 
-        const available = p.variants?.some((v: any) => v.available !== false) ?? true;
+        const productAvailable = p.available === true;
+        const anyVariantAvailable = Array.isArray(p.variants) && p.variants.some((v: any) => v.available === true);
+        const available = productAvailable && anyVariantAvailable;
+
+        let imageUrl = p.featured_image || p.images?.[0]?.src || p.images?.[0] || "";
+        if (typeof imageUrl === "string" && imageUrl.startsWith("//")) {
+          imageUrl = `https:${imageUrl}`;
+        }
 
         return {
           coffeeName: p.title,
@@ -437,73 +470,85 @@ REGLAS CRÍTICAS:
           altitude,
           description: text.slice(0, 160) + (text.length > 160 ? "..." : ""),
           suggestedMacro,
-          imageUrl: p.images?.[0]?.src || "",
-          productType: p.product_type || "Café Especial",
+          imageUrl,
+          productType: p.type || p.product_type || "Café Especial",
           url: `https://varietale.com/products/${p.handle}`,
           handle: p.handle,
           available,
         };
       });
 
-    return coffees;
+    return { allCoffees: coffees, verifiedLive: true };
   }
 
   // Pre-carga inicial al arrancar el servidor
   fetchLiveCoffeesFromVarietale()
-    .then((c) => {
-      if (c && c.length > 0) {
-        cachedCoffees = c;
+    .then(({ allCoffees, verifiedLive }) => {
+      if (verifiedLive) {
+        cachedAllCoffees = allCoffees;
         lastFetchTime = Date.now();
-        console.log(`[Varietale Sync] Inicializado con ${c.length} cafés de www.varietale.com`);
+        lastFetchVerified = true;
+        const inStock = allCoffees.filter((c) => c.available).length;
+        console.log(`[Varietale Sync] Inicializado con ${inStock}/${allCoffees.length} cafés disponibles de www.varietale.com`);
       }
     })
     .catch((err) => console.warn("[Varietale Sync] Error en pre-carga inicial:", err));
 
-  // Actualización automática en segundo plano cada 4 minutos
+  // Actualización automática en segundo plano cada 3 minutos
   setInterval(async () => {
     try {
-      const c = await fetchLiveCoffeesFromVarietale();
-      if (c && c.length > 0) {
-        cachedCoffees = c;
+      const { allCoffees, verifiedLive } = await fetchLiveCoffeesFromVarietale();
+      if (verifiedLive) {
+        cachedAllCoffees = allCoffees;
         lastFetchTime = Date.now();
-        console.log(`[Varietale Sync] Auto-sincronización exitosa (${c.length} cafés actualizados).`);
+        lastFetchVerified = true;
       }
     } catch (e) {
       console.warn("[Varietale Sync] Error en auto-sincronización periódica:", e);
     }
-  }, 4 * 60 * 1000);
+  }, 3 * 60 * 1000);
 
-  // Endpoint: Catálogo de cafés en vivo
+  // Endpoint: Catálogo de cafés en vivo (estricto: solo disponibles con existencias)
   app.get("/api/varietale-coffees", async (req: Request, res: Response) => {
     const forceRefresh = req.query.refresh === "true";
+    const includeUnavailable = req.query.include_unavailable === "true";
     const now = Date.now();
 
-    if (!forceRefresh && cachedCoffees && now - lastFetchTime < CACHE_TTL_MS) {
+    if (!forceRefresh && cachedAllCoffees && lastFetchVerified && now - lastFetchTime < CACHE_TTL_MS) {
+      const list = includeUnavailable ? cachedAllCoffees : cachedAllCoffees.filter((c) => c.available);
       return res.json({
         success: true,
-        coffees: cachedCoffees,
+        verifiedLive: true,
+        coffees: list,
         source: "cache",
         updatedAt: new Date(lastFetchTime).toISOString(),
       });
     }
 
     try {
-      const coffees = await fetchLiveCoffeesFromVarietale();
-      if (coffees && coffees.length > 0) {
-        cachedCoffees = coffees;
+      const { allCoffees, verifiedLive } = await fetchLiveCoffeesFromVarietale();
+      if (verifiedLive) {
+        cachedAllCoffees = allCoffees;
         lastFetchTime = now;
+        lastFetchVerified = true;
       }
+      const baseList = cachedAllCoffees || allCoffees;
+      const list = includeUnavailable ? baseList : baseList.filter((c) => c.available);
       return res.json({
-        success: true,
-        coffees: cachedCoffees || coffees,
-        source: "live",
+        success: verifiedLive || baseList.length > 0,
+        verifiedLive,
+        coffees: list,
+        source: verifiedLive ? "live" : "stale_fallback",
         updatedAt: new Date(now).toISOString(),
       });
     } catch (err: any) {
       console.error("Error obteniendo cafés en vivo de varietale.com:", err);
+      const baseList = cachedAllCoffees || [];
+      const list = includeUnavailable ? baseList : baseList.filter((c) => c.available);
       return res.json({
-        success: true,
-        coffees: cachedCoffees || [],
+        success: false,
+        verifiedLive: false,
+        coffees: list,
         source: "fallback",
         error: err.message,
       });
@@ -512,7 +557,8 @@ REGLAS CRÍTICAS:
 
   // Endpoint rápido del catálogo preconfigurado
   app.get("/api/varietale-catalog", (_req: Request, res: Response) => {
-    res.json({ success: true, data: cachedCoffees || [] });
+    const list = (cachedAllCoffees || []).filter((c) => c.available);
+    res.json({ success: true, verifiedLive: lastFetchVerified, data: list });
   });
 
   // --------------------------------------------------------------------------
