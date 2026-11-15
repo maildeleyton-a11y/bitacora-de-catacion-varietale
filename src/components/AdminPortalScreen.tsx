@@ -1295,7 +1295,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
 
         {/* Barra de Pestañas del Administrador */}
         <div className="bg-[#002636] border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-2">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-wrap items-center gap-1.5 sm:gap-2 py-2">
             {[
               { id: "dashboard", label: "Dashboard General", icon: BarChart3 },
               {
@@ -1471,7 +1471,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                 </div>
 
                 {/* Selector de Rango Temporal Rápido en la Tarjeta */}
-                <div className="flex items-center gap-1 mb-2 overflow-x-auto pb-1 no-scrollbar">
+                <div className="flex flex-wrap items-center gap-1.5 mb-2">
                   {(
                     [
                       { id: "all", label: "Todo" },
@@ -2053,7 +2053,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                     Aún no se han registrado cafés de otras marcas.
                   </p>
                 ) : (
-                  <div data-cms-locked="true" className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  <div data-cms-locked="true" className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {stats.brandShare.competitorBrandsList.map((comp) => (
                       <div
                         key={comp.brand}
