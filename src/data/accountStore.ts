@@ -56,6 +56,10 @@ export interface StoredAccount {
   verified?: boolean;
   /** Método de autenticación registrado ("email" o "google") */
   authProvider: "email" | "google";
+  /** Estado de la cuenta ("active" o "unsubscribed") */
+  status?: "active" | "unsubscribed";
+  /** Fecha de baja voluntaria o administrativa */
+  unsubscribedAt?: string | null;
   /** Fecha de registro en formato legible o ISO */
   createdAt: string;
 }

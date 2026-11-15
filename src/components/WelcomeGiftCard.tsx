@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Gift, Tag, Copy, Check, ArrowRight } from "lucide-react";
 import {
   getWelcomeCouponConfig,
   recordCouponCopy,
   recordVarietaleRedirect,
+  WelcomeCouponConfig,
 } from "../data/adminStore";
 
 interface WelcomeGiftCardProps {
@@ -12,7 +13,17 @@ interface WelcomeGiftCardProps {
 
 export const WelcomeGiftCard: React.FC<WelcomeGiftCardProps> = ({ className = "" }) => {
   const [copied, setCopied] = useState<boolean>(false);
-  const couponConfig = getWelcomeCouponConfig();
+  const [couponConfig, setCouponConfig] = useState<WelcomeCouponConfig>(() =>
+    getWelcomeCouponConfig()
+  );
+
+  useEffect(() => {
+    const syncCoupon = () => setCouponConfig(getWelcomeCouponConfig());
+    window.addEventListener("varietale-welcome-coupon-updated", syncCoupon);
+    return () => {
+      window.removeEventListener("varietale-welcome-coupon-updated", syncCoupon);
+    };
+  }, []);
 
   if (!couponConfig.enabled) {
     return null;

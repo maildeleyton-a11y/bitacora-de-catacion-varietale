@@ -65,6 +65,8 @@ import {
   setAdminSessionActive,
   recordUserSessionActivity,
   triggerWebhookInBackground,
+  getWelcomeCouponConfig,
+  saveWelcomeCouponConfig,
 } from "./data/adminStore";
 import {
   isVisualEditModeActive,
@@ -78,6 +80,7 @@ import {
   apiFetchUserTastings,
   apiSaveTastingWithPhoto,
   apiDeleteTasting,
+  apiFetchPublicAppConfig,
   getStoredSessionProfile,
   idbLoadUserTastings,
   idbSaveUserTastings,
@@ -869,6 +872,21 @@ export default function App() {
     syncUiCmsFromServer().then((changed) => {
       if (changed) setCmsVersionTick((t) => t + 1);
     });
+    apiFetchPublicAppConfig()
+      .then((res) => {
+        if (
+          res.ok &&
+          res.data?.success &&
+          res.data?.welcomeCouponConfig &&
+          typeof res.data.welcomeCouponConfig === "object"
+        ) {
+          saveWelcomeCouponConfig({
+            ...getWelcomeCouponConfig(),
+            ...res.data.welcomeCouponConfig,
+          });
+        }
+      })
+      .catch(() => {});
 
     const handleCmsUpdated = () => {
       applyCmsOverridesToMasterData();

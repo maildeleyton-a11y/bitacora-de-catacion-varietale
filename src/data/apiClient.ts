@@ -655,6 +655,26 @@ export const apiAdminUpdateCredentials = (payload: {
   masterPin?: string;
 }) => apiFetch<{ success: boolean }>("/api/admin/update-credentials", { method: "POST", body: JSON.stringify(payload) }, "admin");
 
+export const apiFetchPublicAppConfig = () =>
+  apiFetch<{
+    success: boolean;
+    welcomeCouponConfig?: any;
+  }>("/api/app-config", { method: "GET" });
+
+export const apiAdminSaveSettings = (payload: {
+  welcomeCouponConfig?: any;
+  webhookConfig?: any;
+}) =>
+  apiFetch<{
+    success: boolean;
+    welcomeCouponConfig?: any;
+    webhookConfig?: any;
+  }>(
+    "/api/admin/settings",
+    { method: "POST", body: JSON.stringify(payload) },
+    "admin"
+  );
+
 export const apiAdminFetchDirectory = () =>
   apiFetch<{
     success: boolean;
@@ -662,6 +682,8 @@ export const apiAdminFetchDirectory = () =>
     redirects: any[];
     shares: any[];
     coupons: any[];
+    welcomeCouponConfig?: any;
+    webhookConfig?: any;
     backupTokenConfigured?: boolean;
   }>("/api/admin/directory", { method: "GET" }, "admin");
 
@@ -671,6 +693,13 @@ export const apiAdminResetUser = (accountId: string, newPassword?: string, newPi
 export const apiAdminUnsubscribeUser = (accountId: string) =>
   apiFetch<{ success: boolean; photosDeleted?: number; tastingsPreserved?: number }>(
     "/api/admin/unsubscribe-user",
+    { method: "POST", body: JSON.stringify({ accountId }) },
+    "admin"
+  );
+
+export const apiAdminReactivateUser = (accountId: string) =>
+  apiFetch<{ success: boolean; accountId?: string; status?: string; reactivatedAt?: string }>(
+    "/api/admin/reactivate-user",
     { method: "POST", body: JSON.stringify({ accountId }) },
     "admin"
   );

@@ -887,12 +887,17 @@ switch ($route) {
             elseif ($ev['event_type'] === 'coupon') $coupons[] = $p;
         }
 
+        $couponCfg = varietale_kv_get($pdo, 'welcome_coupon_config');
+        $webhookCfg = varietale_kv_get($pdo, 'webhook_config');
+
         varietale_json_response([
             'success' => true,
             'users' => $usersOut,
             'redirects' => $redirects,
             'shares' => $shares,
             'coupons' => $coupons,
+            'welcomeCouponConfig' => $couponCfg ? $couponCfg['value'] : null,
+            'webhookConfig' => $webhookCfg ? $webhookCfg['value'] : null,
             'backupTokenConfigured' => varietale_get_backup_secret() !== '',
         ]);
         break;
@@ -925,6 +930,61 @@ switch ($route) {
         if ($userId === '') varietale_json_response(['success' => false, 'error' => 'Falta accountId'], 400);
         $summary = varietale_unsubscribe_and_scrub_photos($pdo, $userId);
         varietale_json_response(array_merge(['success' => true], $summary));
+        break;
+
+    case 'admin/reactivate-user':
+        if ($method !== 'POST') varietale_json_response(['success' => false, 'error' => 'Método no permitido'], 405);
+        varietale_require_admin($pdo);
+        $b = varietale_get_json_body();
+        $userId = trim((string)($b['accountId'] ?? ''));
+        if ($userId === '') varietale_json_response(['success' => false, 'error' => 'Falta accountId'], 400);
+        $uStmt = $pdo->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');
+        $uStmt->execute([$userId]);
+        if (!$uStmt->fetch()) {
+            varietale_json_response(['success' => false, 'error' => 'Usuario no encontrado.'], 404);
+        }
+        $now = gmdate('c');
+        $pdo->prepare("UPDATE users SET status = 'active', unsubscribed_at = NULL, updated_at = ? WHERE id = ?")
+            ->execute([$now, $userId]);
+        varietale_json_response(['success' => true, 'accountId' => $userId, 'status' => 'active', 'reactivatedAt' => $now]);
+        break;
+
+    case 'app-config':
+        $couponCfg = varietale_kv_get($pdo, 'welcome_coupon_config');
+        varietale_json_response([
+            'success' => true,
+            'welcomeCouponConfig' => $couponCfg ? $couponCfg['value'] : null,
+        ]);
+        break;
+
+    case 'admin/settings':
+        varietale_require_admin($pdo);
+        if ($method === 'GET') {
+            $couponCfg = varietale_kv_get($pdo, 'welcome_coupon_config');
+            $webhookCfg = varietale_kv_get($pdo, 'webhook_config');
+            varietale_json_response([
+                'success' => true,
+                'welcomeCouponConfig' => $couponCfg ? $couponCfg['value'] : null,
+                'webhookConfig' => $webhookCfg ? $webhookCfg['value'] : null,
+            ]);
+        }
+        if ($method === 'POST') {
+            $b = varietale_get_json_body();
+            if (array_key_exists('welcomeCouponConfig', $b) && is_array($b['welcomeCouponConfig'])) {
+                varietale_kv_set($pdo, 'welcome_coupon_config', $b['welcomeCouponConfig']);
+            }
+            if (array_key_exists('webhookConfig', $b) && is_array($b['webhookConfig'])) {
+                varietale_kv_set($pdo, 'webhook_config', $b['webhookConfig']);
+            }
+            $couponCfg = varietale_kv_get($pdo, 'welcome_coupon_config');
+            $webhookCfg = varietale_kv_get($pdo, 'webhook_config');
+            varietale_json_response([
+                'success' => true,
+                'welcomeCouponConfig' => $couponCfg ? $couponCfg['value'] : null,
+                'webhookConfig' => $webhookCfg ? $webhookCfg['value'] : null,
+            ]);
+        }
+        varietale_json_response(['success' => false, 'error' => 'Método no permitido'], 405);
         break;
 
     case 'admin/ui-cms':
@@ -964,13 +1024,75 @@ switch ($route) {
     case 'admin/webhook-relay':
         if ($method !== 'POST') varietale_json_response(['success' => false, 'error' => 'Método no permitido'], 405);
         $b = varietale_get_json_body();
-        $targetUrl = trim((string)($b['targetUrl'] ?? ''));
         $payload = $b['payload'] ?? [];
-        if ($targetUrl === '' || !str_starts_with($targetUrl, 'https://')) {
-            varietale_json_response(['success' => false, 'error' => 'URL de webhook inválida.'], 400);
+        $eventType = trim((string)($b['eventType'] ?? ($payload['eventType'] ?? '')));
+
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+        $adminToken = trim((string)($headers['X-Admin-Token'] ?? $headers['x-admin-token'] ?? ($_SERVER['HTTP_X_ADMIN_TOKEN'] ?? '')));
+        $isAdmin = false;
+        if ($adminToken !== '') {
+            $admStmt = $pdo->prepare('SELECT token FROM admin_sessions WHERE token = ? LIMIT 1');
+            $admStmt->execute([$adminToken]);
+            $isAdmin = (bool)$admStmt->fetch();
         }
-        if (function_exists('curl_init')) {
-            $ch = curl_init($targetUrl);
+
+        $targets = [];
+        if ($isAdmin) {
+            if (!empty($b['targets']) && is_array($b['targets'])) {
+                foreach ($b['targets'] as $t) {
+                    if (!is_array($t)) continue;
+                    $url = trim((string)($t['url'] ?? ''));
+                    $name = trim((string)($t['name'] ?? 'Webhook')) ?: 'Webhook';
+                    if ($url !== '' && str_starts_with($url, 'https://')) {
+                        $targets[] = ['name' => $name, 'url' => $url];
+                    }
+                }
+            } else {
+                $targetUrl = trim((string)($b['targetUrl'] ?? ''));
+                if ($targetUrl !== '' && str_starts_with($targetUrl, 'https://')) {
+                    $targets[] = ['name' => 'Webhook', 'url' => $targetUrl];
+                }
+            }
+        }
+
+        if (empty($targets)) {
+            $storedWebhook = varietale_kv_get($pdo, 'webhook_config');
+            $cfg = ($storedWebhook && is_array($storedWebhook['value'] ?? null)) ? $storedWebhook['value'] : [];
+            $eventAllowed = true;
+            if ($eventType === 'new_user') $eventAllowed = !empty($cfg['sendOnNewUser']);
+            elseif ($eventType === 'new_tasting') $eventAllowed = !empty($cfg['sendOnNewTasting']);
+            elseif ($eventType === 'varietale_redirect') $eventAllowed = !empty($cfg['sendOnVarietaleRedirect']);
+
+            if ($eventAllowed) {
+                $gsUrl = trim((string)($cfg['googleSheetsWebhookUrl'] ?? ''));
+                if (!empty($cfg['googleSheetsEnabled']) && str_starts_with($gsUrl, 'https://')) {
+                    $targets[] = ['name' => 'Google Sheets', 'url' => $gsUrl];
+                }
+                $ntUrl = trim((string)($cfg['notionWebhookUrl'] ?? ''));
+                if (!empty($cfg['notionEnabled']) && str_starts_with($ntUrl, 'https://')) {
+                    $targets[] = ['name' => 'Notion', 'url' => $ntUrl];
+                }
+                if (is_array($payload) && !empty($cfg['notionDatabaseId']) && empty($payload['notionDatabaseId'])) {
+                    $payload['notionDatabaseId'] = $cfg['notionDatabaseId'];
+                }
+            }
+        }
+
+        if (empty($targets)) {
+            varietale_json_response([
+                'success' => false,
+                'ok' => false,
+                'details' => 'No hay URLs HTTPS de webhook activas configuradas.',
+            ], 200);
+        }
+        if (!function_exists('curl_init')) {
+            varietale_json_response(['success' => false, 'ok' => false, 'error' => 'cURL no disponible.'], 500);
+        }
+
+        $detailsList = [];
+        $anySuccess = false;
+        foreach ($targets as $target) {
+            $ch = curl_init($target['url']);
             curl_setopt_array($ch, [
                 CURLOPT_POST => true,
                 CURLOPT_RETURNTRANSFER => true,
@@ -978,12 +1100,22 @@ switch ($route) {
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
                 CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ]);
-            $resp = curl_exec($ch);
+            curl_exec($ch);
             $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
             curl_close($ch);
-            varietale_json_response(['success' => $code >= 200 && $code < 300, 'status' => $code]);
+            if ($code >= 200 && $code < 300) {
+                $anySuccess = true;
+                $detailsList[] = $target['name'] . ': OK (' . $code . ')';
+            } else {
+                $detailsList[] = $target['name'] . ': error' . ($code > 0 ? ' HTTP ' . $code : ($err !== '' ? ' (' . $err . ')' : ''));
+            }
         }
-        varietale_json_response(['success' => false, 'error' => 'cURL no disponible.'], 500);
+        varietale_json_response([
+            'success' => $anySuccess,
+            'ok' => $anySuccess,
+            'details' => implode(' · ', $detailsList),
+        ]);
         break;
 
     // ------------------------------------------------------------------------
@@ -1028,6 +1160,8 @@ switch ($route) {
         $analytics = $pdo->query('SELECT id, event_type, user_id, username, user_name, payload_json, created_at FROM analytics_events ORDER BY created_at DESC LIMIT 5000')->fetchAll();
         $uiCms = varietale_kv_get($pdo, 'ui_cms_state');
         $adminCreds = varietale_kv_get($pdo, 'admin_credentials');
+        $couponCfg = varietale_kv_get($pdo, 'welcome_coupon_config');
+        $webhookCfg = varietale_kv_get($pdo, 'webhook_config');
 
         varietale_json_response([
             'schemaVersion' => 'varietale-dreamhost-backup-v1',
@@ -1043,6 +1177,8 @@ switch ($route) {
             'analytics' => $analytics,
             'uiCmsState' => $uiCms ? $uiCms['value'] : null,
             'adminCredentials' => $adminCreds ? $adminCreds['value'] : null,
+            'welcomeCouponConfig' => $couponCfg ? $couponCfg['value'] : null,
+            'webhookConfig' => $webhookCfg ? $webhookCfg['value'] : null,
         ]);
         break;
 
@@ -1108,6 +1244,12 @@ switch ($route) {
             }
             if (!empty($b['adminCredentials']) && is_array($b['adminCredentials'])) {
                 varietale_kv_set($pdo, 'admin_credentials', $b['adminCredentials']);
+            }
+            if (!empty($b['welcomeCouponConfig']) && is_array($b['welcomeCouponConfig'])) {
+                varietale_kv_set($pdo, 'welcome_coupon_config', $b['welcomeCouponConfig']);
+            }
+            if (!empty($b['webhookConfig']) && is_array($b['webhookConfig'])) {
+                varietale_kv_set($pdo, 'webhook_config', $b['webhookConfig']);
             }
             $pdo->commit();
         } catch (Throwable $e) {

@@ -42,6 +42,9 @@ interface DevDbState {
   tastings: Record<string, any[]>; // userId -> TastingRecord[]
   analytics: { id: string; event_type: string; payload: any; created_at: string }[];
   adminCredentials: { username: string; password: string; masterPin: string; updatedAt: string };
+  uiCmsState?: any;
+  welcomeCouponConfig?: any;
+  webhookConfig?: any;
   backupToken: string;
 }
 
@@ -561,6 +564,8 @@ export function registerDevApiRoutes(app: Express): void {
       redirects: db.analytics.filter((a) => a.event_type === "redirect").map((a) => a.payload),
       shares: db.analytics.filter((a) => a.event_type === "share").map((a) => a.payload),
       coupons: db.analytics.filter((a) => a.event_type === "coupon").map((a) => a.payload),
+      welcomeCouponConfig: db.welcomeCouponConfig || null,
+      webhookConfig: db.webhookConfig || null,
       backupTokenConfigured: true,
     });
   });
@@ -582,6 +587,133 @@ export function registerDevApiRoutes(app: Express): void {
     if (!requireAdmin(req, res, db)) return;
     const summary = unsubscribeUser(db, String(req.body?.accountId || ""));
     res.json({ success: true, ...summary });
+  });
+
+  app.post("/api/admin/reactivate-user", (req, res) => {
+    const db = loadDb();
+    if (!requireAdmin(req, res, db)) return;
+    const accountId = String(req.body?.accountId || "").trim();
+    const u = db.users.find((x) => x.id === accountId);
+    if (!u) return res.status(404).json({ success: false, error: "Usuario no encontrado." });
+    const now = new Date().toISOString();
+    u.status = "active";
+    u.unsubscribed_at = null;
+    u.updated_at = now;
+    saveDb(db);
+    res.json({ success: true, accountId, status: "active", reactivatedAt: now });
+  });
+
+  app.get("/api/app-config", (_req, res) => {
+    const db = loadDb();
+    res.json({
+      success: true,
+      welcomeCouponConfig: db.welcomeCouponConfig || null,
+    });
+  });
+
+  app.all("/api/admin/settings", (req, res) => {
+    const db = loadDb();
+    if (!requireAdmin(req, res, db)) return;
+    if (req.method === "POST") {
+      const b = req.body || {};
+      if (b.welcomeCouponConfig && typeof b.welcomeCouponConfig === "object") {
+        db.welcomeCouponConfig = b.welcomeCouponConfig;
+      }
+      if (b.webhookConfig && typeof b.webhookConfig === "object") {
+        db.webhookConfig = b.webhookConfig;
+      }
+      saveDb(db);
+    }
+    res.json({
+      success: true,
+      welcomeCouponConfig: db.welcomeCouponConfig || null,
+      webhookConfig: db.webhookConfig || null,
+    });
+  });
+
+  app.get("/api/admin/ui-cms", (_req, res) => {
+    const db = loadDb();
+    res.json({ success: true, state: db.uiCmsState || null });
+  });
+
+  app.post("/api/admin/ui-cms", (req, res) => {
+    const db = loadDb();
+    if (!requireAdmin(req, res, db)) return;
+    db.uiCmsState = req.body || {};
+    saveDb(db);
+    res.json({ success: true });
+  });
+
+  app.post("/api/admin/webhook-relay", async (req, res) => {
+    const db = loadDb();
+    const b = req.body || {};
+    const payload = b.payload || {};
+    const eventType = String(b.eventType || payload?.eventType || "").trim();
+
+    const adminTok = String(req.headers["x-admin-token"] || "").trim();
+    const isAdmin = Boolean(adminTok && db.adminSessions[adminTok]);
+
+    const targets: { name: string; url: string }[] = [];
+    if (isAdmin) {
+      if (Array.isArray(b.targets)) {
+        for (const t of b.targets) {
+          const url = String(t?.url || "").trim();
+          const name = String(t?.name || "Webhook").trim() || "Webhook";
+          if (url.startsWith("https://")) targets.push({ name, url });
+        }
+      } else if (typeof b.targetUrl === "string" && b.targetUrl.trim().startsWith("https://")) {
+        targets.push({ name: "Webhook", url: b.targetUrl.trim() });
+      }
+    }
+
+    if (targets.length === 0 && db.webhookConfig) {
+      const cfg = db.webhookConfig;
+      const allowed =
+        eventType === "new_user"
+          ? Boolean(cfg.sendOnNewUser)
+          : eventType === "new_tasting"
+          ? Boolean(cfg.sendOnNewTasting)
+          : eventType === "varietale_redirect"
+          ? Boolean(cfg.sendOnVarietaleRedirect)
+          : true;
+      if (allowed) {
+        if (cfg.googleSheetsEnabled && String(cfg.googleSheetsWebhookUrl || "").trim().startsWith("https://")) {
+          targets.push({ name: "Google Sheets", url: String(cfg.googleSheetsWebhookUrl).trim() });
+        }
+        if (cfg.notionEnabled && String(cfg.notionWebhookUrl || "").trim().startsWith("https://")) {
+          targets.push({ name: "Notion", url: String(cfg.notionWebhookUrl).trim() });
+        }
+      }
+    }
+
+    if (targets.length === 0) {
+      return res.json({
+        success: false,
+        ok: false,
+        details: "No hay URLs HTTPS de webhook activas configuradas.",
+      });
+    }
+
+    const detailsList: string[] = [];
+    let anySuccess = false;
+    for (const target of targets) {
+      try {
+        const resp = await fetch(target.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (resp.ok) {
+          anySuccess = true;
+          detailsList.push(`${target.name}: OK (${resp.status})`);
+        } else {
+          detailsList.push(`${target.name}: error HTTP ${resp.status}`);
+        }
+      } catch (e: any) {
+        detailsList.push(`${target.name}: error (${e?.message || "red"})`);
+      }
+    }
+    res.json({ success: anySuccess, ok: anySuccess, details: detailsList.join(" · ") });
   });
 
   app.all("/api/admin/backup-config", (req, res) => {
@@ -612,6 +744,9 @@ export function registerDevApiRoutes(app: Express): void {
         list.map((r) => ({ id: r.id, user_id: userId, created_at: r.createdAt, record: r }))
       ),
       analytics: db.analytics,
+      uiCmsState: db.uiCmsState || null,
+      welcomeCouponConfig: db.welcomeCouponConfig || null,
+      webhookConfig: db.webhookConfig || null,
     });
   });
 
@@ -644,6 +779,16 @@ export function registerDevApiRoutes(app: Express): void {
       if (idx >= 0) list[idx] = t.record;
       else list.unshift(t.record);
       restoredTastings++;
+    }
+
+    if (b.uiCmsState && typeof b.uiCmsState === "object") {
+      db.uiCmsState = b.uiCmsState;
+    }
+    if (b.welcomeCouponConfig && typeof b.welcomeCouponConfig === "object") {
+      db.welcomeCouponConfig = b.welcomeCouponConfig;
+    }
+    if (b.webhookConfig && typeof b.webhookConfig === "object") {
+      db.webhookConfig = b.webhookConfig;
     }
 
     saveDb(db);

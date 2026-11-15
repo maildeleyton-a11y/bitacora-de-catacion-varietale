@@ -177,6 +177,9 @@ export const getWelcomeCouponConfig = (): WelcomeCouponConfig => {
 export const saveWelcomeCouponConfig = (config: WelcomeCouponConfig): WelcomeCouponConfig => {
   try {
     localStorage.setItem(WELCOME_COUPON_CONFIG_KEY, JSON.stringify(config));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("varietale-welcome-coupon-updated", { detail: config }));
+    }
   } catch {}
   return config;
 };
@@ -1012,6 +1015,23 @@ export const adminDeleteUserAccount = (accountId: string): boolean => {
   }
 };
 
+export const adminReactivateUserAccount = (accountId: string): boolean => {
+  try {
+    const accounts = getStoredAccounts();
+    const idx = accounts.findIndex((a) => a.id === accountId);
+    if (idx < 0) return false;
+    accounts[idx] = {
+      ...accounts[idx],
+      status: "active",
+      unsubscribedAt: undefined,
+    };
+    localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // ============================================================================
 // 5. MOTOR DE ANALÍTICA DEL DASHBOARD GENERAL
 // ============================================================================
@@ -1019,6 +1039,8 @@ export const adminDeleteUserAccount = (accountId: string): boolean => {
 export interface AdminDashboardStats {
   // Bloque A: KPIs Superiores
   totalUsers: number;
+  activeUsersCount: number;
+  unsubscribedUsersCount: number;
   usersLast7Days: number;
   usersLast30Days: number;
   googleUsersCount: number;
@@ -1170,8 +1192,13 @@ export const computeAdminDashboardStats = (overrideData?: {
   let usersLast30Days = 0;
   let googleUsersCount = 0;
   let emailUsersCount = 0;
+  let activeUsersCount = 0;
+  let unsubscribedUsersCount = 0;
 
   users.forEach((u) => {
+    if (u.account.status === "unsubscribed") unsubscribedUsersCount++;
+    else activeUsersCount++;
+
     if (u.account.authProvider === "google") googleUsersCount++;
     else emailUsersCount++;
 
@@ -1583,6 +1610,8 @@ export const computeAdminDashboardStats = (overrideData?: {
 
   return {
     totalUsers,
+    activeUsersCount,
+    unsubscribedUsersCount,
     usersLast7Days,
     usersLast30Days,
     googleUsersCount,
@@ -1710,10 +1739,6 @@ export const triggerWebhookInBackground = async (
     targets.push({ name: "Notion", url: config.notionWebhookUrl.trim() });
   }
 
-  if (targets.length === 0) {
-    return { ok: false, details: "No hay URLs de Webhook activas configuradas." };
-  }
-
   const envelope = {
     app: "Bitácora de Catación Varietale",
     eventType,
@@ -1723,11 +1748,19 @@ export const triggerWebhookInBackground = async (
   };
 
   // Primero intenta enviar a través del puente backend (/api/admin/webhook-relay) para evitar bloqueos CORS
+  // Si un cliente final no tiene las URLs locales de Admin, el servidor usará la configuración guardada en DreamHost.
   try {
+    const adminToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("varietale_admin_api_token") || ""
+        : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (adminToken) headers["X-Admin-Token"] = adminToken;
+
     const relayRes = await fetch("/api/admin/webhook-relay", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targets, payload: envelope }),
+      headers,
+      body: JSON.stringify({ eventType, targets, payload: envelope }),
     });
     if (relayRes.ok) {
       const json = await relayRes.json();
@@ -1738,6 +1771,10 @@ export const triggerWebhookInBackground = async (
     }
   } catch {
     // Fallback a envío directo desde el navegador si el servidor no responde
+  }
+
+  if (targets.length === 0) {
+    return { ok: false, details: "No hay URLs de Webhook activas configuradas." };
   }
 
   const results: string[] = [];

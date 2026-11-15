@@ -69,6 +69,7 @@ import {
   EnrichedUserRecord,
   adminResetClientCredentials,
   adminDeleteUserAccount,
+  adminReactivateUserAccount,
   exportUsersDirectoryToCsv,
   exportUsersDirectoryToExcel,
   exportAllTastingsToCsv,
@@ -103,6 +104,8 @@ import {
   apiAdminFetchDirectory,
   apiAdminResetUser,
   apiAdminUnsubscribeUser,
+  apiAdminReactivateUser,
+  apiAdminSaveSettings,
   apiAdminUpdateCredentials,
   apiAdminBackupConfig,
   apiAdminDownloadBackup,
@@ -368,6 +371,9 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
 
   // Estado para Directorio de Catadores (CRM) - Filtros Multicriterio, Selección y Paginación
   const [userSearch, setUserSearch] = useState("");
+  const [userStatusFilter, setUserStatusFilter] = useState<"all" | "active" | "unsubscribed">(
+    "all"
+  );
   const [userActivityFilter, setUserActivityFilter] = useState<
     "all" | "zero" | "exploring" | "frequent"
   >("all");
@@ -401,6 +407,8 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   const [supportNewPin, setSupportNewPin] = useState("");
   const [supportFeedback, setSupportFeedback] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<EnrichedUserRecord | null>(null);
+  const [reactivatingUserId, setReactivatingUserId] = useState<string | null>(null);
+  const [crmStatusMsg, setCrmStatusMsg] = useState<string | null>(null);
 
   // Estado para Configuración (Cupón, Webhooks, Backup y Credenciales Admin)
   const [couponForm, setCouponForm] = useState<WelcomeCouponConfig>(() =>
@@ -510,6 +518,22 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
         shares: rawShares,
         coupons: rawCoupons,
       });
+
+      if (res.data.welcomeCouponConfig && typeof res.data.welcomeCouponConfig === "object") {
+        const syncedCoupon = saveWelcomeCouponConfig({
+          ...getWelcomeCouponConfig(),
+          ...res.data.welcomeCouponConfig,
+        });
+        setCouponForm(syncedCoupon);
+      }
+
+      if (res.data.webhookConfig && typeof res.data.webhookConfig === "object") {
+        const syncedWebhook = saveWebhookConfig({
+          ...getWebhookConfig(),
+          ...res.data.webhookConfig,
+        });
+        setWebhookForm(syncedWebhook);
+      }
 
       const tokRes = await apiAdminBackupConfig(false);
       if (active && tokRes.ok && tokRes.data?.backupToken) {
@@ -809,6 +833,10 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   // Filtrado Multicriterio y Ordenamiento del Directorio de Usuarios (CRM)
   const filteredUsers = useMemo(() => {
     const list = usersDirectory.filter((u) => {
+      // 0. Estado de cuenta (Activo vs Dado de baja)
+      const userStatus = u.account.status === "unsubscribed" ? "unsubscribed" : "active";
+      if (userStatusFilter !== "all" && userStatus !== userStatusFilter) return false;
+
       // 1. Nivel de actividad
       if (userActivityFilter === "zero" && u.tastingsCount !== 0) return false;
       if (
@@ -898,6 +926,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   }, [
     usersDirectory,
     userSearch,
+    userStatusFilter,
     userActivityFilter,
     userAuthFilter,
     userRedirectFilter,
@@ -913,6 +942,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
     setCurrentUserPage(1);
   }, [
     userSearch,
+    userStatusFilter,
     userActivityFilter,
     userAuthFilter,
     userRedirectFilter,
@@ -927,6 +957,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   const activeUserFiltersCount = useMemo(() => {
     let c = 0;
     if (userSearch.trim()) c++;
+    if (userStatusFilter !== "all") c++;
     if (userActivityFilter !== "all") c++;
     if (userAuthFilter !== "all") c++;
     if (userRedirectFilter !== "all") c++;
@@ -937,6 +968,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
     return c;
   }, [
     userSearch,
+    userStatusFilter,
     userActivityFilter,
     userAuthFilter,
     userRedirectFilter,
@@ -948,6 +980,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
 
   const resetAllUserFilters = () => {
     setUserSearch("");
+    setUserStatusFilter("all");
     setUserActivityFilter("all");
     setUserAuthFilter("all");
     setUserRedirectFilter("all");
@@ -1017,25 +1050,36 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
     );
   }, [helpSearch]);
 
-  // Guardar Cupón
-  const handleSaveCoupon = (e: React.FormEvent) => {
+  // Guardar Cupón (DreamHost SQLite + localStorage)
+  const handleSaveCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     saveWelcomeCouponConfig(couponForm);
-    setCouponSavedMsg("¡Configuración del Cupón de Bienvenida actualizada!");
-    setTimeout(() => setCouponSavedMsg(null), 3000);
+    const cloudRes = await apiAdminSaveSettings({ welcomeCouponConfig: couponForm });
+    setCouponSavedMsg(
+      cloudRes.ok
+        ? "¡Cupón guardado en DreamHost y sincronizado en vivo!"
+        : "Guardado localmente (sin conexión al servidor)."
+    );
+    setTimeout(() => setCouponSavedMsg(null), 3500);
   };
 
-  // Guardar Webhooks
-  const handleSaveWebhooks = (e: React.FormEvent) => {
+  // Guardar Webhooks (DreamHost SQLite + localStorage)
+  const handleSaveWebhooks = async (e: React.FormEvent) => {
     e.preventDefault();
     saveWebhookConfig(webhookForm);
-    setWebhookStatusMsg("¡Configuración de integraciones guardada!");
-    setTimeout(() => setWebhookStatusMsg(null), 3000);
+    const cloudRes = await apiAdminSaveSettings({ webhookConfig: webhookForm });
+    setWebhookStatusMsg(
+      cloudRes.ok
+        ? "¡Configuración de integraciones guardada en DreamHost!"
+        : "Guardado localmente (sin conexión al servidor)."
+    );
+    setTimeout(() => setWebhookStatusMsg(null), 3500);
   };
 
   // Probar conexión Webhook
   const handleTestWebhook = async () => {
     saveWebhookConfig(webhookForm);
+    apiAdminSaveSettings({ webhookConfig: webhookForm }).catch(() => {});
     setIsSendingWebhook(true);
     setWebhookStatusMsg("Enviando evento de prueba...");
     const res = await triggerWebhookInBackground("test_ping", {
@@ -1051,6 +1095,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
   // Sincronizar todos los registros actuales hacia Google Sheets / Notion
   const handleBulkSyncWebhook = async () => {
     saveWebhookConfig(webhookForm);
+    apiAdminSaveSettings({ webhookConfig: webhookForm }).catch(() => {});
     setIsSendingWebhook(true);
     setWebhookStatusMsg("Sincronizando base de datos completa...");
     const res = await triggerWebhookInBackground("bulk_sync", {
@@ -1062,6 +1107,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
         email: u.account.email,
         phone: u.account.phone || "",
         authProvider: u.account.authProvider,
+        status: u.account.status || "active",
         createdAt: u.account.createdAt,
         tastingsCount: u.tastingsCount,
         avgRating: u.avgRating,
@@ -1120,6 +1166,31 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
       setSupportFeedback(
         "Revisa que la clave tenga al menos 4 caracteres o el PIN 4 dígitos."
       );
+    }
+  };
+
+  // Soporte a cliente: reactivar cuenta dada de baja (conservando todo su historial de catas)
+  const handleReactivateUser = async (user: EnrichedUserRecord) => {
+    setReactivatingUserId(user.account.id);
+    try {
+      const cloudRes = await apiAdminReactivateUser(user.account.id);
+      const localOk = adminReactivateUserAccount(user.account.id);
+      if (cloudRes.ok || localOk) {
+        if (supportModalUser?.account.id === user.account.id) {
+          setSupportModalUser({
+            ...supportModalUser,
+            account: { ...supportModalUser.account, status: "active", unsubscribedAt: undefined },
+          });
+          setSupportFeedback("¡Cuenta reactivada con éxito! El usuario ya puede ingresar nuevamente.");
+        }
+        setCrmStatusMsg(
+          `Cuenta @${user.account.username} reactivada con éxito (catas históricas intactas).`
+        );
+        setTimeout(() => setCrmStatusMsg(null), 4500);
+        setRefreshTick((t) => t + 1);
+      }
+    } finally {
+      setReactivatingUserId(null);
     }
   };
 
@@ -1428,7 +1499,21 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                     +{stats.usersLast7Days} (últ. 7 días)
                   </span>
                 </div>
-                <div className="pt-2.5 mt-2 border-t border-[#E8EDF1] flex items-center justify-between text-xs text-[#52646E]">
+                <div className="pt-2.5 mt-2 border-t border-[#E8EDF1] flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-[#52646E]">
+                  <span>
+                    <span>Activos:</span>{" "}
+                    <strong data-cms-locked="true" className="text-[#00897B]">
+                      {stats.activeUsersCount}
+                    </strong>
+                  </span>
+                  {stats.unsubscribedUsersCount > 0 && (
+                    <span>
+                      <span>Baja:</span>{" "}
+                      <strong data-cms-locked="true" className="text-amber-700">
+                        {stats.unsubscribedUsersCount}
+                      </strong>
+                    </span>
+                  )}
                   <span>
                     <span>Google:</span>{" "}
                     <strong data-cms-locked="true">{stats.googleUsersCount}</strong>
@@ -2558,7 +2643,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                 </div>
 
                 {/* Grilla de selectores de variantes */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                   {/* 1. Nivel de actividad */}
                   <div>
                     <label className="block text-[10px] font-extrabold uppercase text-[#6A7B85] mb-1">
@@ -2643,6 +2728,22 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                     </select>
                   </div>
 
+                  {/* 5b. Estado de Cuenta (Activo vs Dado de baja) */}
+                  <div>
+                    <label className="block text-[10px] font-extrabold uppercase text-[#6A7B85] mb-1">
+                      Estado de Cuenta
+                    </label>
+                    <select
+                      value={userStatusFilter}
+                      onChange={(e) => setUserStatusFilter(e.target.value as any)}
+                      className="w-full px-2.5 py-2 rounded-xl bg-white border border-[#E8EDF1] text-xs font-bold text-[#01374C]"
+                    >
+                      <option value="all">Todos los estados</option>
+                      <option value="active">Solo Activos</option>
+                      <option value="unsubscribed">Solo Dados de baja</option>
+                    </select>
+                  </div>
+
                   {/* 6. Viralidad / Compartidos */}
                   <div>
                     <label className="block text-[10px] font-extrabold uppercase text-[#6A7B85] mb-1">
@@ -2695,6 +2796,19 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                   </div>
                 </div>
               </div>
+
+              {crmStatusMsg && (
+                <div className="p-3 rounded-xl bg-[#EBFBFA] border border-[#00D9B4] text-[#01374C] text-xs font-bold flex items-center justify-between gap-2">
+                  <span>✅ {crmStatusMsg}</span>
+                  <button
+                    type="button"
+                    onClick={() => setCrmStatusMsg(null)}
+                    className="text-[#6A7B85] hover:text-[#01374C] cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
 
               {/* Barra Contextual de Selección Individual / Grupal */}
               {selectedUserIds.length > 0 && (
@@ -2999,7 +3113,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                                     <span>PIN / Clave</span>
                                   </button>
 
-                                  {u.account.status !== "unsubscribed" && (
+                                  {u.account.status !== "unsubscribed" ? (
                                     <button
                                       type="button"
                                       onClick={() => setUserToDelete(u)}
@@ -3007,6 +3121,19 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                                       title="Dar de baja (elimina fotos físicas, conserva catas)"
                                     >
                                       <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      disabled={reactivatingUserId === u.account.id}
+                                      onClick={() => handleReactivateUser(u)}
+                                      className="px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                                      title="Reactivar cuenta y restaurar acceso al usuario con todas sus catas históricas"
+                                    >
+                                      <RotateCcw className="w-3.5 h-3.5" />
+                                      <span>
+                                        {reactivatingUserId === u.account.id ? "..." : "Reactivar"}
+                                      </span>
                                     </button>
                                   )}
                                 </div>
@@ -3399,7 +3526,7 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-[#00D9B4] animate-pulse" />
                   <span className="text-xs font-black uppercase tracking-wider text-[#00897B]">
-                    <span>Sincronización Automática Activa</span>{" "}
+                    <span>Sincronización y Stock en Vivo Activos</span>{" "}
                     <span>•</span>{" "}
                     <span>Última verificación:</span>{" "}
                     <span data-cms-locked="true" className="tabular-nums">{lastCatalogRefreshTime}</span>
@@ -3407,18 +3534,18 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <h2 className="text-lg sm:text-xl font-black text-[#01374C]">
-                    <span>Cafés Sincronizados desde varietale.com</span>{" "}
+                    <span>Cafés Disponibles en Tiempo Real en varietale.com</span>{" "}
                     <span data-cms-locked="true" className="tabular-nums">
-                      ({liveCoffees.length} cafés activos)
+                      ({liveCoffees.length} en stock)
                     </span>
                   </h2>
                   <InfoHint
-                    title="Verificador de Catálogo Web"
-                    text="Muestra cuántos y cuáles cafés están sincronizados actualmente desde varietale.com. Puedes compararlos con la web o pulsar 'Forzar Actualización Ahora' para refrescar al instante."
+                    title="Verificador de Catálogo y Stock Web"
+                    text="Muestra únicamente los cafés con existencias disponibles en tiempo real en varietale.com. Si un café se agota en la tienda web, desaparece automáticamente de la app y se reintegra al volver a estar disponible."
                   />
                 </div>
                 <p className="text-xs sm:text-sm text-[#6A7B85]">
-                  Verifica exactamente cuáles cafés están apareciendo en la aplicación y compáralos en un clic frente al sitio web oficial.
+                  Los cafés agotados en varietale.com se ocultan automáticamente de las sugerencias y del selector hasta que vuelven a tener stock disponible.
                 </p>
               </div>
 
@@ -3494,9 +3621,12 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1 mb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1 mb-1">
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#EBFBFA] text-[#01374C] border border-[#00D9B4]/30">
                           #{index + 1} • {coffee.productType || "Café Especial"}
+                        </span>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          En Stock
                         </span>
                       </div>
                       <h3 className="text-base font-black text-[#01374C] leading-snug">
@@ -4177,6 +4307,18 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
 
             <div className="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DDC1AB] space-y-1.5 text-xs sm:text-sm">
               <div className="flex items-center justify-between">
+                <span className="text-[#52646E] font-medium">Estado de cuenta:</span>
+                {supportModalUser.account.status === "unsubscribed" ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 font-black text-[11px] uppercase">
+                    Dado de baja
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-[11px] uppercase">
+                    Activo
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-[#52646E] font-medium">Correo registrado:</span>
                 <strong data-cms-locked="true" className="text-[#01374C]">
                   {supportModalUser.account.email}
@@ -4199,6 +4341,27 @@ export const AdminPortalScreen: React.FC<AdminPortalScreenProps> = ({
                 </div>
               )}
             </div>
+
+            {supportModalUser.account.status === "unsubscribed" && (
+              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-3">
+                <div className="text-xs text-amber-900">
+                  <strong>Cuenta dada de baja:</strong> sus catas están intactas; puedes reactivarla en un clic.
+                </div>
+                <button
+                  type="button"
+                  disabled={reactivatingUserId === supportModalUser.account.id}
+                  onClick={() => handleReactivateUser(supportModalUser)}
+                  className="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>
+                    {reactivatingUserId === supportModalUser.account.id
+                      ? "Activando..."
+                      : "Reactivar"}
+                  </span>
+                </button>
+              </div>
+            )}
 
             {supportFeedback && (
               <div className="p-2.5 rounded-xl bg-[#EBFBFA] border border-[#00D9B4] text-[#01374C] text-xs font-bold text-center">
