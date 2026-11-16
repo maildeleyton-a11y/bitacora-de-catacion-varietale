@@ -102,6 +102,20 @@ const GUIDE_STORAGE_KEY = "varietale_onboarding_guide_seen_v1";
  */
 const SESSION_USER_KEY = "varietale_session_user";
 
+/**
+ * Identifica perfiles sandbox/locales del Panel Admin ("Probar como Usuario" y "Editar en Vivo")
+ * que no usan sesión de cliente en DreamHost ni deben validarse contra /api/auth/me.
+ */
+const isLocalSandboxUser = (user?: UserProfile | null): boolean => {
+  if (!user) return false;
+  return (
+    user.id === "test-user-catador" ||
+    user.id === "admin-preview-user" ||
+    user.id === "user-test-dev" ||
+    user.username === "catador.prueba"
+  );
+};
+
 // ============================================================================
 // 2. UTILIDADES DE PERSISTENCIA POR USUARIO
 // ============================================================================
@@ -172,14 +186,14 @@ export default function App() {
       localStorage.removeItem("varietale_current_user");
 
       const cloudProfile = getStoredSessionProfile();
-      if (cloudProfile && cloudProfile.id && cloudProfile.id !== "user-test-dev") {
+      if (cloudProfile && cloudProfile.id && !isLocalSandboxUser(cloudProfile)) {
         return cloudProfile;
       }
 
       const sessionSaved = sessionStorage.getItem(SESSION_USER_KEY);
       if (sessionSaved) {
         const parsed: UserProfile = JSON.parse(sessionSaved);
-        if (parsed && parsed.id && parsed.id !== "user-test-dev") {
+        if (parsed && parsed.id && !isLocalSandboxUser(parsed)) {
           return parsed;
         }
       }
@@ -202,13 +216,13 @@ export default function App() {
         return "admin";
       }
       const cloudProfile = getStoredSessionProfile();
-      if (cloudProfile && cloudProfile.id && cloudProfile.id !== "user-test-dev") {
+      if (cloudProfile && cloudProfile.id && !isLocalSandboxUser(cloudProfile)) {
         return "home";
       }
       const sessionSaved = sessionStorage.getItem(SESSION_USER_KEY);
       if (sessionSaved) {
         const parsed: UserProfile = JSON.parse(sessionSaved);
-        if (parsed && parsed.id && parsed.id !== "user-test-dev") {
+        if (parsed && parsed.id && !isLocalSandboxUser(parsed)) {
           return "home";
         }
       }
@@ -298,7 +312,7 @@ export default function App() {
     if (!currentUser) return;
     if (hydratedUserIdRef.current !== currentUser.id) return;
 
-    if (currentUser.id === "user-test-dev") {
+    if (isLocalSandboxUser(currentUser)) {
       try {
         localStorage.setItem(getUserTastingsKey(currentUser), JSON.stringify(tastings));
       } catch {}
@@ -324,9 +338,13 @@ export default function App() {
   // Hidratar catas desde DreamHost + IndexedDB y validar sesión persistente
   const hydrateCloudSessionAndTastings = async (user: UserProfile) => {
     hydratedUserIdRef.current = null;
-    if (user.id === "user-test-dev") {
-      let localTest = getTestUserTastings();
-      if (!localTest || localTest.length === 0) {
+    if (isLocalSandboxUser(user)) {
+      let localTest =
+        user.id === "admin-preview-user" ? loadUserTastings(user) : getTestUserTastings();
+      if (
+        user.id !== "admin-preview-user" &&
+        (!localTest || localTest.length === 0)
+      ) {
         localTest = seedTestUser20Tastings();
       }
       hydratedUserIdRef.current = user.id;
@@ -363,7 +381,7 @@ export default function App() {
     let active = true;
 
     (async () => {
-      if (currentUser.authProvider !== "guest" && currentUser.id !== "user-test-dev") {
+      if (currentUser.authProvider !== "guest" && !isLocalSandboxUser(currentUser)) {
         const sessionCheck = await apiValidateSession();
         if (!active) return;
         if (sessionCheck.status === 401 || sessionCheck.status === 403) {
@@ -382,7 +400,7 @@ export default function App() {
     })();
 
     const handleOnline = async () => {
-      if (currentUser.authProvider === "guest" || currentUser.id === "user-test-dev") return;
+      if (currentUser.authProvider === "guest" || isLocalSandboxUser(currentUser)) return;
       const flushed = await flushPendingQueueForUser(currentUser.id);
       if (flushed > 0 && active) {
         await hydrateCloudSessionAndTastings(currentUser);
@@ -402,7 +420,7 @@ export default function App() {
   // E. Controladores de Autenticación (Login, Invitado, Logout)
   // --------------------------------------------------------------------------
   const handleLogin = (user: UserProfile) => {
-    if (user.id === "user-test-dev") {
+    if (isLocalSandboxUser(user)) {
       return;
     }
     hydratedUserIdRef.current = null;
@@ -476,6 +494,7 @@ export default function App() {
    */
   const handleEnterTestUserMode = () => {
     const testUser = loginAsTestUser();
+    hydratedUserIdRef.current = testUser.id;
     setCurrentUser(testUser);
     try {
       sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(testUser));
@@ -487,6 +506,7 @@ export default function App() {
       userTastings = seedTestUser20Tastings();
     }
     setTastings(userTastings);
+    setShowLaunchSequence(false);
     setCurrentScreen("home");
   };
 
@@ -497,7 +517,9 @@ export default function App() {
     try {
       sessionStorage.removeItem(SESSION_USER_KEY);
     } catch {}
+    hydratedUserIdRef.current = null;
     setCurrentUser(null);
+    setTastings([]);
     setAdminSessionActive(true);
     setCurrentScreen("admin");
   };
@@ -802,7 +824,7 @@ export default function App() {
     setTastings(updated);
     if (currentUser) {
       hydratedUserIdRef.current = currentUser.id;
-      if (currentUser.id === "user-test-dev") {
+      if (isLocalSandboxUser(currentUser)) {
         try {
           localStorage.setItem(getUserTastingsKey(currentUser), JSON.stringify(updated));
         } catch {}
@@ -817,7 +839,7 @@ export default function App() {
         });
       }
 
-      if (isNewCata && currentUser.id !== "user-test-dev") {
+      if (isNewCata && !isLocalSandboxUser(currentUser)) {
         triggerWebhookInBackground("new_tasting", {
           user: currentUser,
           tasting: savedRecord,
@@ -844,7 +866,7 @@ export default function App() {
     const updated = tastings.filter((t) => t.id !== id);
     setTastings(updated);
     if (currentUser) {
-      if (currentUser.id === "user-test-dev") {
+      if (isLocalSandboxUser(currentUser)) {
         try {
           localStorage.setItem(getUserTastingsKey(currentUser), JSON.stringify(updated));
         } catch {}
@@ -1227,7 +1249,7 @@ export default function App() {
           )}
 
           {/* Barra de Sincronización Pendiente (si DreamHost no estuvo accesible al guardar) */}
-          {currentUser && currentScreen !== "admin" && pendingCloudSyncCount > 0 && (
+          {currentUser && !isLocalSandboxUser(currentUser) && currentScreen !== "admin" && pendingCloudSyncCount > 0 && (
             <div
               data-cms-locked="true"
               className="bg-amber-50 border-b border-amber-200 text-amber-900 text-xs font-semibold px-3 py-1.5 text-center"

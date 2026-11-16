@@ -283,8 +283,10 @@ export const isTestOrTourUser = (
     id === "user-test-dev" ||
     id === "guest-tour" ||
     id === "test-user-catador" ||
+    id === "admin-preview-user" ||
     id === "guest-user" ||
     u === "catador.prueba" ||
+    u === "admin.vista" ||
     u === "visitante" ||
     u.includes("catador.prueba") ||
     e === "prueba@varietale.com" ||
