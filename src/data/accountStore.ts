@@ -385,7 +385,7 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       notes: "Primer café 100% orgánico certificado de Varietale. Taza limpia y dulce con notas a caña, cacao suave y frutos secos tostados.",
       flavors: [
         { descriptorId: "desc_roasted_cereal", name: "Cereal tostado", macro: "Tostado", intensity: 4 },
-        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate con leche", macro: "Frutos secos / cacao", intensity: 4 },
+        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate de leche", macro: "Frutos secos / cacao", intensity: 4 },
         { descriptorId: "desc_sweet_panela", name: "Panela / Azúcar de caña", macro: "Dulce", intensity: 5 },
       ],
     },
@@ -424,7 +424,7 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       daysAgo: 4,
       notes: "El clásico de Varietale. Crema densa y avellanada, aroma a cacao, notas a caramelo fundido y frutas con acidez moderada.",
       flavors: [
-        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate oscuro", macro: "Frutos secos / cacao", intensity: 5 },
+        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate amargo", macro: "Frutos secos / cacao", intensity: 5 },
         { descriptorId: "desc_sweet_caramel", name: "Caramelo", macro: "Dulce", intensity: 5 },
         { descriptorId: "desc_fruity_blackberry", name: "Mora", macro: "Frutal", intensity: 3 },
       ],
@@ -526,7 +526,7 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       flavors: [
         { descriptorId: "desc_sweet_caramel", name: "Caramelo", macro: "Dulce", intensity: 5 },
         { descriptorId: "desc_fruity_date", name: "Dátil", macro: "Frutal", intensity: 4 },
-        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate con leche", macro: "Frutos secos / cacao", intensity: 4 },
+        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate de leche", macro: "Frutos secos / cacao", intensity: 4 },
       ],
     },
     {
@@ -566,7 +566,7 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       flavors: [
         { descriptorId: "desc_sweet_panela", name: "Panela / Azúcar de caña", macro: "Dulce", intensity: 4 },
         { descriptorId: "desc_sweet_honey", name: "Miel", macro: "Dulce", intensity: 4 },
-        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate oscuro", macro: "Frutos secos / cacao", intensity: 3 },
+        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate amargo", macro: "Frutos secos / cacao", intensity: 3 },
       ],
     },
     {
@@ -605,7 +605,7 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       notes: "Producido por Jhohan Becerra. Gran balance con notas marcadas a frutos rojos, chocolate y cuerpo redondo.",
       flavors: [
         { descriptorId: "desc_fruity_strawberry", name: "Fresa / Frutos rojos", macro: "Frutal", intensity: 5 },
-        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate con leche", macro: "Frutos secos / cacao", intensity: 4 },
+        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate de leche", macro: "Frutos secos / cacao", intensity: 4 },
         { descriptorId: "desc_sweet_panela", name: "Panela / Azúcar de caña", macro: "Dulce", intensity: 4 },
       ],
     },
@@ -642,11 +642,11 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       bodyLevel: 3,
       rating: 4,
       daysAgo: 15,
-      notes: "En prensa francesa resalta un cuerpo muy denso y achocolatado con notas de panela oscura y nuez.",
+      notes: "En prensa francesa resalta un cuerpo muy denso y achocolatado con notas de panela oscura y almendra.",
       flavors: [
-        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate oscuro", macro: "Frutos secos / cacao", intensity: 5 },
+        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate amargo", macro: "Frutos secos / cacao", intensity: 5 },
         { descriptorId: "desc_sweet_panela", name: "Panela / Azúcar de caña", macro: "Dulce", intensity: 4 },
-        { descriptorId: "desc_nut_walnut", name: "Nuez", macro: "Frutos secos / cacao", intensity: 4 },
+        { descriptorId: "desc_nut_almond", name: "Almendra", macro: "Frutos secos / cacao", intensity: 4 },
       ],
     },
     {
@@ -706,7 +706,7 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       flavors: [
         { descriptorId: "desc_sweet_panela", name: "Panela / Azúcar de caña", macro: "Dulce", intensity: 5 },
         { descriptorId: "desc_fruity_blueberry", name: "Arándano", macro: "Frutal", intensity: 4 },
-        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate oscuro", macro: "Frutos secos / cacao", intensity: 4 },
+        { descriptorId: "desc_cocoa_dark_chocolate", name: "Chocolate amargo", macro: "Frutos secos / cacao", intensity: 4 },
       ],
     },
     {
@@ -742,10 +742,10 @@ export const seedTestUser20Tastings = (): TastingRecord[] => {
       bodyLevel: 2,
       rating: 5,
       daysAgo: 20,
-      notes: "Café de Jhohan Becerra filtrado en V60. Resalta la acidez jugosa de fresa con un retrogusto a chocolate con leche.",
+      notes: "Café de Jhohan Becerra filtrado en V60. Resalta la acidez jugosa de fresa con un retrogusto a chocolate de leche.",
       flavors: [
         { descriptorId: "desc_fruity_strawberry", name: "Fresa / Frutos rojos", macro: "Frutal", intensity: 5 },
-        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate con leche", macro: "Frutos secos / cacao", intensity: 5 },
+        { descriptorId: "desc_cocoa_milk_chocolate", name: "Chocolate de leche", macro: "Frutos secos / cacao", intensity: 5 },
         { descriptorId: "desc_sweet_panela", name: "Panela / Azúcar de caña", macro: "Dulce", intensity: 4 },
       ],
     },

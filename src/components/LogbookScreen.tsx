@@ -365,19 +365,19 @@ export const LogbookScreen: React.FC<LogbookScreenProps> = ({
         val: tostado,
         title: "Te falta explorar cafés con perfil Tostado y Cacao",
         macros: ["tostado"],
-        keywords: ["tostad", "cacao", "chocolate", "panela", "oscuro", "caramelo"],
+        keywords: ["tostad", "cacao", "chocolate amargo", "chocolate de leche", "panela", "caramelo"],
       },
       {
         val: dulce,
         title: "Te falta explorar cafés con perfil Dulce y Achocolatado",
         macros: ["dulce"],
-        keywords: ["dulce", "miel", "caramelo", "cana", "panela", "melado", "chocolate"],
+        keywords: ["dulce", "miel", "caramelo", "cana", "panela", "melado", "melaza", "chocolate"],
       },
       {
         val: nueces ?? 0,
         title: "Te falta explorar cafés con notas de Cacao y Frutos Secos",
         macros: ["nueces", "frutos secos / cacao", "nueces/cacao"],
-        keywords: ["cacao", "nuez", "avellana", "almendra", "chocolate"],
+        keywords: ["cacao", "mani", "avellana", "almendra", "chocolate amargo", "chocolate de leche"],
       },
       {
         val: especias ?? 0,

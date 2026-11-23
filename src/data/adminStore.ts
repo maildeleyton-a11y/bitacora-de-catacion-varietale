@@ -2490,7 +2490,7 @@ export const seedSimulatedAdminData = (): {
     "Increíble fragancia floral desde la molienda. En V60 resaltan muchísimo las notas a jazmín, durazno y miel limpia.",
     "Mi café favorito de Varietale hasta ahora. Dulzor a caramelo y frutos rojos súper balanceado al enfriar.",
     "Preparado en Chemex quedó con una claridad impresionante. La acidez cítrica a mandarina es brillante y sedosa.",
-    "Cuerpo medio-denso delicioso en Prensa Francesa, mucho chocolate oscuro y avellana tostada en el retrogusto.",
+    "Cuerpo medio-denso delicioso en Prensa Francesa, mucho chocolate amargo y avellana tostada en el retrogusto.",
     "Un lote espectacular del Huila. Se sienten notas claras a mora, fresa madura y panela dulce.",
     "Lo probé en Aeropress siguiendo la receta de la guía y el resultado fue redondo, dulce y muy aromático.",
     "Sorprendente complejidad aromática, sabe a flor de azahar con un final prolongado a miel de abejas.",
@@ -2502,7 +2502,7 @@ export const seedSimulatedAdminData = (): {
   // Reseñas de 3★ (calificación media)
   const midRatingNotes = [
     "Buen café de origen aunque hoy la molienda me quedó un poco fina y se sintió algo más amargo de lo normal.",
-    "Taza correcta con notas a chocolate y nuez, agradable para la mañana pero esperaba un poco más de acidez frutal.",
+    "Taza correcta con notas a chocolate y almendra, agradable para la mañana pero esperaba un poco más de acidez frutal.",
     "Lo compré para comparar en casa con mi V60; tiene buen cuerpo pero menos complejidad aromática que el Geisha.",
   ];
 

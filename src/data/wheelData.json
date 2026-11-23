@@ -374,7 +374,7 @@
               "SUBFAMILIA": "Ácido",
               "DESCRIPTOR_EN": "Sour aromatics",
               "DESCRIPTOR_ES": "Aromas ácidos",
-              "REFERENCIA_SABOR": "Vinagre suave (aproximación)",
+              "REFERENCIA_SABOR": "Vinagre de manzana (aproximación)",
               "DESCRIPCION": "Busca un olor que sugiera acidez, aunque todavía no pruebes el café. Es una impresión aromática; no es una medida de la acidez en boca.",
               "children": []
             },
@@ -404,8 +404,8 @@
               "SUBFAMILIA": "Ácido",
               "DESCRIPTOR_EN": "Isovaleric acid",
               "DESCRIPTOR_ES": "Ácido isovalérico",
-              "REFERENCIA_SABOR": "Queso curado fuerte (aproximación)",
-              "DESCRIPCION": "Busca un olor intenso que puede recordar queso muy curado o sudor. La referencia al queso orienta, pero no representa exactamente todo el perfil.",
+              "REFERENCIA_SABOR": "Queso Curado, Queso Añejo",
+              "DESCRIPCION": "Busca un olor intenso que puede recordar queso curado o queso añejo. La referencia al queso orienta, pero no representa exactamente todo el perfil.",
               "children": []
             },
             {
@@ -465,8 +465,8 @@
               "SUBFAMILIA": "Alcohol / fermentado",
               "DESCRIPTOR_EN": "Fermented",
               "DESCRIPTOR_ES": "Fermentado",
-              "REFERENCIA_SABOR": "Masa de pan fermentada (aproximación)",
-              "DESCRIPCION": "Recuerda productos que han fermentado: pueden aparecer levadura, fruta y un matiz alcohólico. La masa de pan es una guía parcial, no una equivalencia exacta.",
+              "REFERENCIA_SABOR": "Levadura fermentada (aproximación)",
+              "DESCRIPCION": "Recuerda productos que han fermentado: pueden aparecer levadura fermentada, fruta y un matiz alcohólico. Es una guía aromática de referencia.",
               "children": []
             },
             {
@@ -629,8 +629,8 @@
               "SUBFAMILIA": "Papel / humedad",
               "DESCRIPTOR_EN": "Stale",
               "DESCRIPTOR_ES": "Falta de frescura",
-              "REFERENCIA_SABOR": "Galleta almacenada (aproximación)",
-              "DESCRIPCION": "Busca una impresión apagada, como la de un alimento que perdió frescura al almacenarse. No significa necesariamente que haya una nota de humedad o moho.",
+              "REFERENCIA_SABOR": "Rancio (aproximación)",
+              "DESCRIPCION": "Busca una impresión apagada o rancia, como la de un alimento que perdió frescura al almacenarse. No significa necesariamente que haya una nota de humedad o moho.",
               "children": []
             },
             {
@@ -1056,10 +1056,10 @@
               "ID": "nutty-cocoa__cocoa__chocolate",
               "FAMILIA": "Frutos secos / cacao",
               "SUBFAMILIA": "Cacao",
-              "DESCRIPTOR_EN": "Chocolate",
-              "DESCRIPTOR_ES": "Chocolate",
-              "REFERENCIA_SABOR": "Chocolate",
-              "DESCRIPCION": "Recuerda el aroma del chocolate, combinando cacao y un carácter tostado. Describe esa nota aromática sin exigir leche o azúcar.",
+              "DESCRIPTOR_EN": "Milk chocolate",
+              "DESCRIPTOR_ES": "Chocolate de leche",
+              "REFERENCIA_SABOR": "Chocolate de leche",
+              "DESCRIPCION": "Recuerda el aroma del chocolate de leche, combinando cacao suave con una nota cremosa y dulce.",
               "children": []
             },
             {
@@ -1067,9 +1067,9 @@
               "FAMILIA": "Frutos secos / cacao",
               "SUBFAMILIA": "Cacao",
               "DESCRIPTOR_EN": "Dark chocolate",
-              "DESCRIPTOR_ES": "Chocolate oscuro",
-              "REFERENCIA_SABOR": "Chocolate oscuro",
-              "DESCRIPCION": "Busca un carácter de cacao intenso, como el chocolate de alto contenido de cacao. Puede evocar más amargor y sequedad que un chocolate dulce.",
+              "DESCRIPTOR_ES": "Chocolate amargo",
+              "REFERENCIA_SABOR": "Chocolate amargo",
+              "DESCRIPCION": "Busca un carácter de cacao intenso y seco, como el chocolate amargo de alto contenido de cacao.",
               "children": []
             }
           ]
@@ -1109,9 +1109,9 @@
               "FAMILIA": "Dulce",
               "SUBFAMILIA": "Azúcar morena",
               "DESCRIPTOR_EN": "Maple syrup",
-              "DESCRIPTOR_ES": "Jarabe de arce",
-              "REFERENCIA_SABOR": "Melado de panela (aproximación)",
-              "DESCRIPCION": "Busca un aroma dulce de azúcar cocida con un matiz de madera. El melado de panela aproxima parte del perfil, pero no sustituye al jarabe de arce.",
+              "DESCRIPTOR_ES": "Melado de panela",
+              "REFERENCIA_SABOR": "Melado de panela",
+              "DESCRIPCION": "Busca un aroma dulce de azúcar cocida con un matiz cálido y amaderado, característico del melado de panela.",
               "children": []
             },
             {
@@ -1119,9 +1119,9 @@
               "FAMILIA": "Dulce",
               "SUBFAMILIA": "Azúcar morena",
               "DESCRIPTOR_EN": "Caramelized",
-              "DESCRIPTOR_ES": "Caramelizado",
+              "DESCRIPTOR_ES": "Caramelo",
               "REFERENCIA_SABOR": "Caramelo",
-              "DESCRIPCION": "Busca el aroma que aparece al cocinar azúcar hasta dorarla. Se diferencia del azúcar quemada: el carácter caramelizado no exige aspereza o carbonización.",
+              "DESCRIPCION": "Busca el aroma dulce y tostado del caramelo que aparece al cocinar azúcar hasta dorarla. No exige aspereza o carbonización.",
               "children": []
             },
             {

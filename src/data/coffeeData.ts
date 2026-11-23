@@ -283,7 +283,7 @@ export const MACRO_THEMES: Record<MacroProfile, {
     accent: "#7D5844",
     bgLight: "#FAF6F4",
     border: "#E8DCD4",
-    description: "Chocolate oscuro, cacao puro, avellana, almendra y maní.",
+    description: "Chocolate amargo, chocolate de leche, cacao, avellana, almendra y maní.",
   },
   "Nueces/Cacao": {
     name: "Frutos secos / cacao",
@@ -291,7 +291,7 @@ export const MACRO_THEMES: Record<MacroProfile, {
     accent: "#7D5844",
     bgLight: "#FAF6F4",
     border: "#E8DCD4",
-    description: "Chocolate oscuro, cacao puro, avellana, almendra y maní.",
+    description: "Chocolate amargo, chocolate de leche, cacao, avellana, almendra y maní.",
   },
   Dulce: {
     name: "Dulce",
@@ -299,7 +299,7 @@ export const MACRO_THEMES: Record<MacroProfile, {
     accent: "#BD3F1D",
     bgLight: "#FEF5F2",
     border: "#FCD9CE",
-    description: "Panela colombiana, mieles, caramelo toffee, vainilla y sirope de arce.",
+    description: "Panela colombiana, mieles, caramelo toffee, vainilla y melado de panela.",
   },
 };
 
