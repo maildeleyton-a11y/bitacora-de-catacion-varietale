@@ -121,6 +121,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [showAdminPass, setShowAdminPass] = useState(false);
   const [adminMasterPinInput, setAdminMasterPinInput] = useState("");
   const [isAdminPinVerified, setIsAdminPinVerified] = useState(false);
+  const [recoveredAdminUsername, setRecoveredAdminUsername] = useState<string | null>(null);
   const [adminNewPassword, setAdminNewPassword] = useState("");
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminSuccessMsg, setAdminSuccessMsg] = useState<string | null>(null);
@@ -443,6 +444,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
     const res = await apiAdminVerifyPin(adminMasterPinInput.trim());
     if (res.ok && res.data?.success) {
+      if (res.data.username) {
+        setRecoveredAdminUsername(res.data.username);
+        saveAdminCredentials({ username: res.data.username });
+      }
       setIsAdminPinVerified(true);
       setAdminError(null);
       return;
@@ -452,6 +457,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       return;
     }
     if (verifyAdminMasterPin(adminMasterPinInput)) {
+      setRecoveredAdminUsername(getAdminCredentials().username);
       setIsAdminPinVerified(true);
       setAdminError(null);
     } else {
@@ -475,8 +481,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       setAdminError("No se pudo actualizar la contraseña de Administrador en DreamHost.");
       return;
     }
-    saveAdminCredentials({ password: adminNewPassword.trim() });
-    await apiAdminLogin(adminUserInput.trim() || "amorporelcafe.admin", adminNewPassword.trim());
+    const targetUsername =
+      res.data?.username ||
+      recoveredAdminUsername ||
+      adminUserInput.trim() ||
+      getAdminCredentials().username ||
+      "amorporelcafe.admin";
+    saveAdminCredentials({
+      username: targetUsername,
+      password: adminNewPassword.trim(),
+    });
+    await apiAdminLogin(targetUsername, adminNewPassword.trim());
     setAdminSessionActive(true);
     setAdminSuccessMsg("¡Contraseña actualizada! Entrando al panel...");
     setTimeout(() => {
@@ -1594,7 +1609,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     <div className="p-3 rounded-xl bg-[#EBFBFA] border border-[#00D9B4]/50 text-xs">
                       <span className="text-[#52646E] block">Tu usuario actual de Administrador es:</span>
                       <strong data-cms-locked="true" className="text-sm font-black text-[#01374C] select-all">
-                        {getAdminCredentials().username}
+                        {recoveredAdminUsername || getAdminCredentials().username}
                       </strong>
                     </div>
 

@@ -144,7 +144,13 @@ Cada vez que se desee publicar una nueva versión de la aplicación:
 
 ### 8. Backend Centralizado PHP 8.3 + SQLite en DreamHost y Respaldos en GitHub
 
-1. **Aislamiento total de datos frente a despliegues (`rsync`):**
+1. **Despliegue automático GitHub -> DreamHost (`.github/workflows/deploy-dreamhost.yml`):**
+   - Cada vez que se hace `git push origin main`, GitHub Actions compila automáticamente `dist/` (incluyendo `api/*.php` y `.htaccess`) y lo sube vía `rsync` a `/home/bitacoravarietale_app/bitacora.varietale.com/` excluyendo cualquier carpeta de datos (`api/storage/` y `bitacora_storage/`), verificando al final `/api/health` y `/api/app-config`.
+   - En GitHub (`maildeleyton-a11y/bitacora-de-catacion-varietale` -> `Settings` -> `Secrets and variables` -> `Actions`), configura:
+     - `DREAMHOST_SSH_KEY` (llave SSH privada con acceso al usuario `bitacoravarietale_app`) **o** `DREAMHOST_SSH_PASSWORD` (contraseña SSH del usuario `bitacoravarietale_app`).
+     - Opcionales (si cambian en el futuro): `DREAMHOST_HOST` (por defecto `173.236.200.69`), `DREAMHOST_USER` (por defecto `bitacoravarietale_app`) y `DREAMHOST_PATH` (por defecto `/home/bitacoravarietale_app/bitacora.varietale.com/`).
+
+2. **Aislamiento total de datos frente a despliegues (`rsync` manual opcional):**
    - El backend PHP almacena la base SQLite (`bitacora.sqlite`) y las fotografías optimizadas (`uploads/`) en `/home/bitacoravarietale_app/bitacora_storage/` (directorio hermano **fuera** de `bitacora.varietale.com/`).
    - Al actualizar código con `rsync`, usar siempre exclusiones de seguridad:
      ```bash

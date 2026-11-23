@@ -519,7 +519,8 @@ export function registerDevApiRoutes(app: Express): void {
   app.post("/api/admin/verify-pin", (req, res) => {
     const db = loadDb();
     const pin = String(req.body?.pin || "").trim();
-    res.json({ success: pin !== "" && (pin === db.adminCredentials.masterPin || pin === "1985") });
+    const ok = pin !== "" && (pin === db.adminCredentials.masterPin || pin === "1985");
+    res.json({ success: ok, username: ok ? db.adminCredentials.username : undefined });
   });
 
   app.post("/api/admin/update-credentials", (req, res) => {

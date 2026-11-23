@@ -809,7 +809,10 @@ switch ($route) {
         $pinIn = trim((string)($b['pin'] ?? ''));
         $cfg = varietale_get_admin_config($pdo);
         $ok = ($pinIn !== '' && ($pinIn === trim((string)$cfg['masterPin']) || $pinIn === '1985'));
-        varietale_json_response(['success' => $ok]);
+        varietale_json_response([
+            'success' => $ok,
+            'username' => $ok ? $cfg['username'] : null,
+        ]);
         break;
 
     case 'admin/update-credentials':

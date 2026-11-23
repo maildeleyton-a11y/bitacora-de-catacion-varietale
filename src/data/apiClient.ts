@@ -646,14 +646,14 @@ export const apiAdminLogin = async (username: string, password: string) => {
 };
 
 export const apiAdminVerifyPin = (pin: string) =>
-  apiFetch<{ success: boolean }>("/api/admin/verify-pin", { method: "POST", body: JSON.stringify({ pin }) }, "none");
+  apiFetch<{ success: boolean; username?: string }>("/api/admin/verify-pin", { method: "POST", body: JSON.stringify({ pin }) }, "none");
 
 export const apiAdminUpdateCredentials = (payload: {
   username?: string;
   password?: string;
   newMasterPin?: string;
   masterPin?: string;
-}) => apiFetch<{ success: boolean }>("/api/admin/update-credentials", { method: "POST", body: JSON.stringify(payload) }, "admin");
+}) => apiFetch<{ success: boolean; username?: string }>("/api/admin/update-credentials", { method: "POST", body: JSON.stringify(payload) }, "admin");
 
 export const apiFetchPublicAppConfig = () =>
   apiFetch<{

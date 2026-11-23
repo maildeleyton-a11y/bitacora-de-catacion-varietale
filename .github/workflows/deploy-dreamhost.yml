@@ -1,0 +1,88 @@
+name: Deploy Automático a DreamHost (bitacora.varietale.com)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: "dreamhost-prod-deploy"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy-dreamhost:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22 (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm install --legacy-peer-deps
+
+      - name: Compilar aplicación (dist + api PHP + .htaccess)
+        run: |
+          npm run build
+          test -f dist/index.html
+          test -f dist/.htaccess
+          test -f dist/api/index.php
+          test -f dist/api/db.php
+          test -f dist/api/varietale_catalog.php
+          echo "Build verificado correctamente."
+
+      - name: Subir compilación a DreamHost vía rsync (protegiendo BD y fotos)
+        env:
+          DH_HOST: ${{ secrets.DREAMHOST_HOST || vars.DREAMHOST_HOST || '173.236.200.69' }}
+          DH_USER: ${{ secrets.DREAMHOST_USER || vars.DREAMHOST_USER || 'bitacoravarietale_app' }}
+          DH_PATH: ${{ secrets.DREAMHOST_PATH || vars.DREAMHOST_PATH || '/home/bitacoravarietale_app/bitacora.varietale.com/' }}
+          DH_SSH_KEY: ${{ secrets.DREAMHOST_SSH_KEY }}
+          DH_SSH_PASS: ${{ secrets.DREAMHOST_SSH_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DH_SSH_KEY" ] && [ -z "$DH_SSH_PASS" ]; then
+            echo "::error::Falta configurar DREAMHOST_SSH_KEY (recomendado) o DREAMHOST_SSH_PASSWORD en GitHub Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H "$DH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          RSYNC_OPTS=(-avz --delete --exclude='api/storage/' --exclude='*.secret' --exclude='server.cjs*')
+
+          if [ -n "$DH_SSH_KEY" ]; then
+            KEY_FILE=$(mktemp)
+            trap 'rm -f "$KEY_FILE"' EXIT
+            printf '%s\n' "$DH_SSH_KEY" > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
+            rsync "${RSYNC_OPTS[@]}" -e "ssh -i $KEY_FILE -o StrictHostKeyChecking=accept-new" dist/ "${DH_USER}@${DH_HOST}:${DH_PATH}"
+          else
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq sshpass
+            SSHPASS="$DH_SSH_PASS" sshpass -e rsync "${RSYNC_OPTS[@]}" -e "ssh -o StrictHostKeyChecking=accept-new" dist/ "${DH_USER}@${DH_HOST}:${DH_PATH}"
+          fi
+
+      - name: Verificar salud de la API y SQLite en DreamHost
+        run: |
+          sleep 2
+          curl -fsSL "https://bitacora.varietale.com/api/health" -o /tmp/dh-health.json
+          curl -fsSL "https://bitacora.varietale.com/api/app-config" -o /tmp/dh-cfg.json
+          python3 - <<'PY'
+          import json, sys
+          health = json.load(open("/tmp/dh-health.json", encoding="utf-8"))
+          cfg = json.load(open("/tmp/dh-cfg.json", encoding="utf-8"))
+          print("HEALTH:", health)
+          print("APP_CONFIG:", cfg)
+          if health.get("status") != "ok" or not health.get("storageWritable"):
+              print("::error::DreamHost /api/health no reporta almacenamiento escribible.")
+              sys.exit(1)
+          if not cfg.get("success"):
+              print("::error::DreamHost /api/app-config no devolvió success=true.")
+              sys.exit(1)
+          print("Despliegue y base de datos SQLite verificados en vivo.")
+          PY
